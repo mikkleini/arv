@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace CalcBase.Constants
 {
     /// <summary>
-    /// Interface for real number constant
+    /// Interface for physics constant
     /// </summary>
-    interface IRealConstant : IConstant
+    interface IPhysicsConstant : IRealConstant
     {
-        RealType Value { get; }
+        string Unit { get; }
     }
 }

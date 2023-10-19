@@ -9,10 +9,8 @@ namespace CalcBase.Constants
     /// <summary>
     /// Interface for integer number constant
     /// </summary>
-    interface IIntConstant
+    interface IIntConstant : IConstant
     {
-        string Name { get; }
-        string Symbol { get; }
         IntType Value { get; }
     }
 }

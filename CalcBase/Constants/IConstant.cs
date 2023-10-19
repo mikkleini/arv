@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace CalcBase.Constants
 {
-    /// <summary>
-    /// Interface for real number constant
-    /// </summary>
-    interface IRealConstant : IConstant
+    interface IConstant
     {
-        RealType Value { get; }
+        string Name { get; }
+        string Symbol { get; }
     }
 }

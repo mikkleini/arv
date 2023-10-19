@@ -12,12 +12,12 @@ namespace CalcBase
         IntegerNumber,
         HexadecimalNumber,
         RealNumber,
+        Text,
         Unit,
         Variable,
         Function,
         Parenthesis,
         Operator,
-        Comma,
-        WhiteSpace
+        Comma
     }
 }

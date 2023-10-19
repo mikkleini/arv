@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CalcBase.Constants
+namespace CalcBase.Constants.Mathematical
 {
     public class PiConstant : IRealConstant
     {
