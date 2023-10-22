@@ -6,6 +6,6 @@
         string Name { get; }
         int Precedence { get; }
         OperatorAssociativity Associativity { get; }
-        bool IsUnary { get; }
+        OperatorOpCountType OpCount { get; }
     }
 }

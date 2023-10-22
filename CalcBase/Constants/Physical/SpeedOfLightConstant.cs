@@ -1,6 +1,6 @@
 ﻿namespace CalcBase.Constants.Physical
 {
-    public class SpeedOfLightConstant : IPhysicsConstant
+    public record SpeedOfLightConstant : IPhysicsConstant
     {
         public string Name => "Speed of light in vacuum";
         public string Symbol => "c";

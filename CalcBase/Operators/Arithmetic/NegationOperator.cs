@@ -1,11 +1,36 @@
-﻿namespace CalcBase.Operators.Arithmetic
+﻿using CalcBase.Generic;
+
+namespace CalcBase.Operators.Arithmetic
 {
-    public record NegationOperator : IOperator
+    /// <summary>
+    /// Negation operator
+    /// </summary>
+    public record NegationOperator : IOperator, IUnaryIntegerOperation, IUnaryRealOperation
     {
         public string Symbol => "-";
         public string Name => "Negation";
         public int Precedence => 3;
         public OperatorAssociativity Associativity => OperatorAssociativity.Right;
-        public bool IsUnary => true;
+        public OperatorOpCountType OpCount => OperatorOpCountType.Unary;
+
+        /// <summary>
+        /// Calculate result of operation
+        /// </summary>
+        /// <param name="a">Operand A</param>
+        /// <returns>Result of operation</returns>
+        public IntType Calculate(IntType a)
+        {
+            return -a;
+        }
+
+        /// <summary>
+        /// Calculate result of operation
+        /// </summary>
+        /// <param name="a">Operand A</param>
+        /// <returns>Result of operation</returns>
+        public RealType Calculate(RealType a)
+        {
+            return -a;
+        }
     }
 }

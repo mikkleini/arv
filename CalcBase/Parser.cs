@@ -1,8 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Text;
+using CalcBase.Functions;
 using CalcBase.Operators;
 using CalcBase.Operators.Arithmetic;
 using CalcBase.Operators.Bitwise;
+using CalcBase.Tokens;
 
 [assembly: InternalsVisibleTo("CalcBaseTest")]
 namespace CalcBase
@@ -20,7 +23,7 @@ namespace CalcBase
         private static readonly int IntTypeBits = 128;
 
         // Operators
-        private readonly IOperator[] operators = new IOperator[]
+        private static readonly IOperator[] operators = new IOperator[]
         {
             new AdditionOperator(),
             new SubtractionOperator(),
@@ -36,14 +39,21 @@ namespace CalcBase
             new InverseOperator(),
         };
 
+        private static readonly IFunction[] functions = new IFunction[]
+        {
+            new CosFunction(),
+            new SinFunction()
+        };
+
         /// <summary>
         /// Read text (don't yet know if it's constant, unit, variable or function)
         /// </summary>
         /// <param name="infix">Infix expression</param>
-        /// <param name="position">Search position</param>
+        /// <param name="start">Number start position</param>
+        /// <param name="end">Number end position</param>
         /// <returns>Text token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        private static Token ReadText(ReadOnlySpan<char> infix, int position)
+        internal static IToken ReadText(ReadOnlySpan<char> infix, int start, out int end)
         {
             StringBuilder text = new();
 
@@ -60,12 +70,51 @@ namespace CalcBase
                 }
             }
 
+            // Return token and end position
+            end = start + text.Length;
             return new TextToken()
             {
-                Position = position,
+                Position = start,
                 Length = text.Length,
                 Text = text.ToString()
             };
+        }
+
+        /// <summary>
+        /// Minus operator requires special handling
+        /// TODO Maybe there's more universal way to resolve conflicting symbols?
+        /// </summary>
+        /// <param name="prevToken">Previous token or null if none</param>
+        /// <returns>Operator</returns>
+        internal static IOperator FindMinusOperator(IToken? prevToken)
+        {
+            bool isNegation = false;
+
+            if (prevToken == null)
+            {
+                isNegation = true;
+            }
+            else
+            {
+                if ((prevToken is ParenthesisToken token) && (token.Side == ParenthesisSide.Left))
+                {
+                    isNegation = true;
+                }
+                else if (prevToken is OperatorToken)
+                {
+                    isNegation = true;
+                }
+            }
+
+            // So which operator it is
+            if (isNegation)
+            {
+                return operators.Single(op => op is NegationOperator);
+            }
+            else
+            {
+                return operators.Single(op => op is SubtractionOperator);
+            }
         }
 
         /// <summary>
@@ -74,117 +123,114 @@ namespace CalcBase
         /// <param name="infix">Infix epxression</param>
         /// <returns>List of tokens</returns>
         /// <exception cref="ExpressionException">Exception in infix expression</exception>
-        public List<Token> ShuntingYard(string infix)
+        public static List<IToken> ShuntingYard(string infix)
         {
-            ReadOnlySpan<char> span = infix.AsSpan();
-            List<Token> tokens = new();
+            List<IToken> tokens = new();
+            Stack<IToken> operatorStack = new();
             int i = 0;
 
-            while (i < span.Length)
+            while (i < infix.Length)
             {
-                char c = span[i];
-                Token? token = null;
+                char c = infix[i];
 
                 if (char.IsWhiteSpace(c))
                 {
                     // Ignore
+                    i++;
                 }
                 else if (char.IsDigit(c))
                 {
-                    token = ReadNumber(span.Slice(i), i);
+                    tokens.Add(ReadNumber(infix, i, out i));
                 }
                 else if (char.IsLetter(c))
                 {
-                    token = ReadText(span.Slice(i), i);
+                    tokens.Add(ReadText(infix, i, out i));
                 }
                 else if (c == '(')
                 {
-                    token = new ParenthesisToken()
+                    operatorStack.Push(new ParenthesisToken()
                     {
+                        Position = i,
                         Length = 1,
-                        Side = Side.Left
-                    };
+                        Side = ParenthesisSide.Left
+                    });
+                    i++;
                 }
                 else if (c == ')')
                 {
-                    token = new ParenthesisToken()
+                    while (operatorStack.TryPop(out IToken? token))
                     {
-                        Length = 1,
-                        Side = Side.Right
-                    };
-                }
-                else if (c == '-')
-                {
-                    // Minus operator requires special handling
-                    bool isNegation = false;
-
-                    if (tokens.Count == 0)
-                    {
-                        isNegation = true;
-                    }
-                    else
-                    {
-                        Token prevToken = tokens.Last();
-                        
-                        if ((prevToken.Type == TokenType.Parenthesis) && (((ParenthesisToken)prevToken).Side == Side.Left))
+                        if ((token is ParenthesisToken parenthesisToken) && (parenthesisToken.Side == ParenthesisSide.Left))
                         {
-                            isNegation = true;
+                            break;
                         }
-                        else if (prevToken.Type == TokenType.Operator)
-                        {
-                            isNegation = true;
-                        }
+                        tokens.Add(token);
                     }
-
-                    // So which operator it is
-                    if (isNegation)
-                    {
-                        token = new OperatorToken()
-                        {
-                            Position = i,
-                            Length = 1,
-                            Operator = operators.Single(op => op is NegationOperator),
-                        };
-                    }
-                    else
-                    {
-                        token = new OperatorToken()
-                        {
-                            Position = i,
-                            Length = 1,
-                            Operator = operators.Single(op => op is SubtractionOperator),
-                        };
-                    }
+                    i++;
                 }
                 else
                 {
-                    // Check for operators by length of the symbol.
-                    // Basically if expression contains ** then it should first try to find exponent operator **, not the multiplication.
-                    IOperator? op = operators
-                        .OrderByDescending(o => o.Symbol.Length)
-                        .FirstOrDefault(o => infix.AsSpan().Slice(i).StartsWith(o.Symbol.AsSpan()));
+                    IOperator? op;
+
+                    // Special case with minus operator
+                    if (c == '-')
+                    {
+                        op = FindMinusOperator(tokens.LastOrDefault());
+                    }
+                    else
+                    {
+                        // Check for operators by length of the symbol.
+                        // Basically if expression contains ** then it should first try to find exponent operator **, not the multiplication.
+                        op = operators
+                            .OrderByDescending(o => o.Symbol.Length)
+                            .FirstOrDefault(o => infix.AsSpan().Slice(i).StartsWith(o.Symbol.AsSpan()));
+                    }
 
                     // Found operator ?
                     if (op != null)
                     {
-                        token = new OperatorToken()
+                        var opToken = new OperatorToken()
                         {
-                            Operator = op,
-                            Length = op.Symbol.Length
+                            Position = i,
+                            Length = op.Symbol.Length,
+                            Operator = op
                         };
+
+                        while (operatorStack.TryPeek(out IToken? token))
+                        {
+                            if ((token is ParenthesisToken parenthesisToken) && (parenthesisToken.Side == ParenthesisSide.Left))
+                            {
+                                break;
+                            }
+                            OperatorToken opToken2 = (OperatorToken)token;
+
+                            if (opToken.Operator.Precedence > opToken2.Operator.Precedence)
+                            {
+                                //break;
+                                System.Diagnostics.Debug.WriteLine($"Op to queue {opToken2}");
+                                tokens.Add(operatorStack.Pop());
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Op not to queue");
+                            }
+
+                            //tokens.Add(operatorStack.Pop());                            
+                        }
+
+                        operatorStack.Push(opToken);
+                        i += opToken.Length;
+                    }
+                    else
+                    {
+                        throw new ExpressionException("Syntax error", i, infix.Length - i);
                     }
                 }
+            }
 
-                // Got token ?
-                if (token != null)
-                {
-                    i += token.Length;
-                    tokens.Add(token);
-                }
-                else
-                {
-                    throw new ExpressionException("Syntax error", i, span.Length - i);
-                }
+            while (operatorStack.TryPop(out IToken? opToken))
+            {
+                tokens.Add(opToken);
             }
 
             return tokens;

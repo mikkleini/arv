@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Functions\" />
+    <PackageReference Include="DecimalMath.DecimalEx" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

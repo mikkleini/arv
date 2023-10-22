@@ -1,4 +1,4 @@
-﻿namespace CalcBase
+﻿namespace CalcBase.Tokens
 {
     public enum DominantCase
     {

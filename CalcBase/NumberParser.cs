@@ -1,5 +1,8 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
+using CalcBase.Tokens;
+using DecimalMath;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 [assembly: InternalsVisibleTo("CalcBaseTest")]
 namespace CalcBase
@@ -10,18 +13,19 @@ namespace CalcBase
         /// Read binary number
         /// </summary>
         /// <param name="infix">Infix expression at number start</param>
-        /// <param name="position">Read position</param>
-        /// <returns>Binary number token</returns>
+        /// <param name="start">Number start position</param>
+        /// <param name="end">Number end position</param>
+        /// <returns>Number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static Token ReadBinaryNumber(ReadOnlySpan<char> infix, int position)
+        internal static IToken ReadBinaryNumber(ReadOnlySpan<char> infix, int start, out int end)
         {
             IntType value = 0;
-            int i;
+            int pos;
 
             // Start after prefix
-            for (i = 2; i < infix.Length; i++)
+            for (pos = start + 2; pos < infix.Length; pos++)
             {
-                char c = infix[i];
+                char c = infix[pos];
                 if (c == '0')
                 {
                     value <<= 1;
@@ -37,22 +41,24 @@ namespace CalcBase
             }
 
             // Length check
-            if (i < 3)
+            if (pos - start < 3)
             {
-                throw new ExpressionException("Incomplete binary number", position, i);
+                throw new ExpressionException("Incomplete binary number", start, pos - start);
             }
 
-            if (i > 2 + IntTypeBits)
+            if (pos - start > 2 + IntTypeBits)
             {
-                throw new ExpressionException("Too large binary number", position, i);
+                throw new ExpressionException("Too large binary number", start, pos - start);
             }
 
-            // Return token
-            return new BinaryNumberToken()
+            // Return token and end position
+            end = pos;
+            return new IntegerNumberToken()
             {
-                Position = position,
-                Length = i,
-                Value = value
+                Position = start,
+                Length = pos - start,
+                Value = value,
+                Radix = IntegerRadix.Binary
             };
         }
 
@@ -60,20 +66,21 @@ namespace CalcBase
         /// Read hexadecimal number
         /// </summary>
         /// <param name="infix">Infix expression at number start</param>
-        /// <param name="position">Read position</param>
-        /// <returns>Hexadecimal number token</returns>
+        /// <param name="start">Number start position</param>
+        /// <param name="end">Number end position</param>
+        /// <returns>Number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static Token ReadHexadecimalNumber(ReadOnlySpan<char> infix, int position)
+        internal static IToken ReadHexadecimalNumber(ReadOnlySpan<char> infix, int start, out int end)
         {
             IntType value = 0;
             int countLowerCase = 0;
             int countUpperCase = 0;
-            int i;
+            int pos;
 
             // Start after prefix
-            for (i = 2; i < infix.Length; i++)
+            for (pos = start + 2; pos < infix.Length; pos++)
             {
-                char c = infix[i];
+                char c = infix[pos];
                 if ((c >= '0') && (c <= '9'))
                 {
                     value = (value << 4) | (IntType)(c - '0');
@@ -95,14 +102,14 @@ namespace CalcBase
             }
 
             // Length check
-            if (i < 3)
+            if (pos - start < 3)
             {
-                throw new ExpressionException("Incomplete hexadecimal number", position, i);
+                throw new ExpressionException("Incomplete hexadecimal number", start, pos - start);
             }
 
-            if (i > 2 + (IntTypeBits / 4))
+            if (pos - start > 2 + (IntTypeBits / 4))
             {
-                throw new ExpressionException("Too large hexadecimal number", position, i);
+                throw new ExpressionException("Too large hexadecimal number", start, pos - start);
             }
 
             // Determine dominant hexadecimal letters case
@@ -116,12 +123,14 @@ namespace CalcBase
                 dominantCase = DominantCase.Lower;
             }
 
-            // Return token
-            return new HexadecimalNumberToken()
+            // Return token and end position
+            end = pos;
+            return new IntegerNumberToken()
             {
-                Position = position,
-                Length = i,
+                Position = start,
+                Length = pos - start,
                 Value = value,
+                Radix = IntegerRadix.Hexadecimal,
                 DominantCase = dominantCase
             };
         }
@@ -130,21 +139,22 @@ namespace CalcBase
         /// Read number
         /// </summary>
         /// <param name="infix">Infix expression</param>
-        /// <param name="position">Search position</param>
+        /// <param name="start">Number start position</param>
+        /// <param name="end">Number end position</param>
         /// <returns>Some number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static Token ReadNumber(ReadOnlySpan<char> infix, int position)
+        internal static IToken ReadNumber(ReadOnlySpan<char> infix, int start, out int end)
         {
             // Binary number ?
             if (infix.StartsWith(BinaryNumberPrefix.AsSpan()))
             {
-                return ReadBinaryNumber(infix, position);
+                return ReadBinaryNumber(infix, start, out end);
             }
 
             // Hexadecimal number ?
             else if (infix.StartsWith(HexadecimalNumberPrefix.AsSpan()))
             {
-                return ReadHexadecimalNumber(infix, position);
+                return ReadHexadecimalNumber(infix, start, out end);
             }
 
             // It could be integer or real number
@@ -152,15 +162,15 @@ namespace CalcBase
             {
                 bool hasRadixPoint = false;
                 bool hasExponent = false;
-                int lenNumber = 1;
                 int startExponent = 0;
+                int lenNumber = 1;
                 int lenExponent = 0;
-                int i;
+                int pos;
 
                 // First digit already read, start from second
-                for (i = 1; i < infix.Length; i++)
+                for (pos = start + 1; pos < infix.Length; pos++)
                 {
-                    char c = infix[i];
+                    char c = infix[pos];
                     if (char.IsDigit(c))
                     {
                         if (hasExponent)
@@ -176,11 +186,11 @@ namespace CalcBase
                     {
                         if (hasExponent)
                         {
-                            throw new ExpressionException("Exponent must be an integer", position, i);
+                            throw new ExpressionException("Exponent must be an integer", startExponent, pos - startExponent);
                         }
                         else if (hasRadixPoint)
                         {
-                            throw new ExpressionException("Excessive radix point", position, i);
+                            throw new ExpressionException("Excessive radix point", pos, 1);
                         }
 
                         hasRadixPoint = true;
@@ -190,13 +200,13 @@ namespace CalcBase
                     {
                         if (hasExponent)
                         {
-                            throw new ExpressionException("Excessive exponent notation", position, i);
+                            throw new ExpressionException("Excessive exponent notation", pos, 1);
                         }
 
                         hasExponent = true;
-                        startExponent = i + 1;
+                        startExponent = pos + 1;
                     }
-                    else if (hasExponent && (i == startExponent) && ((c == '-') || (c == '+')))
+                    else if (hasExponent && (pos == startExponent) && ((c == '-') || (c == '+')))
                     {
                         // It's okay, it's the sign symbol
                         lenExponent++;
@@ -208,52 +218,72 @@ namespace CalcBase
                 }
 
                 // If there was exponent symbol, then there must be valid number behind it
-                IntType exponent = 1;
+                int exponent = 1;
                 if (hasExponent)
                 {
                     if ((lenExponent < 1) || ((lenExponent < 2) && ((infix[startExponent] == '-') || (infix[startExponent] == '+'))))
                     {
-                        throw new ExpressionException("Missing exponent value", position + startExponent, 1);
+                        throw new ExpressionException("Missing exponent value", startExponent, 1);
                     }
 
-                    exponent = IntType.Parse(infix.Slice(startExponent, lenExponent));
+                    // Check for overflow
+                    try
+                    {
+                        exponent = int.Parse(infix.Slice(startExponent, lenExponent));
+                    }
+                    catch (OverflowException)
+                    {
+                        throw new ExpressionException("Too large exponent value", startExponent, lenExponent);
+                    }
                 }
 
-                // Is integer or real number ?
-                if (!hasRadixPoint)
+                // Integer has no radix point and exponent is positive
+                if (!hasRadixPoint && (exponent > 0))
                 {
-                    // Length check
-                    if (i > 37)
+                    IntType number = IntType.Parse(infix.Slice(start, lenNumber));
+                    if (hasExponent)
                     {
-                        throw new ExpressionException("Too large integer number", position, i);
+                        number *= IntType.Pow(10, exponent);
                     }
 
-                    IntType number = IntType.Parse(infix.Slice(0, lenNumber));
-
-                    // Return token
+                    // Return token and end position
+                    end = pos;
                     return new IntegerNumberToken()
                     {
-                        Position = position,
-                        Length = i,
+                        Position = start,
+                        Length = pos - start,
                         Value = number,
-                        IsScientificNotation = hasExponent,
-                        Exponent = exponent,
+                        Radix = IntegerRadix.Decimal,
+                        IsScientificNotation = hasExponent
                     };
                 }
                 else
                 {
-                    // TODO Length check
+                    RealType number;
 
-                    RealType number = decimal.Parse(infix.Slice(0, lenNumber), CultureInfo.InvariantCulture);
+                    // Check for overflow
+                    try
+                    {
+                        number = decimal.Parse(infix.Slice(0, lenNumber), CultureInfo.InvariantCulture);
+                    }
+                    catch (OverflowException)
+                    {
+                        throw new ExpressionException("Too large decimal value", start, lenNumber);
+                    }
 
-                    // Return token
+                    if (hasExponent)
+                    {
+                        number *= DecimalEx.Pow(10, exponent);
+                    }
+
+                    // Return token and end position
+                    end = pos;
                     return new RealNumberToken()
                     {
-                        Position = position,
-                        Length = i,
+                        Position = start,
+                        Length = pos - start,
                         Value = number,
-                        IsScientificNotation = hasExponent,
-                        Exponent = exponent,
+                        IsScientificNotation = hasExponent
                     };
                 }
             }

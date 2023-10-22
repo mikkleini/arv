@@ -1,11 +1,38 @@
-﻿namespace CalcBase.Operators.Arithmetic
+﻿using CalcBase.Generic;
+
+namespace CalcBase.Operators.Arithmetic
 {
-    public record SubtractionOperator : IOperator
+    /// <summary>
+    /// Subtraction operator
+    /// </summary>
+    public record SubtractionOperator : IOperator, IBinaryIntegerOperation, IBinaryRealOperation
     {
         public string Symbol => "-";
         public string Name => "Subtract";
         public int Precedence => 6;
         public OperatorAssociativity Associativity => OperatorAssociativity.Left;
-        public bool IsUnary => false;
+        public OperatorOpCountType OpCount => OperatorOpCountType.Binary;
+
+        /// <summary>
+        /// Calculate result of operation
+        /// </summary>
+        /// <param name="a">Operand A</param>
+        /// <param name="b">Operand B</param>
+        /// <returns>Result of operation</returns>
+        public IntType Calculate(IntType a, IntType b)
+        {
+            return a - b;
+        }
+
+        /// <summary>
+        /// Calculate result of operation
+        /// </summary>
+        /// <param name="a">Operand A</param>
+        /// <param name="b">Operand B</param>
+        /// <returns>Result of operation</returns>
+        public RealType Calculate(RealType a, RealType b)
+        {
+            return a - b;
+        }
     }
 }

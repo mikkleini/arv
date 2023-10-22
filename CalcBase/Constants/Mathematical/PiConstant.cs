@@ -1,6 +1,6 @@
 ﻿namespace CalcBase.Constants.Mathematical
 {
-    public class PiConstant : IRealConstant
+    public record PiConstant : IRealConstant
     {
         public string Name => "Pi";
         public string Symbol => "π";
