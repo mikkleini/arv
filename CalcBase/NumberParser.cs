@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Authentication.ExtendedProtection;
 using System.Text;
 using System.Threading.Tasks;
 
+[assembly: InternalsVisibleTo("CalcBaseTest")]
 namespace CalcBase
 {
     public partial class Parser 
@@ -16,9 +19,8 @@ namespace CalcBase
         /// <param name="position">Read position</param>
         /// <returns>Binary number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        private static Token ReadBinaryNumber(ReadOnlySpan<char> infix, int position)
+        internal static Token ReadBinaryNumber(ReadOnlySpan<char> infix, int position)
         {
-            StringBuilder text = new();
             IntType value = 0;
             int i;
 
@@ -29,12 +31,10 @@ namespace CalcBase
                 if (c == '0')
                 {
                     value <<= 1;
-                    text.Append(c);
                 }
                 else if (c == '1')
                 {
                     value = (value << 1) | 1;
-                    text.Append(c);
                 }
                 else
                 {
@@ -43,7 +43,12 @@ namespace CalcBase
             }
 
             // Length check
-            if (i > 2 + (IntTypeBits - 1))
+            if (i < 3)
+            {
+                throw new ExpressionException("Incomplete binary number", position, i);
+            }
+
+            if (i > 2 + IntTypeBits)
             {
                 throw new ExpressionException("Too large binary number", position, i);
             }
@@ -63,7 +68,7 @@ namespace CalcBase
         /// <param name="position">Read position</param>
         /// <returns>Hexadecimal number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        private static Token ReadHexadecimalNumber(ReadOnlySpan<char> infix, int position)
+        internal static Token ReadHexadecimalNumber(ReadOnlySpan<char> infix, int position)
         {
             IntType value = 0;
             int countLowerCase = 0;
@@ -95,7 +100,12 @@ namespace CalcBase
             }
 
             // Length check
-            if (i > 2 + ((IntTypeBits - 1) / 4))
+            if (i < 3)
+            {
+                throw new ExpressionException("Incomplete hexadecimal number", position, i);
+            }
+
+            if (i > 2 + (IntTypeBits / 4))
             {
                 throw new ExpressionException("Too large hexadecimal number", position, i);
             }
@@ -127,7 +137,7 @@ namespace CalcBase
         /// <param name="position">Search position</param>
         /// <returns>Some number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        private static Token ReadNumber(ReadOnlySpan<char> infix, int position)
+        internal static Token ReadNumber(ReadOnlySpan<char> infix, int position)
         {
             // Binary number ?
             if (infix.StartsWith(BinaryNumberPrefix.AsSpan()))
@@ -149,20 +159,21 @@ namespace CalcBase
                 int lenNumber = 1;
                 int startExponent = 0;
                 int lenExponent = 0;
+                int i;
 
                 // First digit already read, start from second
-                for (int i = 1; i < infix.Length; i++)
+                for (i = 1; i < infix.Length; i++)
                 {
                     char c = infix[i];
                     if (char.IsDigit(c))
                     {
                         if (hasExponent)
                         {
-                            lenNumber++;
+                            lenExponent++;
                         }
                         else
                         {
-                            lenExponent++;
+                            lenNumber++;
                         }
                     }
                     else if (c == RadixPointSymbol)
@@ -177,6 +188,7 @@ namespace CalcBase
                         }
 
                         hasRadixPoint = true;
+                        lenNumber++;
                     }
                     else if (c == ExponentPointSymbol)
                     {
@@ -214,12 +226,18 @@ namespace CalcBase
                 // Is integer or real number ?
                 if (!hasRadixPoint)
                 {
+                    // Length check
+                    if (i > 37)
+                    {
+                        throw new ExpressionException("Too large integer number", position, i);
+                    }
+
                     IntType number = IntType.Parse(infix.Slice(0, lenNumber));
 
                     // Return token
                     return new IntegerNumberToken()
                     {
-                        Length = lenNumber,
+                        Length = i,
                         Value = number,
                         IsScientificNotation = hasExponent,
                         Exponent = exponent,
@@ -227,12 +245,14 @@ namespace CalcBase
                 }
                 else
                 {
-                    RealType number = decimal.Parse(infix.Slice(0, lenNumber));
+                    // TODO Length check
+
+                    RealType number = decimal.Parse(infix.Slice(0, lenNumber), CultureInfo.InvariantCulture);
 
                     // Return token
                     return new RealNumberToken()
                     {
-                        Length = lenNumber,
+                        Length = i,
                         Value = number,
                         IsScientificNotation = hasExponent,
                         Exponent = exponent,

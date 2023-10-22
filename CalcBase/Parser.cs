@@ -1,12 +1,14 @@
 ﻿using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Serialization;
 using CalcBase.Operators;
 using CalcBase.Operators.Arithmetic;
 using CalcBase.Operators.Bitwise;
 
+[assembly: InternalsVisibleTo("CalcBaseTest")]
 namespace CalcBase
 {
     /// <summary>

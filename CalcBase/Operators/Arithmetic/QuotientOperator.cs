@@ -13,6 +13,5 @@ namespace CalcBase.Operators.Arithmetic
         public int Precedence => 4;
         public OperatorAssociativity Associativity => OperatorAssociativity.Left;
         public bool IsUnary => false;
-
     }
 }
