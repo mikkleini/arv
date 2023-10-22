@@ -1,9 +1,4 @@
 ﻿using CalcBase.Operators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalcBase
 {
@@ -13,6 +8,7 @@ namespace CalcBase
     public abstract record Token
     {
         public virtual TokenType Type { get; init; }
+        public int Position { get; init; }
         public int Length { get; init; }
     }
 

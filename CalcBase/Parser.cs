@@ -1,9 +1,5 @@
-﻿using System.ComponentModel.Design;
-using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Json.Serialization;
 using CalcBase.Operators;
 using CalcBase.Operators.Arithmetic;
 using CalcBase.Operators.Bitwise;
@@ -23,6 +19,7 @@ namespace CalcBase
         private static readonly char ExponentPointSymbol = 'E';
         private static readonly int IntTypeBits = 128;
 
+        // Operators
         private readonly IOperator[] operators = new IOperator[]
         {
             new AdditionOperator(),
@@ -39,7 +36,6 @@ namespace CalcBase
             new InverseOperator(),
         };
 
-        
         /// <summary>
         /// Read text (don't yet know if it's constant, unit, variable or function)
         /// </summary>
@@ -66,12 +62,19 @@ namespace CalcBase
 
             return new TextToken()
             {
-                Text = text.ToString(),
-                Length = text.Length
+                Position = position,
+                Length = text.Length,
+                Text = text.ToString()
             };
         }
 
-        public void ShuntingYard(string infix)
+        /// <summary>
+        /// Shunting yard algoritm to get RPN expression of tokens
+        /// </summary>
+        /// <param name="infix">Infix epxression</param>
+        /// <returns>List of tokens</returns>
+        /// <exception cref="ExpressionException">Exception in infix expression</exception>
+        public List<Token> ShuntingYard(string infix)
         {
             ReadOnlySpan<char> span = infix.AsSpan();
             List<Token> tokens = new();
@@ -138,16 +141,18 @@ namespace CalcBase
                     {
                         token = new OperatorToken()
                         {
+                            Position = i,
+                            Length = 1,
                             Operator = operators.Single(op => op is NegationOperator),
-                            Length = 1
                         };
                     }
                     else
                     {
                         token = new OperatorToken()
                         {
+                            Position = i,
+                            Length = 1,
                             Operator = operators.Single(op => op is SubtractionOperator),
-                            Length = 1
                         };
                     }
                 }
@@ -181,6 +186,8 @@ namespace CalcBase
                     throw new ExpressionException("Syntax error", i, span.Length - i);
                 }
             }
+
+            return tokens;
         }
     }
 }

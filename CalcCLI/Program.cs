@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using CalcBase;
-
-namespace CalcCLI
+﻿namespace CalcCLI
 {
     public class Program
     {

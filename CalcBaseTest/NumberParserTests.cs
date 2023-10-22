@@ -1,5 +1,4 @@
 using CalcBase;
-using System;
 
 namespace CalcBaseTest
 {

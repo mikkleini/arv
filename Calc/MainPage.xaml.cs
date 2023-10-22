@@ -1,7 +1,4 @@
-﻿using Microsoft.Maui.Controls;
-using System.Numerics;
-
-namespace Calc
+﻿namespace Calc
 {
     public partial class MainPage : ContentPage
     {

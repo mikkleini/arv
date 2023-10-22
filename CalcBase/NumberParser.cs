@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Security.Authentication.ExtendedProtection;
-using System.Text;
-using System.Threading.Tasks;
 
 [assembly: InternalsVisibleTo("CalcBaseTest")]
 namespace CalcBase
@@ -56,6 +50,7 @@ namespace CalcBase
             // Return token
             return new BinaryNumberToken()
             {
+                Position = position,
                 Length = i,
                 Value = value
             };
@@ -124,6 +119,7 @@ namespace CalcBase
             // Return token
             return new HexadecimalNumberToken()
             {
+                Position = position,
                 Length = i,
                 Value = value,
                 DominantCase = dominantCase
@@ -237,6 +233,7 @@ namespace CalcBase
                     // Return token
                     return new IntegerNumberToken()
                     {
+                        Position = position,
                         Length = i,
                         Value = number,
                         IsScientificNotation = hasExponent,
@@ -252,6 +249,7 @@ namespace CalcBase
                     // Return token
                     return new RealNumberToken()
                     {
+                        Position = position,
                         Length = i,
                         Value = number,
                         IsScientificNotation = hasExponent,

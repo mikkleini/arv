@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CalcBase.Constants
+﻿namespace CalcBase.Constants
 {
-    interface IConstant
+    public interface IConstant
     {
         string Name { get; }
         string Symbol { get; }
