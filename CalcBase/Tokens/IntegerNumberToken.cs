@@ -5,9 +5,11 @@ namespace CalcBase.Tokens
     /// <summary>
     /// Integer number token
     /// </summary>
-    public record IntegerNumberToken : IntegerNumber, IToken
+    public record IntegerNumberToken : Token
     {
-        public required int Position { get; init; }
-        public required int Length { get; init; }
+        /// <summary>
+        /// Number
+        /// </summary>
+        public required IntegerNumber Number { get; init; }
     }
 }

@@ -1,5 +1,8 @@
 ﻿namespace CalcBase.Tokens
 {
+    /// <summary>
+    /// Integer radix
+    /// </summary>
     public enum IntegerRadix
     {
         Unknown = 0,

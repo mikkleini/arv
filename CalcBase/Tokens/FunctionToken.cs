@@ -8,6 +8,9 @@ namespace CalcBase.Tokens
     /// </summary>
     public record FunctionToken : Token
     {
+        /// <summary>
+        /// Function
+        /// </summary>
         public required IFunction Function { get; init; }
     }
 }

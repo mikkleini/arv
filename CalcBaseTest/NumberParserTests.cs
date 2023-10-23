@@ -1,4 +1,5 @@
 using CalcBase;
+using CalcBase.Numbers;
 using CalcBase.Tokens;
 
 namespace CalcBaseTest
@@ -12,33 +13,33 @@ namespace CalcBaseTest
 
         private static void AssertIntegerNumberToken(string input, int length, IntType value, IntegerRadix radix, bool isScientific = false, DominantCase dominantCase = DominantCase.None)
         {
-            IToken t = Parser.ReadNumber(input.AsSpan(), 0, out int end);
+            IToken t = Parser.ReadNumber(input.AsSpan(), 0);
             Assert.That(t, Is.InstanceOf(typeof(IntegerNumberToken)));
             IntegerNumberToken it = (IntegerNumberToken)t;
             Assert.Multiple(() =>
             {
-                Assert.That(end, Is.EqualTo(length));
                 Assert.That(it.Position, Is.EqualTo(0));
                 Assert.That(it.Length, Is.EqualTo(length));
-                Assert.That(it.Value, Is.EqualTo(value));
-                Assert.That(it.Radix, Is.EqualTo(radix));
-                Assert.That(it.IsScientificNotation, Is.EqualTo(isScientific));
-                Assert.That(it.DominantCase, Is.EqualTo(dominantCase));
+                Assert.That(it.Number, Is.TypeOf(typeof(IntegerNumber)));
+                Assert.That(it.Number.Value, Is.EqualTo(value));
+                Assert.That(it.Number.Radix, Is.EqualTo(radix));
+                Assert.That(it.Number.IsScientificNotation, Is.EqualTo(isScientific));
+                Assert.That(it.Number.DominantCase, Is.EqualTo(dominantCase));
             });
         }
 
         private static void AssertRealNumberToken(string input, int length, RealType value, bool isScientific = false)
         {
-            IToken t = Parser.ReadNumber(input.AsSpan(), 0, out int end);
+            IToken t = Parser.ReadNumber(input.AsSpan(), 0);
             Assert.That(t, Is.InstanceOf(typeof(RealNumberToken)));
             RealNumberToken it = (RealNumberToken)t;
             Assert.Multiple(() =>
             {
-                Assert.That(end, Is.EqualTo(length));
                 Assert.That(it.Position, Is.EqualTo(0));
-                Assert.That(it.Value, Is.EqualTo(value));
                 Assert.That(it.Length, Is.EqualTo(length));
-                Assert.That(it.IsScientificNotation, Is.EqualTo(isScientific));
+                Assert.That(it.Number, Is.TypeOf(typeof(RealNumber)));
+                Assert.That(it.Number.Value, Is.EqualTo(value));
+                Assert.That(it.Number.IsScientificNotation, Is.EqualTo(isScientific));
             });
         }
 
@@ -67,9 +68,9 @@ namespace CalcBaseTest
             AssertIntegerNumberToken("0b1" + zeroes128[1..128], 130, (IntType)1 << 127, IntegerRadix.Binary);
 
             // Invalid values
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b.3", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b" + zeroes128 + "1", 0, out _));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b.3", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b" + zeroes128 + "1", 0));
         }
 
         [Test]
@@ -93,9 +94,9 @@ namespace CalcBaseTest
             AssertIntegerNumberToken("0x7" + zeroes128[1..32], 34, (Int128)7 << 124, IntegerRadix.Hexadecimal);
 
             // Invalid values
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0x", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0xG", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0x" + zeroes128 + "1", 0, out _));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0x", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0xG", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0x" + zeroes128 + "1", 0));
         }
 
         [Test]
@@ -121,9 +122,9 @@ namespace CalcBaseTest
             AssertIntegerNumberToken("123E100+", 7, 123 * IntType.Pow(10, 100), IntegerRadix.Decimal, true);
 
             // Invalid values
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10E 1+", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10EE10", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10E1234567890123456", 0, out _));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10E 1+", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10EE10", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10E1234567890123456", 0));
         }
 
         [Test]
@@ -139,11 +140,11 @@ namespace CalcBaseTest
             AssertRealNumberToken("5.52E2", 6, 552.0M, true);
 
             // Invalid values
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10.3E 1+", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10EE2.30", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10E0.5", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("12.3E4.5", 0, out _));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10000000000000000000000000000000000000000000000000000.0", 0, out _));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10.3E 1+", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10EE2.30", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10E0.5", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("12.3E4.5", 0));
+            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10000000000000000000000000000000000000000000000000000.0", 0));
         }
     }
 }

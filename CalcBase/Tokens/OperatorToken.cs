@@ -7,6 +7,9 @@ namespace CalcBase.Tokens
     /// </summary>
     public record OperatorToken : Token
     {
+        /// <summary>
+        /// Operator
+        /// </summary>
         public required IOperator Operator { get; init; }
     }
 }

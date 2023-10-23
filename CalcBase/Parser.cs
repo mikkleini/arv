@@ -50,14 +50,13 @@ namespace CalcBase
         /// </summary>
         /// <param name="infix">Infix expression</param>
         /// <param name="start">Number start position</param>
-        /// <param name="end">Number end position</param>
         /// <returns>Text token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static IToken ReadText(ReadOnlySpan<char> infix, int start, out int end)
+        internal static IToken ReadText(ReadOnlySpan<char> infix, int start)
         {
             StringBuilder text = new();
 
-            for (int i = 0; i < infix.Length; i++)
+            for (int i = start; i < infix.Length; i++)
             {
                 char c = infix[i];
                 if (char.IsLetterOrDigit(c))
@@ -71,7 +70,6 @@ namespace CalcBase
             }
 
             // Return token and end position
-            end = start + text.Length;
             return new TextToken()
             {
                 Position = start,
@@ -86,7 +84,7 @@ namespace CalcBase
         /// </summary>
         /// <param name="prevToken">Previous token or null if none</param>
         /// <returns>Operator</returns>
-        internal static IOperator FindMinusOperator(IToken? prevToken)
+        internal static IOperator DecideMinusOperator(IToken? prevToken)
         {
             bool isNegation = false;
 
@@ -96,7 +94,7 @@ namespace CalcBase
             }
             else
             {
-                if ((prevToken is ParenthesisToken token) && (token.Side == ParenthesisSide.Left))
+                if (prevToken is LeftParenthesisToken)
                 {
                     isNegation = true;
                 }
@@ -118,64 +116,57 @@ namespace CalcBase
         }
 
         /// <summary>
-        /// Shunting yard algoritm to get RPN expression of tokens
+        /// Tokenize infix expression
         /// </summary>
-        /// <param name="infix">Infix epxression</param>
-        /// <returns>List of tokens</returns>
-        /// <exception cref="ExpressionException">Exception in infix expression</exception>
-        public static List<IToken> ShuntingYard(string infix)
+        /// <returns></returns>
+        public static List<IToken> Tokenize(string infix)
         {
             List<IToken> tokens = new();
-            Stack<IToken> operatorStack = new();
             int i = 0;
 
             while (i < infix.Length)
             {
                 char c = infix[i];
+                IToken? token = null;
 
                 if (char.IsWhiteSpace(c))
                 {
                     // Ignore
                     i++;
+                    continue;
                 }
                 else if (char.IsDigit(c))
                 {
-                    tokens.Add(ReadNumber(infix, i, out i));
+                    token = ReadNumber(infix, i);
                 }
                 else if (char.IsLetter(c))
                 {
-                    tokens.Add(ReadText(infix, i, out i));
+                    token = ReadText(infix, i);
                 }
                 else if (c == '(')
                 {
-                    operatorStack.Push(new ParenthesisToken()
+                    token = new LeftParenthesisToken()
                     {
                         Position = i,
-                        Length = 1,
-                        Side = ParenthesisSide.Left
-                    });
-                    i++;
+                        Length = 1
+                    };
                 }
                 else if (c == ')')
                 {
-                    while (operatorStack.TryPop(out IToken? token))
+                    token = new RightParenthesisToken()
                     {
-                        if ((token is ParenthesisToken parenthesisToken) && (parenthesisToken.Side == ParenthesisSide.Left))
-                        {
-                            break;
-                        }
-                        tokens.Add(token);
-                    }
-                    i++;
+                        Position = i,
+                        Length = 1
+                    };
                 }
                 else
                 {
-                    IOperator? op;
+                    IOperator? op = null;
 
                     // Special case with minus operator
                     if (c == '-')
                     {
-                        op = FindMinusOperator(tokens.LastOrDefault());
+                        op = DecideMinusOperator(tokens.LastOrDefault());
                     }
                     else
                     {
@@ -186,54 +177,93 @@ namespace CalcBase
                             .FirstOrDefault(o => infix.AsSpan().Slice(i).StartsWith(o.Symbol.AsSpan()));
                     }
 
-                    // Found operator ?
+                    // It's an operator ?
                     if (op != null)
                     {
-                        var opToken = new OperatorToken()
+                        token = new OperatorToken()
                         {
                             Position = i,
                             Length = op.Symbol.Length,
                             Operator = op
                         };
-
-                        while (operatorStack.TryPeek(out IToken? token))
-                        {
-                            if ((token is ParenthesisToken parenthesisToken) && (parenthesisToken.Side == ParenthesisSide.Left))
-                            {
-                                break;
-                            }
-                            OperatorToken opToken2 = (OperatorToken)token;
-
-                            if (opToken.Operator.Precedence > opToken2.Operator.Precedence)
-                            {
-                                //break;
-                                System.Diagnostics.Debug.WriteLine($"Op to queue {opToken2}");
-                                tokens.Add(operatorStack.Pop());
-                            }
-                            else
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Op not to queue");
-                            }
-
-                            //tokens.Add(operatorStack.Pop());                            
-                        }
-
-                        operatorStack.Push(opToken);
-                        i += opToken.Length;
                     }
-                    else
-                    {
-                        throw new ExpressionException("Syntax error", i, infix.Length - i);
-                    }
+                }
+
+                // Found token ?
+                if (token != null)
+                {
+                    tokens.Add(token);
+                    i += token.Length;
+                }
+                else
+                {
+                    throw new ExpressionException("Syntax error", i, 1);
                 }
             }
 
-            while (operatorStack.TryPop(out IToken? opToken))
+            return tokens;
+        }
+
+        /// <summary>
+        /// Shunting yard algoritm to get postfix (RPN) expression from infix tokens
+        /// </summary>
+        /// <param name="infix">Token in infix order</param>
+        /// <returns>List of tokens in postfix (RPN) order</returns>
+        public static List<IToken> ShuntingYard(List<IToken> infix)
+        {
+            List<IToken> postfix = new();
+            Stack<IToken> opStack = new();
+
+            foreach (IToken token in infix)
             {
-                tokens.Add(opToken);
+                if (token is IntegerNumberToken)
+                {
+                    postfix.Add(token);
+                }
+                else if (token is RealNumberToken)
+                {
+                    postfix.Add(token);
+                }
+                else if (token is LeftParenthesisToken)
+                {
+                    opStack.Push(token);
+                }
+                else if (token is RightParenthesisToken)
+                {
+                    while (opStack.TryPeek(out IToken? stackedToken) && (stackedToken is OperatorToken stackedOpToken))
+                    {
+                        postfix.Add(opStack.Pop());
+                    }
+                    opStack.Pop();
+                }
+                else if (token is OperatorToken opToken)
+                {                    
+                    while (opStack.TryPeek(out IToken? stackedToken) &&
+                        (stackedToken is OperatorToken stackedOpToken) &&
+                        (opToken.Operator.Precedence > stackedOpToken.Operator.Precedence))
+                    {
+                        //System.Diagnostics.Debug.WriteLine($"  Op to queue {stackedOpToken}");
+                        postfix.Add(opStack.Pop());                    
+                    }
+
+                    opStack.Push(opToken);
+                }
+                else if (token is FunctionToken funcToken)
+                { 
+                    // TODO
+                }
+                else
+                {
+                    throw new NotImplementedException($"Unhandled token: {token}");
+                }
             }
 
-            return tokens;
+            while (opStack.TryPop(out IToken? opToken))
+            {
+                postfix.Add(opToken);
+            }
+
+            return postfix;
         }
     }
 }

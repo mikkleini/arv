@@ -213,15 +213,19 @@ namespace CalcBase
             
             foreach (var token in tokens)
             {
-                if (token is INumber numToken)
+                if (token is IntegerNumberToken intToken)
                 {
-                    numberStack.Push(numToken);
+                    numberStack.Push(intToken.Number);
+                }
+                else if (token is RealNumberToken realToken)
+                {
+                    numberStack.Push(realToken.Number);
                 }
                 else if (token is OperatorToken opToken)
                 {
                     numberStack.Push(SolveOperation(numberStack, opToken));
                 }
-                else if (token is FunctionToken fncToken)
+                else if (token is FunctionToken funcToken)
                 {
                     // TODO
                 }

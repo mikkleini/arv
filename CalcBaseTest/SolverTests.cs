@@ -22,15 +22,22 @@ namespace CalcBaseTest
         {
             System.Diagnostics.Debug.WriteLine($"Test {infix} expect {expectedResult}");
 
-            var tokens = Parser.ShuntingYard(infix);
-
-            foreach (var token in tokens)
+            var infixTokens = Parser.Tokenize(infix);
+            foreach (var token in infixTokens)
             {
-                System.Diagnostics.Debug.WriteLine($"  Token: {token}");
+                System.Diagnostics.Debug.WriteLine($"  Infix: {token}");
             }
 
-            var actualResult = Solver.Solve(tokens);
-            System.Diagnostics.Debug.WriteLine($"Got: {actualResult}");
+            var postfixTokens = Parser.ShuntingYard(infixTokens);
+
+            foreach (var token in postfixTokens)
+            {
+                System.Diagnostics.Debug.WriteLine($"  Postfix: {token}");
+            }
+
+            var actualResult = Solver.Solve(postfixTokens);
+
+            System.Diagnostics.Debug.WriteLine($"  Got: {actualResult}");
 
             Assert.That(actualResult, Is.InstanceOf(expectedResult.GetType()));
 
@@ -77,6 +84,8 @@ namespace CalcBaseTest
             TestEquation("2 * 3 + 4", IntegerNumber.Create(10));
             TestEquation("10 / 2 - 1", IntegerNumber.Create(4));
             TestEquation("10 / 4 - 2", RealNumber.Create(0.5M));
+
+            Assert.Pass();
         }
     }
 }
