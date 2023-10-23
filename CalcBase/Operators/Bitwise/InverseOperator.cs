@@ -17,9 +17,11 @@ namespace CalcBase.Operators.Bitwise
         /// Calculate result of operation
         /// </summary>
         /// <param name="a">Operand A</param>
+        /// <param name="requireRealOp">To require real number operation</param>
         /// <returns>Result of operation</returns>
-        public IntType Calculate(IntType a)
+        public IntType Calculate(IntType a, out bool requireRealOp)
         {
+            requireRealOp = false;
             return ~a;
         }
     }

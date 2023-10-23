@@ -2,6 +2,6 @@
 {
     public interface IBinaryIntegerOperation
     {
-        IntType Calculate(IntType a, IntType b);
+        IntType Calculate(IntType a, IntType b, out bool requireRealOp);
     }
 }

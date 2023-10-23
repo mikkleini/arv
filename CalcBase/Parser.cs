@@ -29,7 +29,7 @@ namespace CalcBase
             new SubtractionOperator(),
             new MultiplicationOperator(),
             new DivisionOperator(),
-            new ModulusOperator(),
+            new ReminderOperator(),
             new ExponentOperator(),
             new QuotientOperator(),
             new NegationOperator(),

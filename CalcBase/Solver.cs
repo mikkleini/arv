@@ -31,6 +31,29 @@ namespace CalcBase
         }
 
         /// <summary>
+        /// Convert real number to integer if possible.
+        /// Only works if real doesn't have a fraction and is not using scientific notation.
+        /// </summary>
+        /// <param name="number">Real number</param>
+        /// <returns>If possible, integer number, otherwise same real number</returns>
+        private static INumber ConvertToIntIfPossible(RealNumber number)
+        {
+            if (!number.IsScientificNotation && RealType.IsInteger(number.Value))
+            {
+                return new IntegerNumber()
+                {
+                    Value = ConvertToInt(number.Value),
+                    Radix = IntegerRadix.Decimal,
+                    IsScientificNotation = number.IsScientificNotation
+                };
+            }
+            else
+            {
+                return number;
+            }
+        }
+
+        /// <summary>
         /// Try to convert number to integer number.
         /// Only works for real numbers if they don't have a fraction and are not using scientific notation.
         /// </summary>
@@ -49,7 +72,7 @@ namespace CalcBase
                     return new IntegerNumber()
                     {
                         Value = ConvertToInt(realNumber.Value),
-                        Radix = IntegerRadix.Unknown, // Will be determined when other operand is known
+                        Radix = IntegerRadix.Decimal,
                         IsScientificNotation = realNumber.IsScientificNotation
                     };
                 }
@@ -97,7 +120,8 @@ namespace CalcBase
         /// <returns>Common radix</returns>
         private static IntegerRadix VoteCommonRadix(IntegerRadix a, IntegerRadix b)
         {
-            return (a == IntegerRadix.Unknown ? b : a);
+            // Use radix of first operand
+            return a;
         }
 
         /// <summary>
@@ -127,15 +151,18 @@ namespace CalcBase
                     if (intA != null)
                     {
                         System.Diagnostics.Debug.WriteLine($"  Operation {op.Name} with int {intA.Value}");
-                        IntType value = unaryIntOp.Calculate(intA.Value);
-
-                        return new IntegerNumber()
+                        
+                        IntType value = unaryIntOp.Calculate(intA.Value, out bool requireRealOp);
+                        if (!requireRealOp)
                         {
-                            Value = value,
-                            Radix = intA.Radix,
-                            DominantCase = intA.DominantCase,
-                            IsScientificNotation = intA.IsScientificNotation
-                        };
+                            return new IntegerNumber()
+                            {
+                                Value = value,
+                                Radix = intA.Radix,
+                                DominantCase = intA.DominantCase,
+                                IsScientificNotation = intA.IsScientificNotation
+                            };
+                        }
                     }
                 }
 
@@ -146,12 +173,13 @@ namespace CalcBase
 
                     System.Diagnostics.Debug.WriteLine($"  Operation {op.Name} with real {realA.Value}");
                     RealType value = unaryRealOp.Calculate(realA.Value);
-                    
-                    return new RealNumber()
+
+                    // Prefer integer value if possible
+                    return ConvertToIntIfPossible(new RealNumber()
                     {
                         Value = value,
                         IsScientificNotation = realA.IsScientificNotation
-                    };
+                    });
                 }
 
                 // Something's wrong
@@ -171,14 +199,18 @@ namespace CalcBase
                     if ((intA != null) && (intB != null))
                     {
                         System.Diagnostics.Debug.WriteLine($"  Operation {op.Name} with int {intA.Value} and {intB.Value}");
-                        IntType value = binIntOp.Calculate(intA.Value, intB.Value);
-                        return new IntegerNumber()
+                        
+                        IntType value = binIntOp.Calculate(intA.Value, intB.Value, out bool requireRealOp);
+                        if (!requireRealOp)
                         {
-                            Value = value,
-                            Radix = VoteCommonRadix(intA.Radix, intB.Radix),
-                            DominantCase = VoteCommonDominantCase(intA.DominantCase, intB.DominantCase),
-                            IsScientificNotation = intA.IsScientificNotation || intB.IsScientificNotation
-                        };
+                            return new IntegerNumber()
+                            {
+                                Value = value,
+                                Radix = VoteCommonRadix(intA.Radix, intB.Radix),
+                                DominantCase = VoteCommonDominantCase(intA.DominantCase, intB.DominantCase),
+                                IsScientificNotation = intA.IsScientificNotation || intB.IsScientificNotation
+                            };
+                        }
                     }
                 }
 
@@ -190,11 +222,13 @@ namespace CalcBase
 
                     System.Diagnostics.Debug.WriteLine($"  Operation {op.Name} with real {realA.Value} and {realB.Value}");
                     RealType value = binRealOp.Calculate(realA.Value, realB.Value);
-                    return new RealNumber()
+
+                    // Prefer integer value if possible
+                    return ConvertToIntIfPossible(new RealNumber()
                     {
                         Value = value,
                         IsScientificNotation = realA.IsScientificNotation || realB.IsScientificNotation
-                    };
+                    });
                 }
 
                 // Something's wrong
@@ -231,7 +265,8 @@ namespace CalcBase
                 }
             }
 
-            return numberStack.Pop();
+            INumber result = numberStack.Pop();
+            return result;
         }
     }
 }

@@ -18,9 +18,11 @@ namespace CalcBase.Operators.Arithmetic
         /// </summary>
         /// <param name="a">Operand A</param>
         /// <param name="b">Operand B</param>
+        /// <param name="requireRealOp">To require real number operation</param>
         /// <returns>Result of operation</returns>
-        public IntType Calculate(IntType a, IntType b)
+        public IntType Calculate(IntType a, IntType b, out bool requireRealOp)
         {
+            requireRealOp = false;
             return a / b;
         }
 

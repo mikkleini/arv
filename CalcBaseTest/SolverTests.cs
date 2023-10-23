@@ -83,7 +83,26 @@ namespace CalcBaseTest
 
             TestEquation("2 * 3 + 4", IntegerNumber.Create(10));
             TestEquation("10 / 2 - 1", IntegerNumber.Create(4));
+            TestEquation("5 + 2 * 3", IntegerNumber.Create(11));
+            TestEquation("5 + (7-4) * 3", IntegerNumber.Create(14));
+            TestEquation("3 + 3 ** 3", IntegerNumber.Create(30));
+            TestEquation("-2-2", IntegerNumber.Create(-4));
+            TestEquation("101 % 20", IntegerNumber.Create(1));
+
+            // These are bit problematic - in C# % is reminder, but % is also symbol for modulus
+            TestEquation("-15 % 7", IntegerNumber.Create(-1));
+            TestEquation("101 % -20", IntegerNumber.Create(1));
+
             TestEquation("10 / 4 - 2", RealNumber.Create(0.5M));
+            TestEquation("10.5 + (4.1 - 2) * 3.1", RealNumber.Create(17.01M));
+            TestEquation("12.0+2.0", IntegerNumber.Create(14));
+            TestEquation("2 ** -3", RealNumber.Create(0.125M));
+
+            // TODO Has accuracy issue:
+            //TestEquation("625 ** 0.5", IntegerNumber.Create(25));
+
+            TestEquation("0xF0 + 15", IntegerNumber.Create(0xFF, IntegerRadix.Hexadecimal, DominantCase.Upper));
+            TestEquation("240 + 0x0F", IntegerNumber.Create(0xFF, IntegerRadix.Decimal, DominantCase.Upper));
 
             Assert.Pass();
         }

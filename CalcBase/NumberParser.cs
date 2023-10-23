@@ -148,13 +148,13 @@ namespace CalcBase
         internal static IToken ReadNumber(ReadOnlySpan<char> infix, int start)
         {
             // Binary number ?
-            if (infix.StartsWith(BinaryNumberPrefix.AsSpan()))
+            if (infix.Slice(start).StartsWith(BinaryNumberPrefix.AsSpan()))
             {
                 return ReadBinaryNumber(infix, start);
             }
 
             // Hexadecimal number ?
-            else if (infix.StartsWith(HexadecimalNumberPrefix.AsSpan()))
+            else if (infix.Slice(start).StartsWith(HexadecimalNumberPrefix.AsSpan()))
             {
                 return ReadHexadecimalNumber(infix, start);
             }
@@ -268,7 +268,7 @@ namespace CalcBase
                     // Check for overflow
                     try
                     {
-                        value = decimal.Parse(infix.Slice(0, lenNumber), CultureInfo.InvariantCulture);
+                        value = decimal.Parse(infix.Slice(start, lenNumber), CultureInfo.InvariantCulture);
                     }
                     catch (OverflowException)
                     {

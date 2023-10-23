@@ -2,6 +2,6 @@
 {
     public interface IUnaryIntegerOperation
     {
-        IntType Calculate(IntType a);
+        IntType Calculate(IntType a, out bool requireRealOp);
     }
 }
