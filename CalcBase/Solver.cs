@@ -3,115 +3,13 @@ using CalcBase.Operators;
 using CalcBase.Tokens;
 using CalcBase.Numbers;
 using System.Numerics;
+using System.Diagnostics;
+using CalcBase.Functions;
 
 namespace CalcBase
 {
     public class Solver
     {
-        /// <summary>
-        /// Convert integer to real
-        /// </summary>
-        /// <param name="i">Integer</param>
-        /// <returns>Real</returns>
-        private static RealType ConvertToReal(IntType i)
-        {
-            // TODO Error check
-            return (decimal)i;
-        }
-
-        /// <summary>
-        /// Convert real to integer
-        /// </summary>
-        /// <param name="i">Integer</param>
-        /// <returns>Real</returns>
-        private static IntType ConvertToInt(RealType i)
-        {
-            // TODO Error check
-            return new IntType(i);
-        }
-
-        /// <summary>
-        /// Convert real number to integer if possible.
-        /// Only works if real doesn't have a fraction and is not using scientific notation.
-        /// </summary>
-        /// <param name="number">Real number</param>
-        /// <returns>If possible, integer number, otherwise same real number</returns>
-        private static INumber ConvertToIntIfPossible(RealNumber number)
-        {
-            if (!number.IsScientificNotation && RealType.IsInteger(number.Value))
-            {
-                return new IntegerNumber()
-                {
-                    Value = ConvertToInt(number.Value),
-                    Radix = IntegerRadix.Decimal,
-                    IsScientificNotation = number.IsScientificNotation
-                };
-            }
-            else
-            {
-                return number;
-            }
-        }
-
-        /// <summary>
-        /// Try to convert number to integer number.
-        /// Only works for real numbers if they don't have a fraction and are not using scientific notation.
-        /// </summary>
-        /// <param name="number">Number</param>
-        /// <returns>If possible, integer number, otherwise null</returns>
-        private static IntegerNumber? TryToConvertToInt(INumber number)
-        {
-            if (number is IntegerNumber intNumber)
-            {
-                return intNumber;
-            }
-            else if (number is RealNumber realNumber)
-            {
-                if (!realNumber.IsScientificNotation && RealType.IsInteger(realNumber.Value))
-                {
-                    return new IntegerNumber()
-                    {
-                        Value = ConvertToInt(realNumber.Value),
-                        Radix = IntegerRadix.Decimal,
-                        IsScientificNotation = realNumber.IsScientificNotation
-                    };
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        /// <summary>
-        /// Convert number to real number
-        /// </summary>
-        /// <param name="number">Number</param>
-        /// <returns>If possible, integer number, otherwise null</returns>
-        private static RealNumber ConvertToReal(INumber number)
-        {
-            if (number is RealNumber realNumber)
-            {
-                return realNumber;
-            }
-            else if (number is IntegerNumber intNumber)
-            {
-                return new RealNumber()
-                {
-                    Value = ConvertToReal(intNumber.Value),
-                    IsScientificNotation = intNumber.IsScientificNotation
-                };
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         /// <summary>
         /// Vote the common radix
         /// </summary>
@@ -135,125 +33,159 @@ namespace CalcBase
             return (a == DominantCase.None ? b : a);
         }
 
-        private static INumber SolveOperation(Stack<INumber> numberStack, OperatorToken opToken)
+        /// <summary>
+        /// Solve operation
+        /// </summary>
+        /// <param name="numberStack">Numbers stack</param>
+        /// <param name="opToken">Operator token</param>
+        /// <returns>Result</returns>
+        /// <exception cref="SolverException"></exception>
+        private static Number SolveOperation(Stack<Number> numberStack, OperatorToken opToken)
         {
             IOperator op = opToken.Operator;
 
-            if (op.OpCount == OperatorOpCountType.Unary)
+            // Is it unary operation ?
+            if ((op.OpCount == OperatorOpCountType.Unary) && (op is IUnaryOperation unaryOp))
             {
-                INumber a = numberStack.Pop();
-
-                // First check if integer number operation can be performed
-                if (op is IUnaryIntegerOperation unaryIntOp)
+                if (!numberStack.TryPop(out Number? a))
                 {
-                    // Prefer integer operation
-                    IntegerNumber? intA = TryToConvertToInt(a);
-                    if (intA != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"  Operation {op.Name} with int {intA.Value}");
-                        
-                        IntType value = unaryIntOp.Calculate(intA.Value, out bool requireRealOp);
-                        if (!requireRealOp)
-                        {
-                            return new IntegerNumber()
-                            {
-                                Value = value,
-                                Radix = intA.Radix,
-                                DominantCase = intA.DominantCase,
-                                IsScientificNotation = intA.IsScientificNotation
-                            };
-                        }
-                    }
+                    throw new ExpressionException("Missing operand", opToken.Position, opToken.Length);
                 }
 
-                // Then check for real number operation
-                if (op is IUnaryRealOperation unaryRealOp)
+                Debug.WriteLine($"  Unary operation {op.Name} with {a.Value}");
+                NumberType result = unaryOp.Calculate(a.Value);                    
+
+                return new Number()
                 {
-                    RealNumber realA = ConvertToReal(a);
-
-                    System.Diagnostics.Debug.WriteLine($"  Operation {op.Name} with real {realA.Value}");
-                    RealType value = unaryRealOp.Calculate(realA.Value);
-
-                    // Prefer integer value if possible
-                    return ConvertToIntIfPossible(new RealNumber()
-                    {
-                        Value = value,
-                        IsScientificNotation = realA.IsScientificNotation
-                    });
-                }
-
-                // Something's wrong
-                throw new SolverException("Unsupported unary operation");
+                    Value = result,
+                    Radix = a.Radix,
+                    DominantCase = a.DominantCase,
+                    IsScientificNotation = a.IsScientificNotation
+                };
             }
-            else if (op.OpCount == OperatorOpCountType.Binary)
+            else if ((op.OpCount == OperatorOpCountType.Binary) && (op is IBinaryOperation binOp))
             {
-                INumber b = numberStack.Pop();
-                INumber a = numberStack.Pop();
-
-                // First check if integer number operation can be performed
-                if (op is IBinaryIntegerOperation binIntOp)
+                if (!numberStack.TryPop(out Number? b))
                 {
-                    IntegerNumber? intA = TryToConvertToInt(a);
-                    IntegerNumber? intB = TryToConvertToInt(b);
-
-                    if ((intA != null) && (intB != null))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"  Operation {op.Name} with int {intA.Value} and {intB.Value}");
-                        
-                        IntType value = binIntOp.Calculate(intA.Value, intB.Value, out bool requireRealOp);
-                        if (!requireRealOp)
-                        {
-                            return new IntegerNumber()
-                            {
-                                Value = value,
-                                Radix = VoteCommonRadix(intA.Radix, intB.Radix),
-                                DominantCase = VoteCommonDominantCase(intA.DominantCase, intB.DominantCase),
-                                IsScientificNotation = intA.IsScientificNotation || intB.IsScientificNotation
-                            };
-                        }
-                    }
+                    throw new ExpressionException("Missing operand", opToken.Position, opToken.Length);
                 }
 
-                // Then check for real number operation
-                if (op is IBinaryRealOperation binRealOp)
+                if (!numberStack.TryPop(out Number? a))
                 {
-                    RealNumber realA = ConvertToReal(a);
-                    RealNumber realB = ConvertToReal(b);
-
-                    System.Diagnostics.Debug.WriteLine($"  Operation {op.Name} with real {realA.Value} and {realB.Value}");
-                    RealType value = binRealOp.Calculate(realA.Value, realB.Value);
-
-                    // Prefer integer value if possible
-                    return ConvertToIntIfPossible(new RealNumber()
-                    {
-                        Value = value,
-                        IsScientificNotation = realA.IsScientificNotation || realB.IsScientificNotation
-                    });
+                    throw new ExpressionException("Missing operand", opToken.Position, opToken.Length);
                 }
 
-                // Something's wrong
-                throw new SolverException("Unsupported binary operation");
+                Debug.WriteLine($"  Binary operation {op.Name} with {a.Value} and {b.Value}");
+                NumberType result = binOp.Calculate(a.Value, b.Value);
+
+                return new Number()
+                {
+                    Value = result,
+                    Radix = VoteCommonRadix(a.Radix, b.Radix),
+                    DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
+                    IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation
+                };
             }
             else
             {
                 // Something's wrong
-                throw new SolverException("Unsupported operation");
+                throw new ExpressionException($"Unsupported operation: {op}", opToken.Position, opToken.Length);
             }
         }
 
-        public static INumber Solve(IEnumerable<IToken> tokens)
+        /// <summary>
+        /// Solve function
+        /// </summary>
+        /// <param name="numberStack">Numbers stack</param>
+        /// <param name="funcToken">Function token</param>
+        /// <returns>Result</returns>
+        /// <exception cref="SolverException"></exception>
+        private static Number SolveFunction(Stack<Number> numberStack, FunctionToken funcToken)
         {
-            Stack<INumber> numberStack = new();
+            IFunction func = funcToken.Function;
+
+            // Is it no argument function ?
+            if (func is INoArgumentFunction noArgFunc)
+            {
+                Debug.WriteLine($"  Function {func.Name} ()");
+                NumberType result = noArgFunc.Calculate();
+
+                return new Number()
+                {
+                    Value = result,
+                    Radix = noArgFunc.OutputRadix,
+                    DominantCase = DominantCase.None,
+                    IsScientificNotation = false
+                };
+            }
+            // Is it single argument function ?
+            else if (func is ISingleArgumentFunction singleFunc)
+            {
+                if (!numberStack.TryPop(out Number? a))
+                {
+                    throw new ExpressionException("Missing argument", funcToken.Position, funcToken.Length);
+                }
+
+                Debug.WriteLine($"  Function {func.Name} ({a.Value})");
+                NumberType result = singleFunc.Calculate(a.Value);
+
+                return new Number()
+                {
+                    Value = result,
+                    Radix = a.Radix,
+                    DominantCase = a.DominantCase,
+                    IsScientificNotation = a.IsScientificNotation
+                };
+            }
+            // Is it dual argument function ?
+            else if (func is IDualArgumentFunction dualFunc)
+            {
+                if (!numberStack.TryPop(out Number? b))
+                {
+                    throw new ExpressionException("Missing argument", funcToken.Position, funcToken.Length);
+                }
+
+                if (!numberStack.TryPop(out Number? a))
+                {
+                    throw new ExpressionException("Missing argument", funcToken.Position, funcToken.Length);
+                }
+
+                Debug.WriteLine($"  Function {func.Name} ({a.Value}, {b.Value})");
+                NumberType result = dualFunc.Calculate(a.Value, b.Value);
+
+                return new Number()
+                {
+                    Value = result,
+                    Radix = a.Radix,
+                    DominantCase = a.DominantCase,
+                    IsScientificNotation = a.IsScientificNotation
+                };
+            }
+            else
+            {
+                // Something's wrong
+                throw new ExpressionException($"Unsupported function: {func}", funcToken.Position, funcToken.Length);
+            }
+        }
+
+        /// <summary>
+        /// Solve postfix expression
+        /// </summary>
+        /// <param name="tokens">Tokens in postfix order</param>
+        /// <returns>Result</returns>
+        public static Number Solve(IEnumerable<IToken> tokens)
+        {
+            Stack<Number> numberStack = new();
             
             foreach (var token in tokens)
             {
-                if (token is IntegerNumberToken intToken)
+                if (token is NumberToken numToken)
                 {
-                    numberStack.Push(intToken.Number);
+                    numberStack.Push(numToken.Number);
                 }
-                else if (token is RealNumberToken realToken)
+                else if (token is ConstantToken constToken)
                 {
-                    numberStack.Push(realToken.Number);
+                    numberStack.Push(constToken.Constant.Number);
                 }
                 else if (token is OperatorToken opToken)
                 {
@@ -261,12 +193,16 @@ namespace CalcBase
                 }
                 else if (token is FunctionToken funcToken)
                 {
-                    // TODO
+                    numberStack.Push(SolveFunction(numberStack, funcToken));
                 }
             }
 
-            INumber result = numberStack.Pop();
-            return result;
+            if (numberStack.Count > 1)
+            {
+                throw new ExpressionException("Excessive numbers", 0, 0);
+            }
+
+            return numberStack.Pop();
         }
     }
 }

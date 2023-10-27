@@ -3,14 +3,14 @@
 namespace CalcBase.Numbers
 {
     /// <summary>
-    /// Integer number token
+    /// Number
     /// </summary>
-    public record IntegerNumber : INumber
+    public record Number
     {
         /// <summary>
         /// Value
         /// </summary>
-        public required IntType Value { get; init; }
+        public required NumberType Value { get; init; }
 
         /// <summary>
         /// Presentation radix
@@ -34,9 +34,9 @@ namespace CalcBase.Numbers
         /// <param name="radix">Radix</param>
         /// <param name="dominantCase">Dominant hexadecimal number case</param>
         /// <param name="isScientificNotation">Is scientific notation ?</param>
-        public static IntegerNumber Create(IntType value, IntegerRadix radix = IntegerRadix.Decimal, DominantCase dominantCase = DominantCase.None, bool isScientificNotation = false)
+        public static Number Create(NumberType value, IntegerRadix radix = IntegerRadix.Decimal, DominantCase dominantCase = DominantCase.None, bool isScientificNotation = false)
         {
-            return new IntegerNumber()
+            return new Number()
             {
                 Value = value,
                 Radix = radix,

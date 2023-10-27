@@ -1,6 +1,4 @@
 ﻿using CalcBase.Generic;
-using CalcBase.Tokens;
-using DecimalMath;
 using System.Numerics;
 
 namespace CalcBase.Operators.Arithmetic
@@ -8,7 +6,7 @@ namespace CalcBase.Operators.Arithmetic
     /// <summary>
     /// Exponent operator
     /// </summary>
-    public record ExponentOperator : IOperator, IBinaryIntegerOperation, IBinaryRealOperation
+    public record ExponentOperator : IOperator, IBinaryOperation
     {
         public string Symbol => "**";
         public string Name => "Exponent";
@@ -21,34 +19,10 @@ namespace CalcBase.Operators.Arithmetic
         /// </summary>
         /// <param name="a">Operand A</param>
         /// <param name="b">Operand B</param>
-        /// <param name="requireRealOp">To require real number operation</param>
         /// <returns>Result of operation</returns>
-        public IntType Calculate(IntType a, IntType b, out bool requireRealOp)
+        public NumberType Calculate(NumberType a, NumberType b)
         {
-            if (b < BigInteger.Zero)
-            {
-                requireRealOp = true;
-                return IntType.Zero;
-            }
-            else
-            {
-                requireRealOp = false;
-
-                // TODO To some error checking?
-                int ib = (int)b;
-                return BigInteger.Pow(a, ib);
-            }
-        }
-
-        /// <summary>
-        /// Calculate result of operation
-        /// </summary>
-        /// <param name="a">Operand A</param>
-        /// <param name="b">Operand B</param>
-        /// <returns>Result of operation</returns>
-        public RealType Calculate(RealType a, RealType b)
-        {
-            return DecimalEx.Pow(a, b);
+            return NumberType.Pow(a, b);
         }
     }
 }

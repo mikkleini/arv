@@ -1,8 +1,6 @@
-﻿using DecimalMath;
-
-namespace CalcBase.Functions
+﻿namespace CalcBase.Functions
 {
-    public record CosFunction : ISingleArgumentRealFunction
+    public record CosFunction : ISingleArgumentFunction
     {
         public string Name => "Cosine";
         public string Symbol => "cos";
@@ -12,9 +10,9 @@ namespace CalcBase.Functions
         /// </summary>
         /// <param name="x">Argument</param>
         /// <returns>Cosine value</returns>
-        public RealType Calculate(RealType x)
+        public NumberType Calculate(NumberType x)
         {
-            return DecimalEx.Cos(x);
+            return NumberType.Cos(x);
         }
     }
 }

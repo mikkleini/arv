@@ -1,8 +1,6 @@
-﻿using DecimalMath;
-
-namespace CalcBase.Functions
+﻿namespace CalcBase.Functions
 {
-    public record SinFunction : ISingleArgumentRealFunction
+    public record SinFunction : ISingleArgumentFunction
     {
         public string Name => "Sine";
         public string Symbol => "sin";
@@ -12,9 +10,9 @@ namespace CalcBase.Functions
         /// </summary>
         /// <param name="x">Argument</param>
         /// <returns>Sine value</returns>
-        public RealType Calculate(RealType x)
+        public NumberType Calculate(NumberType x)
         {
-            return DecimalEx.Sin(x);
+            return NumberType.Sin(x);
         }
     }
 }

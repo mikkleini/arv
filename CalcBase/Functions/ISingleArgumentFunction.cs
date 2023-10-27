@@ -1,7 +1,7 @@
 ﻿namespace CalcBase.Functions
 {
-    public interface ISingleArgumentRealFunction : IFunction
+    public interface ISingleArgumentFunction : IFunction
     {
-        RealType Calculate(RealType x);
+        NumberType Calculate(NumberType x);
     }
 }

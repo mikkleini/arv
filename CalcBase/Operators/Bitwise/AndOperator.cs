@@ -1,11 +1,12 @@
 ﻿using CalcBase.Generic;
+using System.Numerics;
 
 namespace CalcBase.Operators.Bitwise
 {
     /// <summary>
     /// Bitwise AND operator
     /// </summary>
-    public record AndOperator : IOperator, IBinaryIntegerOperation
+    public record AndOperator : IOperator, IBinaryOperation
     {
         public string Symbol => "&";
         public string Name => "Bitwise AND";
@@ -18,12 +19,22 @@ namespace CalcBase.Operators.Bitwise
         /// </summary>
         /// <param name="a">Operand A</param>
         /// <param name="b">Operand B</param>
-        /// <param name="requireRealOp">To require real number operation</param>
         /// <returns>Result of operation</returns>
-        public IntType Calculate(IntType a, IntType b, out bool requireRealOp)
+        public NumberType Calculate(NumberType a, NumberType b)
         {
-            requireRealOp = false;
-            return a & b;
+            if ((NumberType.Sign(a) < 0) || !NumberType.IsInteger(a))
+            {
+                throw new SolverException($"{Name} can only be performed with natural numbers");
+            }
+
+            if ((NumberType.Sign(b) < 0) || !NumberType.IsInteger(b))
+            {
+                throw new SolverException($"{Name} can only be performed with natural numbers");
+            }
+
+            var bigA = (BigInteger)a;
+            var bigB = (BigInteger)b;
+            return new NumberType(bigA & bigB);
         }
     }
 }

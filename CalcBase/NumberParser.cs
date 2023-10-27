@@ -1,9 +1,8 @@
 ﻿using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using CalcBase.Numbers;
 using CalcBase.Tokens;
-using DecimalMath;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 [assembly: InternalsVisibleTo("CalcBaseTest")]
 namespace CalcBase
@@ -17,9 +16,9 @@ namespace CalcBase
         /// <param name="start">Number start position</param>
         /// <returns>Number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static IToken ReadBinaryNumber(ReadOnlySpan<char> infix, int start)
+        internal static NumberToken ReadBinaryNumber(ReadOnlySpan<char> infix, int start)
         {
-            IntType value = 0;
+            BigInteger value = 0;
             int pos;
 
             // Start after prefix
@@ -52,13 +51,13 @@ namespace CalcBase
             }
 
             // Return token and end position
-            return new IntegerNumberToken()
+            return new NumberToken()
             {
                 Position = start,
                 Length = pos - start,
-                Number = new IntegerNumber()
+                Number = new Number()
                 {
-                    Value = value,
+                    Value = new NumberType(value),
                     Radix = IntegerRadix.Binary
                 }
             };
@@ -71,9 +70,9 @@ namespace CalcBase
         /// <param name="start">Number start position</param>
         /// <returns>Number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static IToken ReadHexadecimalNumber(ReadOnlySpan<char> infix, int start)
+        internal static NumberToken ReadHexadecimalNumber(ReadOnlySpan<char> infix, int start)
         {
-            IntType value = 0;
+            BigInteger value = 0;
             int countLowerCase = 0;
             int countUpperCase = 0;
             int pos;
@@ -84,16 +83,16 @@ namespace CalcBase
                 char c = infix[pos];
                 if ((c >= '0') && (c <= '9'))
                 {
-                    value = (value << 4) | (IntType)(c - '0');
+                    value = (value << 4) | (BigInteger)(c - '0');
                 }
                 else if ((c >= 'a') && (c <= 'f'))
                 {
-                    value = (value << 4) | (IntType)(10 + (c - 'a'));
+                    value = (value << 4) | (BigInteger)(10 + (c - 'a'));
                     countLowerCase++;
                 }
                 else if ((c >= 'A') && (c <= 'F'))
                 {
-                    value = (value << 4) | (IntType)(10 + (c - 'A'));
+                    value = (value << 4) | (BigInteger)(10 + (c - 'A'));
                     countUpperCase++;
                 }
                 else
@@ -125,13 +124,13 @@ namespace CalcBase
             }
 
             // Return token and end position
-            return new IntegerNumberToken()
+            return new NumberToken()
             {
                 Position = start,
                 Length = pos - start,
-                Number = new IntegerNumber()
+                Number = new Number()
                 {
-                    Value = value,
+                    Value = new NumberType(value),
                     Radix = IntegerRadix.Hexadecimal,
                     DominantCase = dominantCase
                 }
@@ -143,9 +142,9 @@ namespace CalcBase
         /// </summary>
         /// <param name="infix">Infix expression</param>
         /// <param name="start">Number start position</param>
-        /// <returns>Some number token</returns>
+        /// <returns>Number token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static IToken ReadNumber(ReadOnlySpan<char> infix, int start)
+        internal static NumberToken ReadNumber(ReadOnlySpan<char> infix, int start)
         {
             // Binary number ?
             if (infix.Slice(start).StartsWith(BinaryNumberPrefix.AsSpan()))
@@ -242,18 +241,18 @@ namespace CalcBase
                 // Integer has no radix point and exponent is positive
                 if (!hasRadixPoint && (exponent > 0))
                 {
-                    IntType value = IntType.Parse(infix.Slice(start, lenNumber));
+                    NumberType value = NumberType.Parse(infix.Slice(start, lenNumber));
                     if (hasExponent)
                     {
-                        value *= IntType.Pow(10, exponent);
+                        value *= NumberType.Pow(10, exponent);
                     }
 
                     // Return token and end position
-                    return new IntegerNumberToken()
+                    return new NumberToken()
                     {
                         Position = start,
                         Length = pos - start,
-                        Number = new IntegerNumber()
+                        Number = new Number()
                         {
                             Value = value,
                             Radix = IntegerRadix.Decimal,
@@ -263,12 +262,12 @@ namespace CalcBase
                 }
                 else
                 {
-                    RealType value;
+                    NumberType value;
 
                     // Check for overflow
                     try
                     {
-                        value = decimal.Parse(infix.Slice(start, lenNumber), CultureInfo.InvariantCulture);
+                        value = NumberType.Parse(infix.Slice(start, lenNumber), CultureInfo.InvariantCulture);
                     }
                     catch (OverflowException)
                     {
@@ -277,17 +276,18 @@ namespace CalcBase
 
                     if (hasExponent)
                     {
-                        value *= DecimalEx.Pow(10, exponent);
+                        value *= NumberType.Pow(10, exponent);
                     }
 
                     // Return token and end position
-                    return new RealNumberToken()
+                    return new NumberToken()
                     {
                         Position = start,
                         Length = pos - start,
-                        Number = new RealNumber()
+                        Number = new Number()
                         {
                             Value = value,
+                            Radix = IntegerRadix.Decimal,
                             IsScientificNotation = hasExponent
                         }
                     };

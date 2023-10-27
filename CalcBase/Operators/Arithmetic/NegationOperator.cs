@@ -5,7 +5,7 @@ namespace CalcBase.Operators.Arithmetic
     /// <summary>
     /// Negation operator
     /// </summary>
-    public record NegationOperator : IOperator, IUnaryIntegerOperation, IUnaryRealOperation
+    public record NegationOperator : IOperator, IUnaryOperation
     {
         public string Symbol => "-";
         public string Name => "Negation";
@@ -17,20 +17,8 @@ namespace CalcBase.Operators.Arithmetic
         /// Calculate result of operation
         /// </summary>
         /// <param name="a">Operand A</param>
-        /// <param name="requireRealOp">To require real number operation</param>
         /// <returns>Result of operation</returns>
-        public IntType Calculate(IntType a, out bool requireRealOp)
-        {
-            requireRealOp = false;
-            return -a;
-        }
-
-        /// <summary>
-        /// Calculate result of operation
-        /// </summary>
-        /// <param name="a">Operand A</param>
-        /// <returns>Result of operation</returns>
-        public RealType Calculate(RealType a)
+        public NumberType Calculate(NumberType a)
         {
             return -a;
         }

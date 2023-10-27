@@ -3,7 +3,7 @@
     /// <summary>
     /// Solver exception
     /// </summary>
-    internal class SolverException : Exception
+    public class SolverException : Exception
     {
         /// <summary>
         /// Constructor

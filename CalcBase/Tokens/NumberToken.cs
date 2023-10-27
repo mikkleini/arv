@@ -3,13 +3,13 @@
 namespace CalcBase.Tokens
 {
     /// <summary>
-    /// Real number token
+    /// Number token
     /// </summary>
-    public record RealNumberToken : Token
+    public record NumberToken : Token
     {
         /// <summary>
         /// Number
         /// </summary>
-        public required RealNumber Number { get; init; }
+        public required Number Number { get; init; }
     }
 }
