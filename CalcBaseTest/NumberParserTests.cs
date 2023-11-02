@@ -1,6 +1,7 @@
 using CalcBase;
 using CalcBase.Numbers;
 using CalcBase.Tokens;
+using CalcBase.Units;
 using System.Numerics;
 
 namespace CalcBaseTest
@@ -12,7 +13,7 @@ namespace CalcBaseTest
         {
         }
 
-        private static void AssertNumberToken(string input, int length, NumberType value, IntegerRadix radix = IntegerRadix.Decimal, bool isScientific = false, DominantCase dominantCase = DominantCase.None)
+        private static void AssertNumberToken(string input, int length, NumberType value, IntegerRadix radix = IntegerRadix.Decimal, bool isScientific = false, DominantHexadecimalCase dominantCase = DominantHexadecimalCase.None)
         {
             IToken t = Parser.ReadNumber(input.AsSpan(), 0);
             Assert.That(t, Is.InstanceOf(typeof(NumberToken)));
@@ -67,15 +68,15 @@ namespace CalcBaseTest
             // Valid values
             AssertNumberToken("0x0", 3, 0, IntegerRadix.Hexadecimal);
             AssertNumberToken("0x1", 3, 1, IntegerRadix.Hexadecimal);
-            AssertNumberToken("0xA1", 4, 0xA1, IntegerRadix.Hexadecimal, false, DominantCase.Upper);
-            AssertNumberToken("0xab", 4, 0xAB, IntegerRadix.Hexadecimal, false, DominantCase.Lower);
-            AssertNumberToken("0xaB", 4, 0xAB, IntegerRadix.Hexadecimal, false, DominantCase.None);
-            AssertNumberToken("0xA1 ", 4, 0xA1, IntegerRadix.Hexadecimal, false, DominantCase.Upper);
-            AssertNumberToken("0xF0+", 4, 0xF0, IntegerRadix.Hexadecimal, false, DominantCase.Upper);
-            AssertNumberToken("0xCx", 3, 0xC, IntegerRadix.Hexadecimal, false, DominantCase.Upper);
+            AssertNumberToken("0xA1", 4, 0xA1, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
+            AssertNumberToken("0xab", 4, 0xAB, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Lower);
+            AssertNumberToken("0xaB", 4, 0xAB, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.None);
+            AssertNumberToken("0xA1 ", 4, 0xA1, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
+            AssertNumberToken("0xF0+", 4, 0xF0, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
+            AssertNumberToken("0xCx", 3, 0xC, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
             AssertNumberToken("0x000008", 8, 8, IntegerRadix.Hexadecimal);
-            AssertNumberToken("0xA.", 3, 0xA, IntegerRadix.Hexadecimal, false, DominantCase.Upper);
-            AssertNumberToken("0x123456789ABCDEF0", 18, 0x123456789ABCDEF0, IntegerRadix.Hexadecimal, false, DominantCase.Upper);
+            AssertNumberToken("0xA.", 3, 0xA, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
+            AssertNumberToken("0x123456789ABCDEF0", 18, 0x123456789ABCDEF0, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
             AssertNumberToken("0x" + zeroes128[0..31] + "1", 34, 0x1, IntegerRadix.Hexadecimal);
             AssertNumberToken("0x7" + zeroes128[1..32], 34, (Int128)7 << 124, IntegerRadix.Hexadecimal);
 
@@ -130,6 +131,12 @@ namespace CalcBaseTest
             Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10EE2.30", 0));
             Assert.Throws<ExpressionException>(() => Parser.ReadNumber("10E0.5", 0));
             Assert.Throws<ExpressionException>(() => Parser.ReadNumber("12.3E4.5", 0));
+        }
+
+        [Test]
+        public void TestMeasureParser()
+        {
+
         }
     }
 }

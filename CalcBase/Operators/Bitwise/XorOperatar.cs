@@ -1,12 +1,11 @@
-﻿using CalcBase.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace CalcBase.Operators.Bitwise
 {
     /// <summary>
     /// Bitwise XOR operator
     /// </summary>
-    public record XorOperator : IOperator, IBinaryOperation
+    public record XorOperator : Singleton<XorOperator>, IBinaryOperator
     {
         public string Symbol => "^";
         public string Name => "Bitwise XOR";

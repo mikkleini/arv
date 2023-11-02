@@ -1,4 +1,4 @@
-﻿using CalcBase.Generic;
+﻿using CalcBase.Operators.Arithmetic;
 using System.Numerics;
 
 namespace CalcBase.Operators.Bitwise
@@ -6,7 +6,7 @@ namespace CalcBase.Operators.Bitwise
     /// <summary>
     /// Bitwise AND operator
     /// </summary>
-    public record AndOperator : IOperator, IBinaryOperation
+    public record AndOperator : Singleton<AndOperator>, IBinaryOperator
     {
         public string Symbol => "&";
         public string Name => "Bitwise AND";

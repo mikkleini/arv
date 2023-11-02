@@ -1,4 +1,4 @@
-﻿using CalcBase.Tokens;
+﻿using CalcBase.Numbers;
 
 namespace CalcBase.Functions
 {

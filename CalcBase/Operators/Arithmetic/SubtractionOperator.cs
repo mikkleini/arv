@@ -1,11 +1,9 @@
-﻿using CalcBase.Generic;
-
-namespace CalcBase.Operators.Arithmetic
+﻿namespace CalcBase.Operators.Arithmetic
 {
     /// <summary>
     /// Subtraction operator
     /// </summary>
-    public record SubtractionOperator : IOperator, IBinaryOperation
+    public record SubtractionOperator : Singleton<SubtractionOperator>, IBinaryOperator
     {
         public string Symbol => "-";
         public string Name => "Subtract";

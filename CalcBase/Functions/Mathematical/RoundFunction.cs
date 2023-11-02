@@ -1,6 +1,8 @@
-﻿namespace CalcBase.Functions
+﻿using CalcBase.Functions.Trigonometric;
+
+namespace CalcBase.Functions.Mathematical
 {
-    public record RoundFunction : IDualArgumentFunction
+    public record RoundFunction : Singleton<RoundFunction>, IDualArgumentFunction
     {
         public string Name => "Round";
         public string Symbol => "round";

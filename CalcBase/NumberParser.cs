@@ -113,14 +113,14 @@ namespace CalcBase
             }
 
             // Determine dominant hexadecimal letters case
-            DominantCase dominantCase = DominantCase.None;
+            DominantHexadecimalCase dominantCase = DominantHexadecimalCase.None;
             if (countUpperCase > countLowerCase)
             {
-                dominantCase = DominantCase.Upper;
+                dominantCase = DominantHexadecimalCase.Upper;
             }
             else if (countUpperCase < countLowerCase)
             {
-                dominantCase = DominantCase.Lower;
+                dominantCase = DominantHexadecimalCase.Lower;
             }
 
             // Return token and end position

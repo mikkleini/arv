@@ -1,8 +1,12 @@
 ﻿using CalcBase.Numbers;
+using CalcBase.Units.Physics.Imperial;
 
 namespace CalcBase.Constants.Mathematical
 {
-    public record PiConstant : IConstant
+    /// <summary>
+    /// Pi
+    /// </summary>
+    public record PiConstant : Singleton<PiConstant>, IConstant
     {
         public string Name => "Pi";
         public string Symbol => "π";

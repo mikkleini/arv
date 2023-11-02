@@ -1,11 +1,9 @@
-﻿using CalcBase.Generic;
-
-namespace CalcBase.Operators.Arithmetic
+﻿namespace CalcBase.Operators.Arithmetic
 {
     /// <summary>
     /// Division operator
     /// </summary>
-    public record DivisionOperator : IOperator, IBinaryOperation
+    public record DivisionOperator : Singleton<DivisionOperator>, IBinaryOperator
     {
         public string Symbol => "/";
         public string Name => "Division";

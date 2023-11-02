@@ -1,12 +1,11 @@
-﻿using CalcBase.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace CalcBase.Operators.Bitwise
 {
     /// <summary>
     /// Bitwise OR operator
     /// </summary>
-    public record OrOperator : IOperator, IBinaryOperation
+    public record OrOperator : Singleton<OrOperator>, IBinaryOperator
     {
         public string Symbol => "|";
         public string Name => "Bitwise OR";
@@ -22,12 +21,12 @@ namespace CalcBase.Operators.Bitwise
         /// <returns>Result of operation</returns>
         public NumberType Calculate(NumberType a, NumberType b)
         {
-            if ((NumberType.Sign(a) < 0) || !NumberType.IsInteger(a))
+            if (NumberType.Sign(a) < 0 || !NumberType.IsInteger(a))
             {
                 throw new SolverException($"{Name} can only be performed with natural numbers");
             }
 
-            if ((NumberType.Sign(b) < 0) || !NumberType.IsInteger(b))
+            if (NumberType.Sign(b) < 0 || !NumberType.IsInteger(b))
             {
                 throw new SolverException($"{Name} can only be performed with natural numbers");
             }

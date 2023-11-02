@@ -1,11 +1,9 @@
-﻿using CalcBase.Generic;
-
-namespace CalcBase.Operators.Arithmetic
+﻿namespace CalcBase.Operators.Arithmetic
 {
     /// <summary>
     /// Multiplication operator
     /// </summary>
-    public record MultiplicationOperator : IOperator, IBinaryOperation
+    public record MultiplicationOperator : Singleton<MultiplicationOperator>, IBinaryOperator
     {
         public string Symbol => "*";
         public string Name => "Multiplication";

@@ -1,6 +1,6 @@
-﻿namespace CalcBase.Functions
+﻿namespace CalcBase.Functions.Trigonometric
 {
-    public record CosFunction : ISingleArgumentFunction
+    public record CosFunction : Singleton<CosFunction>, ISingleArgumentFunction
     {
         public string Name => "Cosine";
         public string Symbol => "cos";

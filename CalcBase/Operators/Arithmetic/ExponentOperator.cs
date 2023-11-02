@@ -1,12 +1,11 @@
-﻿using CalcBase.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace CalcBase.Operators.Arithmetic
 {
     /// <summary>
     /// Exponent operator
     /// </summary>
-    public record ExponentOperator : IOperator, IBinaryOperation
+    public record ExponentOperator : Singleton<ExponentOperator>, IBinaryOperator
     {
         public string Symbol => "**";
         public string Name => "Exponent";

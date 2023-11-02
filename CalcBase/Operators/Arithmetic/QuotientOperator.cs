@@ -1,12 +1,11 @@
-﻿using CalcBase.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace CalcBase.Operators.Arithmetic
 {
     /// <summary>
     /// Quotient operator
     /// </summary>
-    public record QuotientOperator : IOperator, IBinaryOperation
+    public record QuotientOperator : Singleton<QuotientOperator>, IBinaryOperator
     {
         public string Symbol => "//";
         public string Name => "Quotient";

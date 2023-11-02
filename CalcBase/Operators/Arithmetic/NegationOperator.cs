@@ -1,11 +1,9 @@
-﻿using CalcBase.Generic;
-
-namespace CalcBase.Operators.Arithmetic
+﻿namespace CalcBase.Operators.Arithmetic
 {
     /// <summary>
     /// Negation operator
     /// </summary>
-    public record NegationOperator : IOperator, IUnaryOperation
+    public record NegationOperator : Singleton<NegationOperator>, IUnaryOperator
     {
         public string Symbol => "-";
         public string Name => "Negation";

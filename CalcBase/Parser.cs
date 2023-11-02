@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using CalcBase.Constants;
 using CalcBase.Constants.Mathematical;
+using CalcBase.Formulas;
 using CalcBase.Functions;
-using CalcBase.Generic;
+using CalcBase.Functions.Mathematical;
+using CalcBase.Functions.Trigonometric;
+using CalcBase.Numbers;
 using CalcBase.Operators;
 using CalcBase.Operators.Arithmetic;
 using CalcBase.Operators.Bitwise;
+using CalcBase.Quantities;
 using CalcBase.Tokens;
+using CalcBase.Units;
 
 [assembly: InternalsVisibleTo("CalcBaseTest")]
 namespace CalcBase
@@ -25,34 +31,72 @@ namespace CalcBase
         private static readonly char ExponentPointSymbol = 'E';
         private static readonly int IntTypeBits = 128;
 
-        // Operators
-        private static readonly IOperator[] operators = new IOperator[]
-        {
-            new AdditionOperator(),
-            new SubtractionOperator(),
-            new MultiplicationOperator(),
-            new DivisionOperator(),
-            new ReminderOperator(),
-            new ExponentOperator(),
-            new QuotientOperator(),
-            new NegationOperator(),
-            new AndOperator(),
-            new OrOperator(),
-            new XorOperator(),
-            new InverseOperator(),
-        };
+        /// <summary>
+        /// Library
+        /// </summary>
+        private readonly IOperator[] operators;
+        private readonly IFunction[] functions;
+        private readonly IConstant[] constants;
+        private readonly IQuantity[] quantities;
+        private readonly IUnit[] units;
+        private readonly IFormula[] formulas;
 
-        private static readonly IFunction[] functions = new IFunction[]
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public Parser()
         {
-            new CosFunction(),
-            new SinFunction(),
-            new RoundFunction(),
-        };
+            operators = GetSingletonsOfType<IOperator>().ToArray();
+            functions = GetSingletonsOfType<IFunction>().ToArray();
+            constants = GetSingletonsOfType<IConstant>().ToArray();
+            quantities = GetSingletonsOfType<IQuantity>().ToArray();
+            units = GetSingletonsOfType<IUnit>().ToArray();
+            formulas = GetSingletonsOfType<IFormula>().ToArray();
+        }
 
-        private static readonly IConstant[] constants = new IConstant[]
+        /// <summary>
+        /// Get singletons of specific type of interface
+        /// </summary>
+        /// <typeparam name="T">Type of instance</typeparam>
+        /// <returns>Enumable of type instances</returns>
+        public static IEnumerable<T> GetSingletonsOfType<T>()
         {
-            new PiConstant(),
-        };
+            IEnumerable<Type> allSingletonTypes = Assembly.GetExecutingAssembly().GetTypes()
+               .Where(t => IsSubclassOfRawGeneric(typeof(Singleton<>), t));
+            IEnumerable<Type> rightTypes = allSingletonTypes.Where(t => t.GetInterfaces().Contains(typeof(T)));
+
+            foreach (Type t in rightTypes)
+            {
+                PropertyInfo? prop = t.BaseType?.GetProperty("Instance");
+                object? value = prop?.GetValue(null);
+                if (value != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Found {value.GetType().Name}");
+                    yield return (T)value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Code from https://stackoverflow.com/a/457708
+        /// </summary>
+        /// <param name="generic">Generic type</param>
+        /// <param name="toCheck">Type of check</param>
+        /// <returns>true if type inherits generic type</returns>
+        static bool IsSubclassOfRawGeneric(Type generic, Type? toCheck)
+        {
+            while (toCheck != null && toCheck != typeof(object))
+            {
+                var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+                if (generic == cur)
+                {
+                    return true;
+                }
+                toCheck = toCheck.BaseType;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Read text (don't yet know if it's constant, unit, variable or function)
@@ -61,24 +105,14 @@ namespace CalcBase
         /// <param name="start">Number start position</param>
         /// <returns>Text token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static IToken ReadText(ReadOnlySpan<char> infix, int start)
+        internal IToken ReadText(ReadOnlySpan<char> infix, int start)
         {
-            int pos;
-
-            for (pos = start; pos < infix.Length; pos++)
-            {
-                char c = infix[pos];
-                if (!char.IsLetterOrDigit(c))
-                {
-                    break;
-                }
-            }
-
-            string text = infix.Slice(start, pos - start).ToString();
+            string text = infix.Slice(start).ToString();
 
             // Is it a function ?
-            IFunction? func = functions.FirstOrDefault(o =>
-                string.Equals(o.Symbol, text, StringComparison.InvariantCultureIgnoreCase));
+            IFunction? func = functions
+                .OrderByDescending(f => f.Symbol.Length)
+                .FirstOrDefault(f => text.StartsWith(f.Symbol, StringComparison.InvariantCultureIgnoreCase));
             if (func != null)
             {
                 return new FunctionToken()
@@ -90,20 +124,60 @@ namespace CalcBase
             }
 
             // Is it a constant ?
-            IConstant? cnst = constants.FirstOrDefault(o =>
-                string.Equals(o.Symbol, text, StringComparison.InvariantCultureIgnoreCase) ||
-                string.Equals(o.SimpleSymbol, text, StringComparison.InvariantCultureIgnoreCase));
+            IConstant? cnst = constants
+                .OrderByDescending(c => c.Symbol.Length)
+                .FirstOrDefault(c => text.StartsWith(c.Symbol, StringComparison.InvariantCultureIgnoreCase));
             if (cnst != null)
             {
                 return new ConstantToken()
                 {
                     Position = start,
-                    Length = text.Length,
+                    Length = cnst.Symbol.Length,
                     Constant = cnst
                 };
             }
 
-            throw new ExpressionException($"Unknown function/constant: {text}", start, text.Length);
+            cnst = constants
+                .OrderByDescending(c => c.SimpleSymbol.Length)
+                .FirstOrDefault(c => text.StartsWith(c.SimpleSymbol, StringComparison.InvariantCultureIgnoreCase));
+            if (cnst != null)
+            {
+                return new ConstantToken()
+                {
+                    Position = start,
+                    Length = cnst.SimpleSymbol.Length,
+                    Constant = cnst
+                };
+            }
+
+            // Is it a unit ?
+            IUnit? unit = units
+                .OrderByDescending(u => u.Symbol.Length)
+                .FirstOrDefault(u => text.StartsWith(u.Symbol, StringComparison.InvariantCultureIgnoreCase));
+            if (unit != null)
+            {
+                return new UnitToken()
+                {
+                    Position = start,
+                    Length = unit.Symbol.Length,
+                    Unit = unit
+                };
+            }
+
+            unit = units
+                .OrderByDescending(u => u.SimpleSymbol.Length)
+                .FirstOrDefault(u => text.StartsWith(u.SimpleSymbol, StringComparison.InvariantCultureIgnoreCase));
+            if (unit != null)
+            {
+                return new UnitToken()
+                {
+                    Position = start,
+                    Length = unit.SimpleSymbol.Length,
+                    Unit = unit
+                };
+            }
+
+            throw new ExpressionException($"Unknown function/constant/unit: {text}", start, text.Length);
         }
 
         /// <summary>
@@ -112,7 +186,7 @@ namespace CalcBase
         /// </summary>
         /// <param name="prevToken">Previous token or null if none</param>
         /// <returns>Operator</returns>
-        internal static IOperator DecideMinusOperator(IToken? prevToken)
+        internal IOperator DecideMinusOperator(IToken? prevToken)
         {
             bool isNegation = false;
 
@@ -147,7 +221,7 @@ namespace CalcBase
         /// Tokenize infix expression
         /// </summary>
         /// <returns></returns>
-        public static List<IToken> Tokenize(string infix)
+        public List<IToken> Tokenize(string infix)
         {
             List<IToken> tokens = new();
             int i = 0;
@@ -246,7 +320,7 @@ namespace CalcBase
         /// <param name="infix">Infix tokens</param>
         /// <param name="funcIndex">Function index</param>
         /// <returns></returns>
-        private static void CheckFunctionArguments(List<IToken> infix, int funcIndex)
+        private void CheckFunctionArguments(List<IToken> infix, int funcIndex)
         {
             FunctionToken funcToken = (FunctionToken)infix[funcIndex];
             int numExpectedArgs = funcToken.ArgumentCount;
@@ -299,7 +373,7 @@ namespace CalcBase
         /// </summary>
         /// <param name="infix">Infix tokens</param>
         /// <exception cref="ExpressionException"></exception>
-        public static void InfixErrorCheck(List<IToken> infix, int startIndex = 0)
+        public void InfixErrorCheck(List<IToken> infix, int startIndex = 0)
         {
             int parenthesisDepth = 0;
 
@@ -355,65 +429,89 @@ namespace CalcBase
         }
 
         /// <summary>
-        /// Shunting yard algoritm to get postfix (RPN) expression from infix tokens
+        /// Shunting yard algoritm to get postfix (RPN) expression tokens from infix tokens
         /// </summary>
         /// <param name="infix">Token in infix order</param>
         /// <returns>List of tokens in postfix (RPN) order</returns>
-        public static List<IToken> ShuntingYard(List<IToken> infix)
+        public List<IToken> ShuntingYard(List<IToken> infix)
         {
             List<IToken> postfix = new();
             Stack<IToken> opStack = new();
 
-            foreach (IToken token in infix)
+            for (int i = 0; i < infix.Count; i++)
             {
-                if (token is NumberToken)
+                IToken? current = infix[i];
+                IToken? next = (i < infix.Count - 1 ? infix[i + 1] : null);
+                
+                if (current is NumberToken numberToken)
                 {
-                    postfix.Add(token);
+                    if (next is UnitToken unitToken)
+                    {
+                        // Combine number and unit token into measure token
+                        postfix.Add(new MeasureToken()
+                        {
+                            Position = numberToken.Position,
+                            Length = unitToken.Position + numberToken.Length - numberToken.Position,
+                            Measure = new Measure()
+                            {
+                                Value = numberToken.Number.Value,
+                                Radix = numberToken.Number.Radix,
+                                DominantCase = numberToken.Number.DominantCase,
+                                IsScientificNotation = numberToken.Number.IsScientificNotation,
+                                Unit = unitToken.Unit
+                            }
+                        });
+
+                        // Leap over unit token
+                        i++;
+                    }
+                    else
+                    {
+                        postfix.Add(numberToken);
+                    }
                 }
-                else if (token is ConstantToken constToken)
+                else if (current is ConstantToken constToken)
                 {
                     postfix.Add(constToken);
                 }
-                else if (token is LeftParenthesisToken)
+                else if (current is LeftParenthesisToken leftParenthesisToken)
                 {
-                    opStack.Push(token);
+                    opStack.Push(leftParenthesisToken);
                 }
-                else if (token is RightParenthesisToken)
+                else if (current is RightParenthesisToken)
                 {
-                    while (opStack.TryPeek(out IToken? stackedToken) && (stackedToken is OperatorToken stackedOpToken))
+                    while (opStack.TryPeek(out IToken? stackedToken) && ((stackedToken is OperatorToken) || (stackedToken is FunctionToken)))
                     {
                         postfix.Add(opStack.Pop());
                     }
                     opStack.Pop();
                 }
-                else if (token is ArgumentSeparatorToken)
+                else if (current is ArgumentSeparatorToken)
                 {
-                    while (opStack.TryPeek(out IToken? stackedToken) && (stackedToken is OperatorToken stackedOpToken))
+                    while (opStack.TryPeek(out IToken? stackedToken) && ((stackedToken is OperatorToken) || (stackedToken is FunctionToken)))
                     {
                         postfix.Add(opStack.Pop());
                     }
                 }
-                else if (token is OperatorToken opToken)
+                else if (current is OperatorToken opToken)
                 {                    
                     while (opStack.TryPeek(out IToken? stackedToken) &&
-                        (((stackedToken is OperatorToken stackedOpToken) &&
-                        (opToken.Operator.Precedence > stackedOpToken.Operator.Precedence)) ||
+                        (((stackedToken is OperatorToken stackedOpToken) && (opToken.Operator.Precedence > stackedOpToken.Operator.Precedence)) ||
                         (stackedToken is FunctionToken)))
                     {
-                        //System.Diagnostics.Debug.WriteLine($"  Op to queue {stackedOpToken}");
-                        postfix.Add(opStack.Pop());                    
+                        postfix.Add(opStack.Pop());
                     }
 
                     opStack.Push(opToken);
                 }
-                else if (token is FunctionToken funcToken)
+                else if (current is FunctionToken funcToken)
                 {
                     opStack.Push(funcToken);
                 }
                 else
                 {
                     // Something's wrong
-                    throw new ExpressionException($"Unhandled token: {token}", token.Position, token.Length);
+                    throw new ExpressionException($"Unhandled token: {current}", current.Position, current.Length);
                 }
             }
 

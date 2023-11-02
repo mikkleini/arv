@@ -1,22 +1,36 @@
-﻿using CalcBase.Generic;
-using CalcBase.Operators;
+﻿using CalcBase.Operators;
 using CalcBase.Tokens;
 using CalcBase.Numbers;
 using System.Numerics;
 using System.Diagnostics;
 using CalcBase.Functions;
+using CalcBase.Constants;
+using CalcBase.Formulas;
+using CalcBase.Quantities;
+using CalcBase.Units;
+using System.Reflection;
 
 namespace CalcBase
 {
     public class Solver
     {
+        private readonly IFormula[] formulas;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public Solver()
+        {
+            formulas = Parser.GetSingletonsOfType<IFormula>().ToArray();
+        }
+
         /// <summary>
         /// Vote the common radix
         /// </summary>
         /// <param name="a">Radix A</param>
         /// <param name="b">Radix B</param>
         /// <returns>Common radix</returns>
-        private static IntegerRadix VoteCommonRadix(IntegerRadix a, IntegerRadix b)
+        private IntegerRadix VoteCommonRadix(IntegerRadix a, IntegerRadix b)
         {
             // Use radix of first operand
             return a;
@@ -28,9 +42,9 @@ namespace CalcBase
         /// <param name="a">Radix A</param>
         /// <param name="b">Radix B</param>
         /// <returns>Common radix</returns>
-        private static DominantCase VoteCommonDominantCase(DominantCase a, DominantCase b)
+        private DominantHexadecimalCase VoteCommonDominantCase(DominantHexadecimalCase a, DominantHexadecimalCase b)
         {
-            return (a == DominantCase.None ? b : a);
+            return (a == DominantHexadecimalCase.None ? b : a);
         }
 
         /// <summary>
@@ -40,12 +54,12 @@ namespace CalcBase
         /// <param name="opToken">Operator token</param>
         /// <returns>Result</returns>
         /// <exception cref="SolverException"></exception>
-        private static Number SolveOperation(Stack<Number> numberStack, OperatorToken opToken)
+        private Number SolveOperation(Stack<Number> numberStack, OperatorToken opToken)
         {
             IOperator op = opToken.Operator;
 
             // Is it unary operation ?
-            if ((op.OpCount == OperatorOpCountType.Unary) && (op is IUnaryOperation unaryOp))
+            if ((op.OpCount == OperatorOpCountType.Unary) && (op is IUnaryOperator unaryOp))
             {
                 if (!numberStack.TryPop(out Number? a))
                 {
@@ -53,17 +67,31 @@ namespace CalcBase
                 }
 
                 Debug.WriteLine($"  Unary operation {op.Name} with {a.Value}");
-                NumberType result = unaryOp.Calculate(a.Value);                    
+                NumberType result = unaryOp.Calculate(a.Value);
 
-                return new Number()
+                if (a is Measure measure)
                 {
-                    Value = result,
-                    Radix = a.Radix,
-                    DominantCase = a.DominantCase,
-                    IsScientificNotation = a.IsScientificNotation
-                };
+                    return new Measure()
+                    {
+                        Value = result,
+                        Radix = a.Radix,
+                        DominantCase = a.DominantCase,
+                        IsScientificNotation = a.IsScientificNotation,
+                        Unit = measure.Unit
+                    };
+                }
+                else
+                {
+                    return new Number()
+                    {
+                        Value = result,
+                        Radix = a.Radix,
+                        DominantCase = a.DominantCase,
+                        IsScientificNotation = a.IsScientificNotation
+                    };
+                }
             }
-            else if ((op.OpCount == OperatorOpCountType.Binary) && (op is IBinaryOperation binOp))
+            else if ((op.OpCount == OperatorOpCountType.Binary) && (op is IBinaryOperator binOp))
             {
                 if (!numberStack.TryPop(out Number? b))
                 {
@@ -78,13 +106,60 @@ namespace CalcBase
                 Debug.WriteLine($"  Binary operation {op.Name} with {a.Value} and {b.Value}");
                 NumberType result = binOp.Calculate(a.Value, b.Value);
 
-                return new Number()
+                // If both operands are measure and have different units, then there should be a formula to get the resulting unit
+                if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
                 {
-                    Value = result,
-                    Radix = VoteCommonRadix(a.Radix, b.Radix),
-                    DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
-                    IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation
-                };
+                    IFormula? formula = formulas.FirstOrDefault(f => (f.Expression.Length == 3) &&
+                            (f.Expression[0] is UnitToken formAToken) && (formAToken.Unit == measureA.Unit) &&
+                            (f.Expression[1] is UnitToken formBToken) && (formBToken.Unit == measureB.Unit) &&
+                            (f.Expression[2] is OperatorToken formOpToken) && (formOpToken.Operator == op));
+
+                    if (formula == null)
+                    {
+                        throw new SolverException($"No formula to calculate {measureA} {op.Symbol} {measureB}");
+                    }
+
+                    return new Measure()
+                    {
+                        Value = result,
+                        Radix = VoteCommonRadix(a.Radix, b.Radix),
+                        DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
+                        IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation,
+                        Unit = formula.Result
+                    };
+                }
+                else if (a is Measure mA)
+                {
+                    return new Measure()
+                    {
+                        Value = result,
+                        Radix = VoteCommonRadix(a.Radix, b.Radix),
+                        DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
+                        IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation,
+                        Unit = mA.Unit
+                    };
+                }
+                else if (b is Measure mB)
+                {
+                    return new Measure()
+                    {
+                        Value = result,
+                        Radix = VoteCommonRadix(a.Radix, b.Radix),
+                        DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
+                        IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation,
+                        Unit = mB.Unit
+                    };
+                }
+                else
+                {
+                    return new Number()
+                    {
+                        Value = result,
+                        Radix = VoteCommonRadix(a.Radix, b.Radix),
+                        DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
+                        IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation
+                    };
+                }
             }
             else
             {
@@ -100,7 +175,7 @@ namespace CalcBase
         /// <param name="funcToken">Function token</param>
         /// <returns>Result</returns>
         /// <exception cref="SolverException"></exception>
-        private static Number SolveFunction(Stack<Number> numberStack, FunctionToken funcToken)
+        private Number SolveFunction(Stack<Number> numberStack, FunctionToken funcToken)
         {
             IFunction func = funcToken.Function;
 
@@ -114,7 +189,7 @@ namespace CalcBase
                 {
                     Value = result,
                     Radix = noArgFunc.OutputRadix,
-                    DominantCase = DominantCase.None,
+                    DominantCase = DominantHexadecimalCase.None,
                     IsScientificNotation = false
                 };
             }
@@ -173,7 +248,7 @@ namespace CalcBase
         /// </summary>
         /// <param name="tokens">Tokens in postfix order</param>
         /// <returns>Result</returns>
-        public static Number Solve(IEnumerable<IToken> tokens)
+        public Number Solve(IEnumerable<IToken> tokens)
         {
             Stack<Number> numberStack = new();
             
@@ -182,6 +257,10 @@ namespace CalcBase
                 if (token is NumberToken numToken)
                 {
                     numberStack.Push(numToken.Number);
+                }
+                else if (token is MeasureToken measureToken)
+                {
+                    numberStack.Push(measureToken.Measure);
                 }
                 else if (token is ConstantToken constToken)
                 {

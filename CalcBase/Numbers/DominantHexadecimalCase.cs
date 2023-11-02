@@ -1,9 +1,9 @@
-﻿namespace CalcBase.Tokens
+﻿namespace CalcBase.Numbers
 {
     /// <summary>
     /// Hexadecimal number letter dominant case
     /// </summary>
-    public enum DominantCase
+    public enum DominantHexadecimalCase
     {
         None,
         Lower,

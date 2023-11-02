@@ -1,11 +1,9 @@
-﻿using CalcBase.Generic;
-
-namespace CalcBase.Operators.Arithmetic
+﻿namespace CalcBase.Operators.Arithmetic
 {
     /// <summary>
     /// Remainder operator
     /// </summary>
-    public record ReminderOperator : IOperator, IBinaryOperation
+    public record ReminderOperator : Singleton<ReminderOperator>, IBinaryOperator
     {
         public string Symbol => "%";
         public string Name => "Modulus";

@@ -10,6 +10,18 @@ namespace CalcCLI
 {
     public class Program
     {
+        private static readonly Parser parser;
+        private static readonly Solver solver;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        static Program()
+        {
+            parser = new();
+            solver = new();
+        }
+
         /// <summary>
         /// Main program
         /// </summary>
@@ -86,11 +98,19 @@ namespace CalcCLI
         {
             try
             {
-                var infix = Parser.Tokenize(expression);
-                Parser.InfixErrorCheck(infix);
-                var postfix = Parser.ShuntingYard(infix);
-                Number result = Solver.Solve(postfix);
-                Console.WriteLine($"{expression}={result.Value}");
+                var infix = parser.Tokenize(expression);
+                parser.InfixErrorCheck(infix);
+                var postfix = parser.ShuntingYard(infix);
+                Number result = solver.Solve(postfix);
+
+                if (result is Measure measureResult)
+                {
+                    Console.WriteLine($"{expression}={measureResult.Value}{measureResult.Unit.Symbol}");
+                }
+                else
+                {
+                    Console.WriteLine($"{expression}={result.Value}");
+                }
             }
             catch (ExpressionException ex)
             {

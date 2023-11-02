@@ -6,13 +6,13 @@
     public abstract record Token : IToken
     {
         /// <summary>
-        /// Token position in infix expression
+        /// Position of the token in infix expression string
         /// </summary>
-        public int Position { get; init; }
+        public required int Position { get; init; }
 
         /// <summary>
-        /// Token length in infix expression
+        /// Length of the token in expression string
         /// </summary>
-        public int Length { get; init; }
+        public required int Length { get; init; }
     }
 }

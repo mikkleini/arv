@@ -2,6 +2,7 @@
 using CalcBase.Numbers;
 using CalcBase.Tokens;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Diagnostics;
 using System.Numerics;
 
@@ -9,9 +10,14 @@ namespace CalcBaseTest
 {
     public class SolverTests
     {
+        private Parser parser;
+        private Solver solver;
+
         [SetUp]
         public void Setup()
         {
+            parser = new Parser();
+            solver = new Solver();
         }
 
         /// <summary>
@@ -19,27 +25,28 @@ namespace CalcBaseTest
         /// </summary>
         /// <param name="infix">Infix expression</param>
         /// <param name="result">Expected result</param>
-        private static void TestEquation(string infix, Number expectedResult)
+        private void TestEquation(string infix, Number expectedResult)
         {
+            Debug.WriteLine("");
             Debug.WriteLine($"Test {infix} expect {expectedResult}");
 
-            var infixTokens = Parser.Tokenize(infix);
+            var infixTokens = parser.Tokenize(infix);
             foreach (var token in infixTokens)
             {
                 Debug.WriteLine($"  Infix: {token}");
             }
 
-            var postfixTokens = Parser.ShuntingYard(infixTokens);
+            var postfixTokens = parser.ShuntingYard(infixTokens);
 
             foreach (var token in postfixTokens)
             {
                 Debug.WriteLine($"  Postfix: {token}");
             }
 
-            Number actualResult = Solver.Solve(postfixTokens);
+            Number actualResult = solver.Solve(postfixTokens);
 
             Debug.WriteLine($"  Got: {actualResult}");
-            
+
             Assert.Multiple(() =>
             {
                 Assert.That(actualResult.Value, Is.EqualTo(expectedResult.Value));
@@ -86,8 +93,8 @@ namespace CalcBaseTest
             // TODO Has accuracy issue:
             TestEquation("625 ** 0.5", Number.Create(25));
 
-            TestEquation("0xF0 + 15", Number.Create(0xFF, IntegerRadix.Hexadecimal, DominantCase.Upper));
-            TestEquation("240 + 0x0F", Number.Create(0xFF, IntegerRadix.Decimal, DominantCase.Upper));
+            TestEquation("0xF0 + 15", Number.Create(0xFF, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper));
+            TestEquation("240 + 0x0F", Number.Create(0xFF, IntegerRadix.Decimal, false, DominantHexadecimalCase.Upper));
 
             Assert.Pass();
         }
@@ -102,6 +109,7 @@ namespace CalcBaseTest
             TestEquation("round(1.23456 * 2, 2)", Number.Create(2.47));
             TestEquation("round(1.23456 * (2 + 1), 2)", Number.Create(3.70));
             TestEquation("sin((cos(0)*pi)/2)", Number.Create(1));
+            TestEquation("round(sin(Pi/2), 3)", Number.Create(1.000));
 
             Assert.Pass();
         }
@@ -122,6 +130,20 @@ namespace CalcBaseTest
             Debug.WriteLine($"Den: {x} -> {y}/{z}");
 
             Assert.Pass();
+        }
+
+        [Test]
+        public void TestMeasures()
+        {
+            var infixTokens = parser.Tokenize("3.2m");
+            var postfixTokens = parser.ShuntingYard(infixTokens);
+            
+            Assert.That(postfixTokens.Count, Is.EqualTo(1));
+            Assert.That(postfixTokens[0], Is.InstanceOf(typeof(MeasureToken)));
+            MeasureToken mt = (MeasureToken)postfixTokens[0];
+
+            Assert.That(mt.Measure.Value, Is.EqualTo(new NumberType(3.2M)));
+            Assert.That(mt.Measure.Unit.Symbol, Is.EqualTo("m"));
         }
     }
 }

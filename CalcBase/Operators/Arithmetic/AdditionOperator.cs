@@ -1,11 +1,9 @@
-﻿using CalcBase.Generic;
-
-namespace CalcBase.Operators.Arithmetic
+﻿namespace CalcBase.Operators.Arithmetic
 {
     /// <summary>
     /// Addition operator
     /// </summary>
-    public record AdditionOperator : IOperator, IBinaryOperation
+    public record AdditionOperator : Singleton<AdditionOperator>, IBinaryOperator
     {
         public string Symbol => "+";
         public string Name => "Addition";

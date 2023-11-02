@@ -1,10 +1,13 @@
-﻿namespace CalcBase.Constants
+﻿using CalcBase.Quantities;
+using CalcBase.Units;
+
+namespace CalcBase.Constants
 {
     /// <summary>
     /// Interface for physics constant
     /// </summary>
     interface IPhysicsConstant : IConstant
     {
-        string Unit { get; }
+        IUnit Unit { get; }
     }
 }

@@ -1,12 +1,11 @@
-﻿using CalcBase.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace CalcBase.Operators.Bitwise
 {
     /// <summary>
     /// Inverse operator
     /// </summary>
-    public record InverseOperator : IOperator, IUnaryOperation
+    public record InverseOperator : Singleton<InverseOperator>, IUnaryOperator
     {
         public string Symbol => "~";
         public string Name => "Bitwise NOT";
@@ -24,7 +23,7 @@ namespace CalcBase.Operators.Bitwise
             if ((NumberType.Sign(a) < 0) || !NumberType.IsInteger(a))
             {
                 throw new SolverException($"{Name} can only be performed with natural number");
-            }            
+            }
 
             var bigA = (BigInteger)a;
             return new NumberType(~bigA);

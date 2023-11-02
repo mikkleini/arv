@@ -1,6 +1,6 @@
-﻿namespace CalcBase.Functions
+﻿namespace CalcBase.Functions.Trigonometric
 {
-    public record SinFunction : ISingleArgumentFunction
+    public record SinFunction : Singleton<SinFunction>, ISingleArgumentFunction
     {
         public string Name => "Sine";
         public string Symbol => "sin";
