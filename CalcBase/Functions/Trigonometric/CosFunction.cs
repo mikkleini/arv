@@ -1,5 +1,8 @@
 ﻿namespace CalcBase.Functions.Trigonometric
 {
+    /// <summary>
+    /// Cosine function
+    /// </summary>
     public record CosFunction : Singleton<CosFunction>, ISingleArgumentFunction
     {
         public string Name => "Cosine";

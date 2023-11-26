@@ -5,7 +5,7 @@ namespace CalcBase.Numbers
     /// <summary>
     /// Number
     /// </summary>
-    public record Number
+    public record Number : IElement
     {
         /// <summary>
         /// Value

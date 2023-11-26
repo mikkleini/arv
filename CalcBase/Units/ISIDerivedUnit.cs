@@ -3,7 +3,8 @@
     /// <summary>
     /// Interface for SI derived units
     /// </summary>
-    public interface ISIDerivedUnit : IUnit
+    public interface ISIDerivedUnit : ISIUnit
     {
+        IElement[] Expression { get; }
     }
 }

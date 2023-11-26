@@ -11,6 +11,6 @@ namespace CalcBase.Units.Physics.SI
         public string Name => "Metre per second";
         public string Symbol => "m/s";
         public string SimpleSymbol => "m/s";
-        public IQuantity Quantity => VelocityQuantity.Instance;
+        public IQuantity Quantity => SpeedQuantity.Instance;
     }
 }

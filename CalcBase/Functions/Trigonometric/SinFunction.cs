@@ -1,5 +1,8 @@
 ﻿namespace CalcBase.Functions.Trigonometric
 {
+    /// <summary>
+    /// Sine function
+    /// </summary>
     public record SinFunction : Singleton<SinFunction>, ISingleArgumentFunction
     {
         public string Name => "Sine";

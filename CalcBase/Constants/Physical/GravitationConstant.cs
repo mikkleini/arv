@@ -5,6 +5,9 @@ using CalcBase.Units.Physics.SI;
 
 namespace CalcBase.Constants.Physical
 {
+    /// <summary>
+    /// Newtonian constant of gravitation
+    /// </summary>
     public record GravitationConstant : Singleton<GravitationConstant>, IPhysicsConstant
     {
         public string Name => "Newtonian constant of gravitation";

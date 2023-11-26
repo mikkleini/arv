@@ -2,7 +2,10 @@
 
 namespace CalcBase.Constants
 {
-    public interface IConstant
+    /// <summary>
+    /// Constant
+    /// </summary>
+    public interface IConstant : IElement
     {
         string Name { get; }
         string Symbol { get; }

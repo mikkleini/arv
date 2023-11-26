@@ -3,10 +3,9 @@
     /// <summary>
     /// Quantity
     /// </summary>
-    public interface IQuantity
+    public interface IQuantity : IElement
     {
         string Name { get; }
-        string Symbol { get; }
-        string SimpleSymbol { get; }
+        string[] Symbols { get; }
     }
 }

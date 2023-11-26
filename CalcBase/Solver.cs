@@ -110,9 +110,9 @@ namespace CalcBase
                 if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
                 {
                     IFormula? formula = formulas.FirstOrDefault(f => (f.Expression.Length == 3) &&
-                            (f.Expression[0] is UnitToken formAToken) && (formAToken.Unit == measureA.Unit) &&
-                            (f.Expression[1] is UnitToken formBToken) && (formBToken.Unit == measureB.Unit) &&
-                            (f.Expression[2] is OperatorToken formOpToken) && (formOpToken.Operator == op));
+                            (f.Expression[0] is IQuantity formQuantA) && (formQuantA == measureA.Unit.Quantity) &&
+                            (f.Expression[1] is IQuantity formQuantB) && (formQuantB == measureB.Unit.Quantity) &&
+                            (f.Expression[2] is IBinaryOperator formOp) && (formOp == op));
 
                     if (formula == null)
                     {

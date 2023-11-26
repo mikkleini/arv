@@ -1,6 +1,9 @@
 ﻿namespace CalcBase.Functions
 {
-    public interface IFunction
+    /// <summary>
+    /// Function
+    /// </summary>
+    public interface IFunction : IElement
     {
         string Name { get; }
         string Symbol { get; }

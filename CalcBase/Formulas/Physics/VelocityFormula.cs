@@ -1,41 +1,32 @@
 ﻿using CalcBase.Operators.Arithmetic;
+using CalcBase.Quantities;
 using CalcBase.Quantities.Physical;
-using CalcBase.Tokens;
-using CalcBase.Units;
-using CalcBase.Units.Physics.SI;
 
 namespace CalcBase.Formulas.Physics
 {
+    /// <summary>
+    /// Velocity formula
+    /// </summary>
     public record VelocityFormula : Singleton<VelocityFormula>, IFormula
     {
         /// <summary>
+        /// Name
+        /// </summary>
+        public string Name => "Velocity";
+
+        /// <summary>
         /// Formula as postfix expression
         /// </summary>
-        public IToken[] Expression => new IToken[]
+        public IElement[] Expression => new IElement[]
         {
-            new UnitToken()
-            {
-                Position = 0,
-                Length = 1,
-                Unit = MeterUnit.Instance
-            },
-            new UnitToken()
-            {
-                Position = 2,
-                Length = 1,
-                Unit = SecondUnit.Instance
-            },
-            new OperatorToken()
-            {
-                Position = 1,
-                Length = 1,
-                Operator = DivisionOperator.Instance
-            }
+            LengthQuantity.Instance,
+            TimeQuantity.Instance,
+            DivisionOperator.Instance,
         };
 
         /// <summary>
         /// Result of the formula
         /// </summary>
-        public IUnit Result => MetrePerSecondUnit.Instance;
+        public IQuantity Result => SpeedQuantity.Instance;
     }
 }

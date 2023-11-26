@@ -1,18 +1,26 @@
-﻿using CalcBase.Tokens;
+﻿using CalcBase.Quantities;
 using CalcBase.Units;
 
 namespace CalcBase.Formulas
 {
-    public interface IFormula
+    /// <summary>
+    /// Formula
+    /// </summary>
+    public interface IFormula : IElement
     {
+        /// <summary>
+        /// Name
+        /// </summary>
+        string Name { get; }
+
         /// <summary>
         /// Formula as postfix expression
         /// </summary>
-        IToken[] Expression { get; }
+        IElement[] Expression { get; }
 
         /// <summary>
         /// Result of the formula
         /// </summary>
-        IUnit Result { get; }
+        IQuantity Result { get; }
     }
 }

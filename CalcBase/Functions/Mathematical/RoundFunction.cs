@@ -2,6 +2,9 @@
 
 namespace CalcBase.Functions.Mathematical
 {
+    /// <summary>
+    /// Rounding function
+    /// </summary>
     public record RoundFunction : Singleton<RoundFunction>, IDualArgumentFunction
     {
         public string Name => "Round";

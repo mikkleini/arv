@@ -1,6 +1,6 @@
 ﻿namespace CalcBase.Operators
 {
-    public interface IOperator
+    public interface IOperator : IElement
     {
         string Symbol { get; }
         string Name { get; }

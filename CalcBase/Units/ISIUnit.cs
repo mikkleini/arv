@@ -1,9 +1,9 @@
 ﻿namespace CalcBase.Units
 {
     /// <summary>
-    /// Interface for SI base units
+    /// Interface for SI units
     /// </summary>
-    public interface ISIBaseUnit : ISIUnit
+    public interface ISIUnit : IUnit
     {
     }
 }
