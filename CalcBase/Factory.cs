@@ -1,11 +1,14 @@
 ﻿using CalcBase.Constants;
 using CalcBase.Formulas;
 using CalcBase.Functions;
+using CalcBase.Functions.Mathematical;
+using CalcBase.Functions.Trigonometric;
+using CalcBase.Numbers;
 using CalcBase.Operators;
 using CalcBase.Operators.Arithmetic;
+using CalcBase.Operators.Bitwise;
 using CalcBase.Quantities;
 using CalcBase.Units;
-using System.Reflection;
 
 namespace CalcBase
 {
@@ -14,23 +17,66 @@ namespace CalcBase
     /// </summary>
     public class Factory
     {
-        // Operators
-        public static IOperator Multiplication => MultiplicationOperator.Instance;
-        public static IOperator Division => DivisionOperator.Instance;
+        // Numbers
+        public static Number MinusFour => new(-4);
+        public static Number MinusThree => new(-3);
+        public static Number MinusTwo => new(-2);
+        public static Number MinusOne => new(-1);
+        public static Number Zero => new(0);
+        public static Number Half => new(0.5M);
+        public static Number One => new(1);
+        public static Number Two => new(2);
+        public static Number Three => new(3);
+        public static Number Four => new(4);
+
+        // Constants
+        public static Constant Pi => new("Pi", ["π", "pi"], 3.14159265358979323846M);
+        public static PhysicsConstant SpeedOfLight => new("Speed of light in vacuum", ["c"], 299792458.0M, MetrePerSecond);        
+        public static Constant GravitationConstant => new("Newtonian constant of gravitation", ["G"], new Number(6.6743e-11M, isScientificNotation: true)); // TODO Make it physics contant with unit: N * m^2 * kg^−2
+
+        // Functions
+        public static RoundFunction Round => new();
+        public static CosFunction Cos => new();
+        public static SinFunction Sin => new();
+
+        // Mathematical operators
+        public static NegationOperator Negation => new();
+        public static AdditionOperator Addition => new();
+        public static SubtractionOperator Subtraction => new();
+        public static MultiplicationOperator Multiplication => new();
+        public static DivisionOperator Division => new();
+        public static ExponentOperator Exponent => new();
+        public static QuotientOperator Quotient => new();
+        public static ReminderOperator Reminder => new();
+
+        // Bitwise operators
+        public static InverseOperator Inverse => new();
+        public static AndOperator And => new();
+        public static OrOperator Or => new();
+        public static XorOperator Xor => new();        
 
         // Quantities
         public static Quantity Time => new("Time", ["t"]);
         public static Quantity Length => new("Length", ["l"]);
         public static Quantity Speed => new("Speed", ["v"]);
         public static Quantity Mass => new("Mass", ["m"]);
+        public static Quantity Density => new("Density", ["ρ"]);
         public static Quantity Acceleration => new("Acceleration", ["a"]);
         public static Quantity Area => new("Area", ["A"]);
         public static Quantity Volume => new("Volume", ["V"]);
+        public static Quantity Force => new("Force", ["F"]);
+        public static Quantity Frequency => new("Frequency", ["f"]);
 
         // Electrical quantities
         public static Quantity Voltage => new("Voltage", ["V", "U"]);
         public static Quantity Current => new("Current", ["I"]);
         public static Quantity Resistance => new("Resistance", ["R"]);
+        public static Quantity Conductance => new("Conductance", ["G"]);
+        public static Quantity Capacitance => new("Capacitance", ["C"]);
+        public static Quantity Inductance => new("Inductance", ["L"]);
+        public static Quantity Impedance => new("Impedance", ["Z"]);
+        public static Quantity Charge => new("Charge", ["C"]);
+        public static Quantity Power => new("Power", ["P"]);
 
         // SI base units
         public static SIBaseUnit Second => new("Second", ["s"], Time,
@@ -63,20 +109,32 @@ namespace CalcBase
         // SI derived units
         public static SIDerivedUnit MetrePerSecond => new("Metre per second", ["m/s"], Speed,
             [Metre, Second, Division],
-            [(["µm/s", "um/s"], "micrometre per second", 1e-6M),
+            [(["µm/s"], "micrometre per second", 1e-6M),
             (["mm/s"], "millimetre per second", 1e-3M),
             (["km/s"], "kilometre per second", 1e+3M),
             (["km/h"], "kilometre per hour", 3.6M)]);
 
+        public static SIDerivedUnit MetrePerSecondSquared => new("Metre per second squared", ["m/s^2", "m/s²"], Acceleration,
+            [Metre, Second, Two, Exponent, Division],
+            [(["µm/s²"], "micrometre per second squared", 1e-6M),
+            (["mm/s²"], "millimetre per second squared", 1e-3M),
+            (["km/s²"], "kilometre per second squared", 1e+3M)]);
+
         public static SIDerivedUnit SquareMetre => new("Square metre", ["m^2"], Speed,
-            [Metre, Metre, Multiplication],
-            [(["µm^2", "um^2", "µm²"], "square micrometre", 1e-12M),
-            (["mm^2", "mm²"], "square millimetre", 1e-6M),
-            (["cm^2", "cm²"], "square centimetre", 1e-4M),
-            (["dm^2", "dm²"], "square decimetre", 1e-2M),
-            (["dam^2", "dam²"], "are", 1e+2M),
-            (["hm^2", "hm²"], "hectare", 1e+4M),
-            (["km^2", "km²"], "square kilometre", 1e+6M)]);
+            [Metre, Two, Exponent],
+            [(["µm²"], "square micrometre", 1e-12M),
+            (["mm²"], "square millimetre", 1e-6M),
+            (["cm²"], "square centimetre", 1e-4M),
+            (["dm²"], "square decimetre", 1e-2M),
+            (["dam²"], "are", 1e+2M),
+            (["hm²"], "hectare", 1e+4M),
+            (["km²"], "square kilometre", 1e+6M)]);
+
+        public static SIDerivedUnit Litre => new("Litre", ["l", "L"], Volume,
+            [new Number(1e-3M), Metre, Three, Exponent, Multiplication]);
+
+        public static SIDerivedUnit Newton => new("Newton", ["N"], Force,
+            [Kilogram, Metre, Time, MinusTwo, Exponent, Multiplication, Multiplication]);
 
         // Imperial units
         public static ImperialUnit Inch => new("Inch", ["\"", "in"], 0.0254M, Metre);
@@ -86,88 +144,81 @@ namespace CalcBase
         public static ImperialUnit NauticalMile => new("Nautical mile", ["NM", "nmi", "M"], 1852M, Metre);
         public static ImperialUnit MilePerHour => new("Mile per hour", ["mph"], 0.44704M, MetrePerSecond);
 
+        // Mathematical formulas
+        public static Formula AreaOfSquare => new("Area of square", [PhyVar("Side", "a", Length), Two, Exponent], Area);
+        public static Formula AreaOfRectangle => new("Area of rectangle", [PhyVar("Length", "l", Length), PhyVar("Width", "w", Length), Multiplication], Area);
+        public static Formula AreaOfTriangle => new("Area of triangle", [PhyVar("Base", "b", Length), PhyVar("Height", "h", Length), Multiplication, Two, Division], Area);
+        public static Formula AreaOfCircle => new("Area of circle", [Pi, PhyVar("Radius", "r", Length), Two, Exponent, Multiplication], Area);
+        public static Formula AreaOfSphere => new("Area of sphere", [Four, Pi, PhyVar("Radius", "r", Length), Two, Exponent, Multiplication, Multiplication], Area);
+        public static Formula VolumeOfCube => new("Volume of cube", [PhyVar("Side", "a", Length), Three, Exponent], Volume);
+        public static Formula VolumeOfBox => new("Volume of box", [PhyVar("Length", "l", Length), PhyVar("Width", "w", Length), PhyVar("Height", "h", Length), Multiplication, Multiplication], Volume);
+
+        // Physics formulas
+        public static Formula AccelerationFormula => new("Acceleration", [PhyVar("Speed", "v", Speed), PhyVar("Time", "t", Time), Division], Acceleration);
+        public static Formula TravelDistance => new("Travel distance", [PhyVar("Speed", "v", Speed), PhyVar("Time", "t", Time), Multiplication], Length);
+        public static Formula TravelSpeed => new("Travel speed", [PhyVar("Distance", "d", Length), PhyVar("Time", "t", Time), Division], Speed);
+
         /// <summary>
-        /// All pperators
+        /// All operators
         /// </summary>
-        private IOperator[] Operators { get; init; }
+        public IOperator[] Operators { get; init; }
 
         /// <summary>
         /// All functions
         /// </summary>
-        private IFunction[] Functions { get; init; }
+        public IFunction[] Functions { get; init; }
 
         /// <summary>
         /// All constants
         /// </summary>
-        private IConstant[] Constants { get; init; }
+        public IConstant[] Constants { get; init; }
 
         /// <summary>
         /// All quantities
         /// </summary>
-        private IQuantity[] Quantities { get; init; }
+        public IQuantity[] Quantities { get; init; }
 
         /// <summary>
         /// All units
         /// </summary>
-        private IUnit[] Units { get; init; }
-        
+        public IUnit[] Units { get; init; }
+
         /// <summary>
         /// All formulas
         /// </summary>
-        private IFormula[] Formulas { get; init; }
+        public IFormula[] Formulas { get; init; }
 
         /// <summary>
         /// Constructor
         /// </summary>
         public Factory()
         {
-            Quantities = [Time, Length, Speed, Mass];
-            Units = [Second, Metre, Kilogram, MetrePerSecond, SquareMetre,
+            Constants = [Pi, SpeedOfLight, GravitationConstant];
+
+            Operators = [Negation, Addition, Division, Exponent, Multiplication, Quotient, Reminder, Subtraction, Inverse, And, Or, Xor];
+
+            Functions = [Round, Cos, Sin];
+            
+            Quantities = [Time, Length, Speed, Mass, Density, Acceleration, Area, Volume, Force, Frequency,
+                Voltage, Current, Resistance, Conductance, Capacitance, Inductance, Impedance, Charge, Power];
+
+            Units = [Second, Metre, Kilogram, MetrePerSecond, SquareMetre, Newton,
                 Inch, Foot, Yard, Mile, NauticalMile, MilePerHour];
+
+            Formulas = [AreaOfSquare, AreaOfRectangle, AreaOfTriangle, AreaOfCircle, AreaOfSphere, VolumeOfCube, VolumeOfBox,
+                AccelerationFormula, TravelDistance, TravelSpeed];
         }
 
         /// <summary>
-        /// Get singletons of specific type of interface
+        /// Utility function to create physics variable
         /// </summary>
-        /// <typeparam name="T">Type of instance</typeparam>
-        /// <returns>Enumable of type instances</returns>
-        public static IEnumerable<T> GetSingletonsOfType<T>()
+        /// <param name="name">Name</param>
+        /// <param name="symbol">Symbol</param>
+        /// <param name="quantity">Quantity</param>
+        /// <returns>Physics variable</returns>
+        public static PhysicsVariable PhyVar(string name, string symbol, IQuantity quantity)
         {
-            IEnumerable<Type> allSingletonTypes = Assembly.GetExecutingAssembly().GetTypes()
-               .Where(t => IsSubclassOfRawGeneric(typeof(Singleton<>), t));
-            IEnumerable<Type> rightTypes = allSingletonTypes.Where(t => t.GetInterfaces().Contains(typeof(T)));
-
-            foreach (Type t in rightTypes)
-            {
-                PropertyInfo? prop = t.BaseType?.GetProperty("Instance");
-                object? value = prop?.GetValue(null);
-                if (value != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Found {value.GetType().Name}");
-                    yield return (T)value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Code from https://stackoverflow.com/a/457708
-        /// </summary>
-        /// <param name="generic">Generic type</param>
-        /// <param name="toCheck">Type of check</param>
-        /// <returns>true if type inherits generic type</returns>
-        static bool IsSubclassOfRawGeneric(Type generic, Type? toCheck)
-        {
-            while (toCheck != null && toCheck != typeof(object))
-            {
-                var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
-                if (generic == cur)
-                {
-                    return true;
-                }
-                toCheck = toCheck.BaseType;
-            }
-
-            return false;
+            return new PhysicsVariable(name, [symbol], quantity);
         }
     }
 }

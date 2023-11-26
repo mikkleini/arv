@@ -3,7 +3,7 @@
     /// <summary>
     /// Sine function
     /// </summary>
-    public record SinFunction : Singleton<SinFunction>, ISingleArgumentFunction
+    public record SinFunction : ISingleArgumentFunction
     {
         public string Name => "Sine";
         public string Symbol => "sin";

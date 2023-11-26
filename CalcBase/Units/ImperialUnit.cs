@@ -5,7 +5,7 @@ namespace CalcBase.Units
     /// <summary>
     /// Imperial unit
     /// </summary>
-    public record ImperialUnit : IUnit
+    public record ImperialUnit : IImperialUnit
     {
         public string Name { get; init; }
         public string[] Symbols { get; init; }

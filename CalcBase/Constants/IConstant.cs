@@ -8,8 +8,7 @@ namespace CalcBase.Constants
     public interface IConstant : IElement
     {
         string Name { get; }
-        string Symbol { get; }
-        string SimpleSymbol { get; }
+        string[] Symbols { get; }
         Number Number { get; }
     }
 }

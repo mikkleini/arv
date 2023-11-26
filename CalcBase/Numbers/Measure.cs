@@ -8,6 +8,11 @@ namespace CalcBase.Numbers
     public record Measure : Number
     {
         /// <summary>
+        /// Measurement subject
+        /// </summary>
+        public string Subject { get; set; }
+
+        /// <summary>
         /// Unit
         /// </summary>
         public required IUnit Unit { get; init; }

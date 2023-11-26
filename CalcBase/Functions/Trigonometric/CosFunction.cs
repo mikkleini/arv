@@ -3,7 +3,7 @@
     /// <summary>
     /// Cosine function
     /// </summary>
-    public record CosFunction : Singleton<CosFunction>, ISingleArgumentFunction
+    public record CosFunction : ISingleArgumentFunction
     {
         public string Name => "Cosine";
         public string Symbol => "cos";
