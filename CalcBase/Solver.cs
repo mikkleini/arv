@@ -85,6 +85,16 @@ namespace CalcBase
                 // If both operands are measure and have different units, then there should be a formula to get the resulting unit
                 if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
                 {
+                    IElement[] expression = [measureA.Unit, measureB.Unit, binOp];
+
+                    foreach (ISIDerivedUnit derivUnit in Factory.Instance.Units.Where(u => u is ISIDerivedUnit))
+                    {
+                        if (derivUnit.Expression.SequenceEqual(expression))
+                        {
+                            return new Measure(result, derivUnit, resultRadix, resultUseScientificNotation, resultHexCase);
+                        }
+                    }
+
                     // TODO Find a derived unit or formula...
                     return new Measure(result, measureA.Unit, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
