@@ -1,4 +1,5 @@
 ﻿using CalcBase.Quantities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CalcBase.Units
 {

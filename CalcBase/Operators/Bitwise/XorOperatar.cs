@@ -7,11 +7,11 @@ namespace CalcBase.Operators.Bitwise
     /// </summary>
     public record XorOperator : IBinaryOperator
     {
-        public string Symbol => "^";
-        public string Name => "Bitwise XOR";
-        public int Precedence => 12;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Left;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Binary;
+        public string Symbol { get; } = "^";
+        public string Name { get; } = "Bitwise XOR";
+        public int Precedence { get; } = 12;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Left;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Binary;
 
         /// <summary>
         /// Calculate result of operation

@@ -7,11 +7,11 @@ namespace CalcBase.Operators.Bitwise
     /// </summary>
     public record InverseOperator : IUnaryOperator
     {
-        public string Symbol => "~";
-        public string Name => "Bitwise NOT";
-        public int Precedence => 3;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Right;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Unary;
+        public string Symbol { get; } = "~";
+        public string Name { get; } = "Bitwise NOT";
+        public int Precedence { get; } = 3;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Right;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Unary;
 
         /// <summary>
         /// Calculate result of operation

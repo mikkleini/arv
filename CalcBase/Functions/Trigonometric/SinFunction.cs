@@ -5,8 +5,8 @@
     /// </summary>
     public record SinFunction : ISingleArgumentFunction
     {
-        public string Name => "Sine";
-        public string Symbol => "sin";
+        public string Name { get; } = "Sine";
+        public string Symbol { get; } = "sin";
 
         /// <summary>
         /// Calculate sine function value

@@ -5,11 +5,11 @@
     /// </summary>
     public record MultiplicationOperator : IBinaryOperator
     {
-        public string Symbol => "*";
-        public string Name => "Multiplication";
-        public int Precedence => 5;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Left;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Binary;
+        public string Symbol { get; } = "*";
+        public string Name { get; } = "Multiplication";
+        public int Precedence { get; } = 5;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Left;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Binary;
 
         /// <summary>
         /// Calculate result of operation

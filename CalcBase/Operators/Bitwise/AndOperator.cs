@@ -8,11 +8,11 @@ namespace CalcBase.Operators.Bitwise
     /// </summary>
     public record AndOperator : IBinaryOperator
     {
-        public string Symbol => "&";
-        public string Name => "Bitwise AND";
-        public int Precedence => 11;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Left;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Binary;
+        public string Symbol { get; } = "&";
+        public string Name { get; } = "Bitwise AND";
+        public int Precedence { get; } = 11;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Left;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Binary;
 
         /// <summary>
         /// Calculate result of operation

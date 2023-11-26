@@ -7,11 +7,11 @@ namespace CalcBase.Operators.Arithmetic
     /// </summary>
     public record ExponentOperator : IBinaryOperator
     {
-        public string Symbol => "**";
-        public string Name => "Exponent";
-        public int Precedence => 4;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Left;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Binary;
+        public string Symbol { get; } = "**";
+        public string Name { get; } = "Exponent";
+        public int Precedence { get; } = 4;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Left;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Binary;
 
         /// <summary>
         /// Calculate result of operation

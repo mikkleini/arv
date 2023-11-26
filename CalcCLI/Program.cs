@@ -30,6 +30,8 @@ namespace CalcCLI
         {
             Console.WriteLine("Welcome to calculator");
 
+            Debug.WriteLine(Factory.Instance.GetHashCode());
+
             RunEntry();
             /*
             while (true)

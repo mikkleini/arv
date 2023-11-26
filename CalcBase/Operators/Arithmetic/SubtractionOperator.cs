@@ -5,11 +5,11 @@
     /// </summary>
     public record SubtractionOperator : IBinaryOperator
     {
-        public string Symbol => "-";
-        public string Name => "Subtract";
-        public int Precedence => 6;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Left;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Binary;
+        public string Symbol { get; } = "-";
+        public string Name { get; } = "Subtract";
+        public int Precedence { get; } = 6;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Left;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Binary;
 
         /// <summary>
         /// Calculate result of operation

@@ -7,8 +7,8 @@ namespace CalcBase.Functions.Mathematical
     /// </summary>
     public record RoundFunction : IDualArgumentFunction
     {
-        public string Name => "Round";
-        public string Symbol => "round";
+        public string Name { get; } = "Round";
+        public string Symbol { get; } = "round";
 
         /// <summary>
         /// Calculate function

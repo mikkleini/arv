@@ -5,11 +5,11 @@
     /// </summary>
     public record NegationOperator : IUnaryOperator
     {
-        public string Symbol => "-";
-        public string Name => "Negation";
-        public int Precedence => 3;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Right;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Unary;
+        public string Symbol { get; } = "-";
+        public string Name { get; } = "Negation";
+        public int Precedence { get; } = 3;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Right;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Unary;
 
         /// <summary>
         /// Calculate result of operation

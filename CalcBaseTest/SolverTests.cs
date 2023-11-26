@@ -55,6 +55,19 @@ namespace CalcBaseTest
                 Assert.That(actualResult.DominantCase, Is.EqualTo(expectedResult.DominantCase));
                 Assert.That(actualResult.IsScientificNotation, Is.EqualTo(expectedResult.IsScientificNotation));
             });
+
+            if ((actualResult is Measure actualMeasure) && (expectedResult is Measure expectedMeasure))
+            {
+                Assert.That(actualMeasure.Unit, Is.EqualTo(expectedMeasure.Unit));
+            }
+            else if (actualResult is Measure)
+            {
+                Assert.Fail($"Expected number, got measure");
+            }
+            else if (expectedResult is Measure)
+            {
+                Assert.Fail($"Expected measure, got number");
+            }
         }
 
         [Test]
@@ -116,24 +129,6 @@ namespace CalcBaseTest
         }
 
         [Test]
-        public void TestRationals()
-        {
-            BigRational x;
-            
-            x = BigRational.Pow((int)3, (int)3);
-            Debug.WriteLine(x.ToString());
-
-            x = BigRational.Pow(new BigRational(3), new BigRational(3));
-            Debug.WriteLine(x.ToString());
-
-            x = 10.125M;
-            NumberType y = NumberType.NumDen(x, out NumberType.Integer z);
-            Debug.WriteLine($"Den: {x} -> {y}/{z}");
-
-            Assert.Pass();
-        }
-
-        [Test]
         public void TestMeasures()
         {
             var infixTokens = parser.Tokenize("3.2m");
@@ -144,9 +139,13 @@ namespace CalcBaseTest
             MeasureToken mt = (MeasureToken)postfixTokens[0];
 
             Assert.That(mt.Measure.Value, Is.EqualTo((NumberType)3.2M));
-            // TODO Does not work because arrays in unit class are not the same
-            //Assert.That(mt.Measure.Unit, Is.EqualTo(Factory.Metre));
-            Assert.That(mt.Measure.Unit.Name, Is.EqualTo(Factory.Metre.Name));
+            Assert.That(mt.Measure.Unit, Is.EqualTo(Factory.Metre));
+        }
+
+        [Test]
+        public void TestDerivedUnits()
+        {
+            TestEquation("3m/2s", new Measure(1.5M, Factory.MetrePerSecond));
         }
     }
 }

@@ -7,11 +7,11 @@ namespace CalcBase.Operators.Arithmetic
     /// </summary>
     public record QuotientOperator : IBinaryOperator
     {
-        public string Symbol => "//";
-        public string Name => "Quotient";
-        public int Precedence => 4;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Left;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Binary;
+        public string Symbol { get; } = "//";
+        public string Name { get; } = "Quotient";
+        public int Precedence { get; } = 4;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Left;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Binary;
 
         /// <summary>
         /// Calculate result of operation

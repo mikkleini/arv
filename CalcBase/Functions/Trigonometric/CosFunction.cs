@@ -5,8 +5,8 @@
     /// </summary>
     public record CosFunction : ISingleArgumentFunction
     {
-        public string Name => "Cosine";
-        public string Symbol => "cos";
+        public string Name { get; } = "Cosine";
+        public string Symbol { get; } = "cos";
 
         /// <summary>
         /// Calculate cosine function value

@@ -7,11 +7,11 @@ namespace CalcBase.Operators.Bitwise
     /// </summary>
     public record OrOperator : IBinaryOperator
     {
-        public string Symbol => "|";
-        public string Name => "Bitwise OR";
-        public int Precedence => 13;
-        public OperatorAssociativity Associativity => OperatorAssociativity.Left;
-        public OperatorOpCountType OpCount => OperatorOpCountType.Binary;
+        public string Symbol { get; } = "|";
+        public string Name { get; } = "Bitwise OR";
+        public int Precedence { get; } = 13;
+        public OperatorAssociativity Associativity { get; } = OperatorAssociativity.Left;
+        public OperatorOpCountType OpCount { get; } = OperatorOpCountType.Binary;
 
         /// <summary>
         /// Calculate result of operation
