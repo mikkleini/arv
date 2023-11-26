@@ -98,6 +98,7 @@ namespace CalcCLI
         {
             try
             {
+                expression = expression.TrimEnd('=');
                 var infix = parser.Tokenize(expression);
                 parser.InfixErrorCheck(infix);
                 var postfix = parser.ShuntingYard(infix);

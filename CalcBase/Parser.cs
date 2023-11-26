@@ -55,13 +55,13 @@ namespace CalcBase
                 return new FunctionToken()
                 {
                     Position = start,
-                    Length = text.Length,
+                    Length = func.Symbol.Length,
                     Function = func
                 };
             }
 
             // Is it a constant ?
-            (symbol, IConstant constant) = Factory.Instance.ConstantsBySymbols
+            (symbol, IConstant? constant) = Factory.Instance.ConstantsBySymbols
                 .FirstOrDefault(c => text.StartsWith(c.symbol, StringComparison.InvariantCultureIgnoreCase));
             if (constant != null)
             {
@@ -74,7 +74,7 @@ namespace CalcBase
             }
 
             // Is it a unit ?
-            (symbol, IUnit unit) = Factory.Instance.UnitsBySymbols
+            (symbol, IUnit? unit) = Factory.Instance.UnitsBySymbols
                 .FirstOrDefault(u => text.StartsWith(u.symbol, StringComparison.InvariantCultureIgnoreCase));
             if (unit != null)
             {
@@ -348,7 +348,7 @@ namespace CalcBase
                         {
                             Position = numberToken.Position,
                             Length = unitToken.Position + numberToken.Length - numberToken.Position,
-                            Measure = new Measure(numberToken.Number.Value, unitToken.Unit, numberToken.Number.Radix, numberToken.Number.IsScientificNotation, numberToken.Number.DominantCase)
+                            Measure = new Measure(numberToken.Number, unitToken.Unit)
                         });
 
                         // Leap over unit token

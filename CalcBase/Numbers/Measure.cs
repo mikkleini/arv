@@ -28,17 +28,14 @@ namespace CalcBase.Numbers
         }
 
         /// <summary>
-        /// Creator
+        /// Constructor
         /// </summary>
-        /// <param name="value">Value</param>
+        /// <param name="number">Number</param>
         /// <param name="unit">Unit</param>
-        /// <param name="radix">Radix</param>
-        /// <param name="isScientificNotation">Is scientific notation ?</param>
-        /// <param name="dominantCase">Dominant hexadecimal number case</param>
-        public static Measure Create(NumberType value, IUnit unit, IntegerRadix radix = IntegerRadix.Decimal,
-            bool isScientificNotation = false, DominantHexadecimalCase dominantCase = DominantHexadecimalCase.None)
+        public Measure(Number number, IUnit unit)
+            : base(number.Value, number.Radix, number.IsScientificNotation, number.DominantCase)
         {
-            return new Measure(value, unit, radix, isScientificNotation, dominantCase);
+            Unit = unit;
         }
     }
 }
