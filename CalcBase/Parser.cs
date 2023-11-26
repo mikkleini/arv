@@ -1,17 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using CalcBase.Constants;
-using CalcBase.Constants.Mathematical;
 using CalcBase.Formulas;
 using CalcBase.Functions;
-using CalcBase.Functions.Mathematical;
-using CalcBase.Functions.Trigonometric;
 using CalcBase.Numbers;
 using CalcBase.Operators;
-using CalcBase.Operators.Arithmetic;
-using CalcBase.Operators.Bitwise;
 using CalcBase.Quantities;
 using CalcBase.Tokens;
 using CalcBase.Units;
@@ -32,70 +28,10 @@ namespace CalcBase
         private static readonly int IntTypeBits = 128;
 
         /// <summary>
-        /// Library
-        /// </summary>
-        private readonly IOperator[] operators;
-        private readonly IFunction[] functions;
-        private readonly IConstant[] constants;
-        private readonly IQuantity[] quantities;
-        private readonly IUnit[] units;
-        private readonly IFormula[] formulas;
-
-        /// <summary>
         /// Constructor
         /// </summary>
         public Parser()
         {
-            operators = GetSingletonsOfType<IOperator>().ToArray();
-            functions = GetSingletonsOfType<IFunction>().ToArray();
-            constants = GetSingletonsOfType<IConstant>().ToArray();
-            quantities = GetSingletonsOfType<IQuantity>().ToArray();
-            units = GetSingletonsOfType<IUnit>().ToArray();
-            formulas = GetSingletonsOfType<IFormula>().ToArray();
-        }
-
-        /// <summary>
-        /// Get singletons of specific type of interface
-        /// </summary>
-        /// <typeparam name="T">Type of instance</typeparam>
-        /// <returns>Enumable of type instances</returns>
-        public static IEnumerable<T> GetSingletonsOfType<T>()
-        {
-            IEnumerable<Type> allSingletonTypes = Assembly.GetExecutingAssembly().GetTypes()
-               .Where(t => IsSubclassOfRawGeneric(typeof(Singleton<>), t));
-            IEnumerable<Type> rightTypes = allSingletonTypes.Where(t => t.GetInterfaces().Contains(typeof(T)));
-
-            foreach (Type t in rightTypes)
-            {
-                PropertyInfo? prop = t.BaseType?.GetProperty("Instance");
-                object? value = prop?.GetValue(null);
-                if (value != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Found {value.GetType().Name}");
-                    yield return (T)value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Code from https://stackoverflow.com/a/457708
-        /// </summary>
-        /// <param name="generic">Generic type</param>
-        /// <param name="toCheck">Type of check</param>
-        /// <returns>true if type inherits generic type</returns>
-        static bool IsSubclassOfRawGeneric(Type generic, Type? toCheck)
-        {
-            while (toCheck != null && toCheck != typeof(object))
-            {
-                var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
-                if (generic == cur)
-                {
-                    return true;
-                }
-                toCheck = toCheck.BaseType;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -107,10 +43,11 @@ namespace CalcBase
         /// <exception cref="ExpressionException">Error in expression</exception>
         internal IToken ReadText(ReadOnlySpan<char> infix, int start)
         {
+            string symbol;
             string text = infix.Slice(start).ToString();
 
             // Is it a function ?
-            IFunction? func = functions
+            IFunction? func = Factory.Instance.Functions
                 .OrderByDescending(f => f.Symbol.Length)
                 .FirstOrDefault(f => text.StartsWith(f.Symbol, StringComparison.InvariantCultureIgnoreCase));
             if (func != null)
@@ -124,55 +61,27 @@ namespace CalcBase
             }
 
             // Is it a constant ?
-            IConstant? cnst = constants
-                .OrderByDescending(c => c.Symbol.Length)
-                .FirstOrDefault(c => text.StartsWith(c.Symbol, StringComparison.InvariantCultureIgnoreCase));
-            if (cnst != null)
+            (symbol, IConstant constant) = Factory.Instance.ConstantsBySymbols
+                .FirstOrDefault(c => text.StartsWith(c.symbol, StringComparison.InvariantCultureIgnoreCase));
+            if (constant != null)
             {
                 return new ConstantToken()
                 {
                     Position = start,
-                    Length = cnst.Symbol.Length,
-                    Constant = cnst
-                };
-            }
-
-            cnst = constants
-                .OrderByDescending(c => c.SimpleSymbol.Length)
-                .FirstOrDefault(c => text.StartsWith(c.SimpleSymbol, StringComparison.InvariantCultureIgnoreCase));
-            if (cnst != null)
-            {
-                return new ConstantToken()
-                {
-                    Position = start,
-                    Length = cnst.SimpleSymbol.Length,
-                    Constant = cnst
+                    Length = symbol.Length,
+                    Constant = constant
                 };
             }
 
             // Is it a unit ?
-            IUnit? unit = units
-                .OrderByDescending(u => u.Symbol.Length)
-                .FirstOrDefault(u => text.StartsWith(u.Symbol, StringComparison.InvariantCultureIgnoreCase));
+            (symbol, IUnit unit) = Factory.Instance.UnitsBySymbols
+                .FirstOrDefault(u => text.StartsWith(u.symbol, StringComparison.InvariantCultureIgnoreCase));
             if (unit != null)
             {
                 return new UnitToken()
                 {
                     Position = start,
-                    Length = unit.Symbol.Length,
-                    Unit = unit
-                };
-            }
-
-            unit = units
-                .OrderByDescending(u => u.SimpleSymbol.Length)
-                .FirstOrDefault(u => text.StartsWith(u.SimpleSymbol, StringComparison.InvariantCultureIgnoreCase));
-            if (unit != null)
-            {
-                return new UnitToken()
-                {
-                    Position = start,
-                    Length = unit.SimpleSymbol.Length,
+                    Length = symbol.Length,
                     Unit = unit
                 };
             }
@@ -188,33 +97,20 @@ namespace CalcBase
         /// <returns>Operator</returns>
         internal IOperator DecideMinusOperator(IToken? prevToken)
         {
-            bool isNegation = false;
-
             if (prevToken == null)
             {
-                isNegation = true;
+                return Factory.Negation;
             }
-            else
+            else if (prevToken is LeftParenthesisToken)
             {
-                if (prevToken is LeftParenthesisToken)
-                {
-                    isNegation = true;
-                }
-                else if (prevToken is OperatorToken)
-                {
-                    isNegation = true;
-                }
+                return Factory.Negation;
+            }
+            else if (prevToken is OperatorToken)
+            {
+                return Factory.Negation;
             }
 
-            // So which operator it is
-            if (isNegation)
-            {
-                return operators.Single(op => op is NegationOperator);
-            }
-            else
-            {
-                return operators.Single(op => op is SubtractionOperator);
-            }
+            return Factory.Subtraction;
         }
 
         /// <summary>
@@ -282,7 +178,7 @@ namespace CalcBase
                     {
                         // Check for operators by length of the symbol.
                         // Basically if expression contains ** then it should first try to find exponent operator **, not the multiplication.
-                        op = operators
+                        op = Factory.Instance.Operators
                             .OrderByDescending(o => o.Symbol.Length)
                             .FirstOrDefault(o => infix.AsSpan().Slice(i).StartsWith(o.Symbol.AsSpan()));
                     }
@@ -452,14 +348,7 @@ namespace CalcBase
                         {
                             Position = numberToken.Position,
                             Length = unitToken.Position + numberToken.Length - numberToken.Position,
-                            Measure = new Measure()
-                            {
-                                Value = numberToken.Number.Value,
-                                Radix = numberToken.Number.Radix,
-                                DominantCase = numberToken.Number.DominantCase,
-                                IsScientificNotation = numberToken.Number.IsScientificNotation,
-                                Unit = unitToken.Unit
-                            }
+                            Measure = new Measure(numberToken.Number.Value, unitToken.Unit, numberToken.Number.Radix, numberToken.Number.IsScientificNotation, numberToken.Number.DominantCase)
                         });
 
                         // Leap over unit token

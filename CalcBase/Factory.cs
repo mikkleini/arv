@@ -15,7 +15,7 @@ namespace CalcBase
     /// <summary>
     /// Factory of elements
     /// </summary>
-    public class Factory
+    public class Factory : Singleton<Factory>
     {
         // Numbers
         public static Number MinusFour => new(-4);
@@ -187,6 +187,20 @@ namespace CalcBase
         /// All formulas
         /// </summary>
         public IFormula[] Formulas { get; init; }
+
+        /// <summary>
+        /// Enumerate constants by their symbols starting from longest, ending with shorters
+        /// </summary>
+        public IEnumerable<(string symbol, IConstant constant)> ConstantsBySymbols => Constants
+            .SelectMany(c => c.Symbols.Select(s => (symbol: s, constant: c)))
+            .OrderByDescending(x => x.symbol.Length);
+
+        /// <summary>
+        /// Enumerate units by their symbols starting from longest, ending with shorters
+        /// </summary>
+        public IEnumerable<(string symbol, IUnit unit)> UnitsBySymbols => Units
+            .SelectMany(u => u.Symbols.Select(s => (symbol: s, unit: u)))
+            .OrderByDescending(x => x.symbol.Length);
 
         /// <summary>
         /// Constructor

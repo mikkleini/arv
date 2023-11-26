@@ -55,11 +55,7 @@ namespace CalcBase
             {
                 Position = start,
                 Length = pos - start,
-                Number = new Number()
-                {
-                    Value = new NumberType(value),
-                    Radix = IntegerRadix.Binary
-                }
+                Number = new Number(value, IntegerRadix.Binary)
             };
         }
 
@@ -128,12 +124,7 @@ namespace CalcBase
             {
                 Position = start,
                 Length = pos - start,
-                Number = new Number()
-                {
-                    Value = new NumberType(value),
-                    Radix = IntegerRadix.Hexadecimal,
-                    DominantCase = dominantCase
-                }
+                Number = new Number(value, IntegerRadix.Hexadecimal, false, dominantCase)
             };
         }
 
@@ -252,12 +243,7 @@ namespace CalcBase
                     {
                         Position = start,
                         Length = pos - start,
-                        Number = new Number()
-                        {
-                            Value = value,
-                            Radix = IntegerRadix.Decimal,
-                            IsScientificNotation = hasExponent
-                        }
+                        Number = new Number(value, IntegerRadix.Decimal, hasExponent)
                     };
                 }
                 else
@@ -284,12 +270,7 @@ namespace CalcBase
                     {
                         Position = start,
                         Length = pos - start,
-                        Number = new Number()
-                        {
-                            Value = value,
-                            Radix = IntegerRadix.Decimal,
-                            IsScientificNotation = hasExponent
-                        }
+                        Number = new Number(value, IntegerRadix.Decimal, hasExponent)
                     };
                 }
             }

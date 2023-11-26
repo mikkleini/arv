@@ -5,7 +5,7 @@ namespace CalcBase.Operators.Arithmetic
     /// <summary>
     /// Quotient operator
     /// </summary>
-    public record QuotientOperator : Singleton<QuotientOperator>, IBinaryOperator
+    public record QuotientOperator : IBinaryOperator
     {
         public string Symbol => "//";
         public string Name => "Quotient";

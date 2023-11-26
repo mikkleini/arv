@@ -6,7 +6,7 @@ namespace CalcBase.Operators.Bitwise
     /// <summary>
     /// Bitwise AND operator
     /// </summary>
-    public record AndOperator : Singleton<AndOperator>, IBinaryOperator
+    public record AndOperator : IBinaryOperator
     {
         public string Symbol => "&";
         public string Name => "Bitwise AND";

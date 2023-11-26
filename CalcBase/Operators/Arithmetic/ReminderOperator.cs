@@ -3,7 +3,7 @@
     /// <summary>
     /// Remainder operator
     /// </summary>
-    public record ReminderOperator : Singleton<ReminderOperator>, IBinaryOperator
+    public record ReminderOperator : IBinaryOperator
     {
         public string Symbol => "%";
         public string Name => "Modulus";

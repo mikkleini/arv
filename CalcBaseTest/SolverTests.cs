@@ -59,39 +59,39 @@ namespace CalcBaseTest
         [Test]
         public void TestSimpleExpressions()
         {
-            TestEquation("0", Number.Create(0));
-            TestEquation("1", Number.Create(1));
-            TestEquation("-1", Number.Create(-1));
-            TestEquation("1-1", Number.Create(0));
-            TestEquation("1+2", Number.Create(3));
-            TestEquation("1 + 2", Number.Create(3));
-            TestEquation("1-2", Number.Create(-1));
-            TestEquation("2*3", Number.Create(6));
-            TestEquation("6/3", Number.Create(2));
+            TestEquation("0", 0);
+            TestEquation("1", 1);
+            TestEquation("-1", -1);
+            TestEquation("1-1", 0);
+            TestEquation("1+2", 3);
+            TestEquation("1 + 2", 3);
+            TestEquation("1-2", -1);
+            TestEquation("2*3", 6);
+            TestEquation("6/3", 2);
 
-            TestEquation("10+5-2", Number.Create(13));
-            TestEquation("10+(5-2)", Number.Create(13));
-            TestEquation("10/(4-2)", Number.Create(5));
+            TestEquation("10+5-2", 13);
+            TestEquation("10+(5-2)", 13);
+            TestEquation("10/(4-2)", 5);
 
-            TestEquation("2 * 3 + 4", Number.Create(10));
-            TestEquation("10 / 2 - 1", Number.Create(4));
-            TestEquation("5 + 2 * 3", Number.Create(11));
-            TestEquation("5 + (7-4) * 3", Number.Create(14));
-            TestEquation("3 + 3 ** 3", Number.Create(30));
-            TestEquation("-2-2", Number.Create(-4));
-            TestEquation("101 % 20", Number.Create(1));
+            TestEquation("2 * 3 + 4", 10);
+            TestEquation("10 / 2 - 1", 4);
+            TestEquation("5 + 2 * 3", 11);
+            TestEquation("5 + (7-4) * 3", 14);
+            TestEquation("3 + 3 ** 3", 30);
+            TestEquation("-2-2", -4);
+            TestEquation("101 % 20", 1);
 
             // These are bit problematic - in C# % is reminder, but % is also symbol for modulus
-            TestEquation("-15 % 7", Number.Create(-1));
-            TestEquation("101 % -20", Number.Create(1));
+            TestEquation("-15 % 7", -1);
+            TestEquation("101 % -20", 1);
 
-            TestEquation("10 / 4 - 2", Number.Create(0.5M));
-            TestEquation("10.5 + (4.1 - 2) * 3.1", Number.Create(17.01M));
-            TestEquation("12.0+2.0", Number.Create(14));
-            TestEquation("2 ** -3", Number.Create(0.125M));
+            TestEquation("10 / 4 - 2", 0.5M);
+            TestEquation("10.5 + (4.1 - 2) * 3.1", 17.01M);
+            TestEquation("12.0+2.0", 14);
+            TestEquation("2 ** -3", 0.125M);
 
             // TODO Has accuracy issue:
-            TestEquation("625 ** 0.5", Number.Create(25));
+            TestEquation("625 ** 0.5", 25);
 
             TestEquation("0xF0 + 15", Number.Create(0xFF, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper));
             TestEquation("240 + 0x0F", Number.Create(0xFF, IntegerRadix.Decimal, false, DominantHexadecimalCase.Upper));
@@ -102,14 +102,14 @@ namespace CalcBaseTest
         [Test]
         public void TestFunctions()
         {
-            TestEquation("cos(0)", Number.Create(1));
-            TestEquation("sin(Pi/2)", Number.Create(1));
-            TestEquation("sin(Pi*1.5)", Number.Create(-1));
-            TestEquation("round(1.23456, 2)", Number.Create(1.23));
-            TestEquation("round(1.23456 * 2, 2)", Number.Create(2.47));
-            TestEquation("round(1.23456 * (2 + 1), 2)", Number.Create(3.70));
-            TestEquation("sin((cos(0)*pi)/2)", Number.Create(1));
-            TestEquation("round(sin(Pi/2), 3)", Number.Create(1.000));
+            TestEquation("cos(0)", 1);
+            TestEquation("sin(Pi/2)", 1);
+            TestEquation("sin(Pi*1.5)", -1);
+            TestEquation("round(1.23456, 2)", 1.23M);
+            TestEquation("round(1.23456 * 2, 2)", 2.47M);
+            TestEquation("round(1.23456 * (2 + 1), 2)", 3.70M);
+            TestEquation("sin((cos(0)*pi)/2)", 1);
+            TestEquation("round(sin(Pi/2), 3)", 1);
 
             Assert.Pass();
         }
@@ -142,8 +142,8 @@ namespace CalcBaseTest
             Assert.That(postfixTokens[0], Is.InstanceOf(typeof(MeasureToken)));
             MeasureToken mt = (MeasureToken)postfixTokens[0];
 
-            Assert.That(mt.Measure.Value, Is.EqualTo(new NumberType(3.2M)));
-            Assert.That(mt.Measure.Unit.Symbol, Is.EqualTo("m"));
+            Assert.That(mt.Measure.Value, Is.EqualTo((NumberType)3.2M));
+            Assert.That(mt.Measure.Unit, Is.EqualTo(Factory.Metre));
         }
     }
 }

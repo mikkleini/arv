@@ -3,7 +3,7 @@
     /// <summary>
     /// Subtraction operator
     /// </summary>
-    public record SubtractionOperator : Singleton<SubtractionOperator>, IBinaryOperator
+    public record SubtractionOperator : IBinaryOperator
     {
         public string Symbol => "-";
         public string Name => "Subtract";

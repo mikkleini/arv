@@ -5,7 +5,7 @@ namespace CalcBase.Operators.Bitwise
     /// <summary>
     /// Bitwise XOR operator
     /// </summary>
-    public record XorOperator : Singleton<XorOperator>, IBinaryOperator
+    public record XorOperator : IBinaryOperator
     {
         public string Symbol => "^";
         public string Name => "Bitwise XOR";

@@ -3,7 +3,7 @@
     /// <summary>
     /// Multiplication operator
     /// </summary>
-    public record MultiplicationOperator : Singleton<MultiplicationOperator>, IBinaryOperator
+    public record MultiplicationOperator : IBinaryOperator
     {
         public string Symbol => "*";
         public string Name => "Multiplication";

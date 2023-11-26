@@ -14,37 +14,11 @@ namespace CalcBase
 {
     public class Solver
     {
-        private readonly IFormula[] formulas;
-
         /// <summary>
         /// Constructor
         /// </summary>
         public Solver()
         {
-            formulas = Parser.GetSingletonsOfType<IFormula>().ToArray();
-        }
-
-        /// <summary>
-        /// Vote the common radix
-        /// </summary>
-        /// <param name="a">Radix A</param>
-        /// <param name="b">Radix B</param>
-        /// <returns>Common radix</returns>
-        private IntegerRadix VoteCommonRadix(IntegerRadix a, IntegerRadix b)
-        {
-            // Use radix of first operand
-            return a;
-        }
-
-        /// <summary>
-        /// Vote the common dominant case (in case of hexadecimal numbers)
-        /// </summary>
-        /// <param name="a">Radix A</param>
-        /// <param name="b">Radix B</param>
-        /// <returns>Common radix</returns>
-        private DominantHexadecimalCase VoteCommonDominantCase(DominantHexadecimalCase a, DominantHexadecimalCase b)
-        {
-            return (a == DominantHexadecimalCase.None ? b : a);
         }
 
         /// <summary>
@@ -71,24 +45,11 @@ namespace CalcBase
 
                 if (a is Measure measure)
                 {
-                    return new Measure()
-                    {
-                        Value = result,
-                        Radix = a.Radix,
-                        DominantCase = a.DominantCase,
-                        IsScientificNotation = a.IsScientificNotation,
-                        Unit = measure.Unit
-                    };
+                    return new Measure(result, measure.Unit, a.Radix, a.IsScientificNotation, a.DominantCase);
                 }
                 else
                 {
-                    return new Number()
-                    {
-                        Value = result,
-                        Radix = a.Radix,
-                        DominantCase = a.DominantCase,
-                        IsScientificNotation = a.IsScientificNotation
-                    };
+                    return new Number(result, a.Radix, a.IsScientificNotation, a.DominantCase);
                 }
             }
             else if ((op.OpCount == OperatorOpCountType.Binary) && (op is IBinaryOperator binOp))
@@ -106,59 +67,38 @@ namespace CalcBase
                 Debug.WriteLine($"  Binary operation {op.Name} with {a.Value} and {b.Value}");
                 NumberType result = binOp.Calculate(a.Value, b.Value);
 
+                // Check if should use scientific notation
+                bool resultUseScientificNotation = false;
+                if (a.IsScientificNotation && b.IsScientificNotation)
+                {
+                    resultUseScientificNotation = true;
+                }
+                else if (a.IsScientificNotation || b.IsScientificNotation)
+                {
+                    resultUseScientificNotation = NumberType.Abs(NumberType.Exp10(result)) > 5;
+                }
+
+                // Vote radix and potential hexadecimal casing
+                IntegerRadix resultRadix = a.Radix;
+                DominantHexadecimalCase resultHexCase = a.DominantCase != DominantHexadecimalCase.None ? a.DominantCase : b.DominantCase;
+
                 // If both operands are measure and have different units, then there should be a formula to get the resulting unit
                 if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
                 {
-                    IFormula? formula = formulas.FirstOrDefault(f => (f.Expression.Length == 3) &&
-                            (f.Expression[0] is IQuantity formQuantA) && (formQuantA == measureA.Unit.Quantity) &&
-                            (f.Expression[1] is IQuantity formQuantB) && (formQuantB == measureB.Unit.Quantity) &&
-                            (f.Expression[2] is IBinaryOperator formOp) && (formOp == op));
-
-                    if (formula == null)
-                    {
-                        throw new SolverException($"No formula to calculate {measureA} {op.Symbol} {measureB}");
-                    }
-
-                    return new Measure()
-                    {
-                        Value = result,
-                        Radix = VoteCommonRadix(a.Radix, b.Radix),
-                        DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
-                        IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation,
-                        Unit = formula.Result
-                    };
+                    // TODO Find a derived unit or formula...
+                    return new Measure(result, measureA.Unit, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
                 else if (a is Measure mA)
                 {
-                    return new Measure()
-                    {
-                        Value = result,
-                        Radix = VoteCommonRadix(a.Radix, b.Radix),
-                        DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
-                        IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation,
-                        Unit = mA.Unit
-                    };
+                    return new Measure(result, mA.Unit, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
                 else if (b is Measure mB)
                 {
-                    return new Measure()
-                    {
-                        Value = result,
-                        Radix = VoteCommonRadix(a.Radix, b.Radix),
-                        DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
-                        IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation,
-                        Unit = mB.Unit
-                    };
+                    return new Measure(result, mB.Unit, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
                 else
                 {
-                    return new Number()
-                    {
-                        Value = result,
-                        Radix = VoteCommonRadix(a.Radix, b.Radix),
-                        DominantCase = VoteCommonDominantCase(a.DominantCase, b.DominantCase),
-                        IsScientificNotation = a.IsScientificNotation || b.IsScientificNotation
-                    };
+                    return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
             }
             else
@@ -185,13 +125,7 @@ namespace CalcBase
                 Debug.WriteLine($"  Function {func.Name} ()");
                 NumberType result = noArgFunc.Calculate();
 
-                return new Number()
-                {
-                    Value = result,
-                    Radix = noArgFunc.OutputRadix,
-                    DominantCase = DominantHexadecimalCase.None,
-                    IsScientificNotation = false
-                };
+                return new Number(result, noArgFunc.OutputRadix, false, DominantHexadecimalCase.None);
             }
             // Is it single argument function ?
             else if (func is ISingleArgumentFunction singleFunc)
@@ -204,13 +138,7 @@ namespace CalcBase
                 Debug.WriteLine($"  Function {func.Name} ({a.Value})");
                 NumberType result = singleFunc.Calculate(a.Value);
 
-                return new Number()
-                {
-                    Value = result,
-                    Radix = a.Radix,
-                    DominantCase = a.DominantCase,
-                    IsScientificNotation = a.IsScientificNotation
-                };
+                return new Number(result, a.Radix, a.IsScientificNotation, a.DominantCase);
             }
             // Is it dual argument function ?
             else if (func is IDualArgumentFunction dualFunc)
@@ -228,13 +156,7 @@ namespace CalcBase
                 Debug.WriteLine($"  Function {func.Name} ({a.Value}, {b.Value})");
                 NumberType result = dualFunc.Calculate(a.Value, b.Value);
 
-                return new Number()
-                {
-                    Value = result,
-                    Radix = a.Radix,
-                    DominantCase = a.DominantCase,
-                    IsScientificNotation = a.IsScientificNotation
-                };
+                return new Number(result, a.Radix, a.IsScientificNotation, a.DominantCase);
             }
             else
             {

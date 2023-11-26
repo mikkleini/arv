@@ -3,7 +3,7 @@
     /// <summary>
     /// Addition operator
     /// </summary>
-    public record AdditionOperator : Singleton<AdditionOperator>, IBinaryOperator
+    public record AdditionOperator : IBinaryOperator
     {
         public string Symbol => "+";
         public string Name => "Addition";

@@ -5,7 +5,7 @@ namespace CalcBase.Operators.Bitwise
     /// <summary>
     /// Inverse operator
     /// </summary>
-    public record InverseOperator : Singleton<InverseOperator>, IUnaryOperator
+    public record InverseOperator : IUnaryOperator
     {
         public string Symbol => "~";
         public string Name => "Bitwise NOT";

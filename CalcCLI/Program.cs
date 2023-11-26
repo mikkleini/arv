@@ -105,7 +105,7 @@ namespace CalcCLI
 
                 if (result is Measure measureResult)
                 {
-                    Console.WriteLine($"{expression}={measureResult.Value}{measureResult.Unit.Symbol}");
+                    Console.WriteLine($"{expression}={measureResult.Value}{measureResult.Unit.Symbols.First()}");
                 }
                 else
                 {

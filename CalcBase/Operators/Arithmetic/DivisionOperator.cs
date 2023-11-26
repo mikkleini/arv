@@ -3,7 +3,7 @@
     /// <summary>
     /// Division operator
     /// </summary>
-    public record DivisionOperator : Singleton<DivisionOperator>, IBinaryOperator
+    public record DivisionOperator : IBinaryOperator
     {
         public string Symbol => "/";
         public string Name => "Division";

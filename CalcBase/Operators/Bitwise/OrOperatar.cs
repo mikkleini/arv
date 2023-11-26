@@ -5,7 +5,7 @@ namespace CalcBase.Operators.Bitwise
     /// <summary>
     /// Bitwise OR operator
     /// </summary>
-    public record OrOperator : Singleton<OrOperator>, IBinaryOperator
+    public record OrOperator : IBinaryOperator
     {
         public string Symbol => "|";
         public string Name => "Bitwise OR";

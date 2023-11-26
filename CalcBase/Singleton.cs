@@ -5,7 +5,7 @@
     /// From: https://stackoverflow.com/a/953441
     /// </summary>
     /// <typeparam name="T">Type of class</typeparam>
-    public abstract record Singleton<T> where T : class, new()
+    public abstract class Singleton<T> where T : class, new()
     {
         /// <summary>
         /// Singleton instance
