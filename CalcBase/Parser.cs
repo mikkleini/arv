@@ -47,7 +47,7 @@ namespace CalcBase
             string text = infix.Slice(start).ToString();
 
             // Is it a function ?
-            IFunction? func = Factory.Instance.Functions
+            IFunction? func = Factory.Functions
                 .OrderByDescending(f => f.Symbol.Length)
                 .FirstOrDefault(f => text.StartsWith(f.Symbol, StringComparison.InvariantCultureIgnoreCase));
             if (func != null)
@@ -61,7 +61,7 @@ namespace CalcBase
             }
 
             // Is it a constant ?
-            (symbol, IConstant? constant) = Factory.Instance.ConstantsBySymbols
+            (symbol, IConstant? constant) = Factory.ConstantsBySymbols
                 .FirstOrDefault(c => text.StartsWith(c.symbol, StringComparison.InvariantCultureIgnoreCase));
             if (constant != null)
             {
@@ -74,7 +74,7 @@ namespace CalcBase
             }
 
             // Is it a unit ?
-            (symbol, IUnit? unit) = Factory.Instance.UnitsBySymbols
+            (symbol, IUnit? unit) = Factory.UnitsBySymbols
                 .FirstOrDefault(u => text.StartsWith(u.symbol, StringComparison.InvariantCultureIgnoreCase));
             if (unit != null)
             {
@@ -178,7 +178,7 @@ namespace CalcBase
                     {
                         // Check for operators by length of the symbol.
                         // Basically if expression contains ** then it should first try to find exponent operator **, not the multiplication.
-                        op = Factory.Instance.Operators
+                        op = Factory.Operators
                             .OrderByDescending(o => o.Symbol.Length)
                             .FirstOrDefault(o => infix.AsSpan().Slice(i).StartsWith(o.Symbol.AsSpan()));
                     }

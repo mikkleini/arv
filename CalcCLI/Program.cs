@@ -5,6 +5,8 @@ using System.Text;
 using CalcBase.Numbers;
 using System.Data;
 using System.Linq.Expressions;
+using CalcBase.Tokens;
+using System.Numerics;
 
 namespace CalcCLI
 {
@@ -71,14 +73,39 @@ namespace CalcCLI
                 // Delete last character ?
                 else if (key.Key == ConsoleKey.Backspace)
                 {
-                    expression.Remove(expression.Length - 1, 1);
-                    Console.Write(' ');
-                    Console.CursorLeft--;
+                    if (expression.Length > 0)
+                    {
+                        expression.Remove(expression.Length - 1, 1);
+                        Console.Write(' ');
+                        Console.CursorLeft--;
+                    }
                 }
                 // Delete whole expression ?
                 else if (key.Key == ConsoleKey.Delete)
                 {
-                    expression.Clear();
+                    if (Console.CursorLeft < expression.Length)
+                    {
+                        int pos = Console.CursorLeft;
+                        expression.Remove(pos, 1);
+                        Console.Write(expression.ToString().Substring(pos) + " ");
+                        Console.CursorLeft = pos;
+                    }
+                }
+                // Navigate left ?
+                else if (key.Key == ConsoleKey.LeftArrow)
+                {
+                    if (Console.CursorLeft > 0)
+                    {
+                        Console.CursorLeft--;
+                    }
+                }
+                // Navigate right ?
+                else if (key.Key == ConsoleKey.RightArrow)
+                {
+                    if (Console.CursorLeft < expression.Length)
+                    {
+                        Console.CursorLeft++;
+                    }
                 }
                 // Character entry
                 else
@@ -86,7 +113,18 @@ namespace CalcCLI
                     char c = key.KeyChar;
                     if ((c != '\0') && (char.IsAscii(c)))
                     {
-                        expression.Append(c);
+                        // Insert or append ?
+                        if (Console.CursorLeft < expression.Length)
+                        {
+                            int pos = Console.CursorLeft - 1;
+                            expression.Insert(pos, c);
+                            Console.Write(expression.ToString().Substring(pos + 1));
+                            Console.CursorLeft = pos + 1;
+                        }
+                        else
+                        {
+                            expression.Append(c);
+                        }
                     }
                 }
             }
@@ -106,6 +144,7 @@ namespace CalcCLI
                 var postfix = parser.ShuntingYard(infix);
                 Number result = solver.Solve(postfix);
 
+                
                 if (result is Measure measureResult)
                 {
                     Console.WriteLine($"{expression}={measureResult.Value}{measureResult.Unit.Symbols.First()}");

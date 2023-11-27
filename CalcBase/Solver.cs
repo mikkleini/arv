@@ -86,17 +86,14 @@ namespace CalcBase
                 if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
                 {
                     IElement[] expression = [measureA.Unit, measureB.Unit, binOp];
-
-                    foreach (ISIDerivedUnit derivUnit in Factory.Instance.Units.Where(u => u is ISIDerivedUnit))
+                    IUnit? matchingUnit = Factory.Units.FirstOrDefault(u => (u is ISIDerivedUnit devU) && (devU.Expression.SequenceEqual(expression)));
+                    if (matchingUnit != null)
                     {
-                        if (derivUnit.Expression.SequenceEqual(expression))
-                        {
-                            return new Measure(result, derivUnit, resultRadix, resultUseScientificNotation, resultHexCase);
-                        }
+                        return new Measure(result, matchingUnit, resultRadix, resultUseScientificNotation, resultHexCase);
                     }
 
-                    // TODO Find a derived unit or formula...
-                    return new Measure(result, measureA.Unit, resultRadix, resultUseScientificNotation, resultHexCase);
+                    // TODO Find formula...
+                    throw new ExpressionException("No suitable derived unit or formula found", opToken.Position, opToken.Length);                    
                 }
                 else if (a is Measure mA)
                 {
@@ -128,12 +125,20 @@ namespace CalcBase
         private Number SolveFunction(Stack<Number> numberStack, FunctionToken funcToken)
         {
             IFunction func = funcToken.Function;
+            NumberType result;
 
             // Is it no argument function ?
             if (func is INoArgumentFunction noArgFunc)
             {
-                Debug.WriteLine($"  Function {func.Name} ()");
-                NumberType result = noArgFunc.Calculate();
+                try
+                {
+                    Debug.WriteLine($"  Function {func.Name} ()");
+                    result = noArgFunc.Calculate();
+                }
+                catch (Exception ex)
+                {
+                    throw new ExpressionException(ex.Message, funcToken);
+                }
 
                 return new Number(result, noArgFunc.OutputRadix, false, DominantHexadecimalCase.None);
             }
@@ -145,8 +150,15 @@ namespace CalcBase
                     throw new ExpressionException("Missing argument", funcToken.Position, funcToken.Length);
                 }
 
-                Debug.WriteLine($"  Function {func.Name} ({a.Value})");
-                NumberType result = singleFunc.Calculate(a.Value);
+                try
+                {
+                    Debug.WriteLine($"  Function {func.Name} ({a.Value})");
+                    result = singleFunc.Calculate(a.Value);
+                }
+                catch (Exception ex)
+                {
+                    throw new ExpressionException(ex.Message, funcToken);
+                }
 
                 return new Number(result, a.Radix, a.IsScientificNotation, a.DominantCase);
             }
@@ -163,8 +175,15 @@ namespace CalcBase
                     throw new ExpressionException("Missing argument", funcToken.Position, funcToken.Length);
                 }
 
-                Debug.WriteLine($"  Function {func.Name} ({a.Value}, {b.Value})");
-                NumberType result = dualFunc.Calculate(a.Value, b.Value);
+                try
+                {
+                    Debug.WriteLine($"  Function {func.Name} ({a.Value}, {b.Value})");
+                    result = dualFunc.Calculate(a.Value, b.Value);
+                }
+                catch (Exception ex)
+                {
+                    throw new ExpressionException(ex.Message, funcToken);
+                }
 
                 return new Number(result, a.Radix, a.IsScientificNotation, a.DominantCase);
             }

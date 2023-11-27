@@ -94,6 +94,7 @@ namespace CalcBaseTest
             TestEquation("3 + 3 ** 3", 30);
             TestEquation("-2-2", -4);
             TestEquation("101 % 20", 1);
+            TestEquation("2/2*8", 8);
 
             // These are bit problematic - in C# % is reminder, but % is also symbol for modulus
             TestEquation("-15 % 7", -1);

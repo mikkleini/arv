@@ -77,7 +77,7 @@ namespace CalcBaseTest
             Assert.True(ReferenceEquals(Factory.Second, Factory.Second));
             Assert.True(ReferenceEquals(s2, Factory.Second));
 
-            (IUnit unit, string x)[] mix = Factory.Instance.Units.Select(u => (u, u.Name)).ToArray();
+            (IUnit unit, string x)[] mix = Factory.Units.Select(u => (u, u.Name)).ToArray();
             Assert.True(ReferenceEquals(mix[0].unit, s2));
             Assert.True(ReferenceEquals(mix[0].unit, Factory.Second));
             Assert.That(mix[0].unit, Is.EqualTo(Factory.Second));

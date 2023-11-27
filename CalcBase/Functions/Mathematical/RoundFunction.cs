@@ -1,6 +1,4 @@
-﻿using CalcBase.Functions.Trigonometric;
-
-namespace CalcBase.Functions.Mathematical
+﻿namespace CalcBase.Functions.Mathematical
 {
     /// <summary>
     /// Rounding function
@@ -18,6 +16,11 @@ namespace CalcBase.Functions.Mathematical
         /// <returns></returns>
         public NumberType Calculate(NumberType a, NumberType b)
         {
+            if (!NumberType.IsInteger(b))
+            {
+                throw new Exception("Digits argument is not integer");
+            }
+
             return NumberType.Round(a, (int)b);
         }
     }

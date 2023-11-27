@@ -2,7 +2,6 @@
 using CalcBase.Formulas;
 using CalcBase.Functions;
 using CalcBase.Functions.Mathematical;
-using CalcBase.Functions.Trigonometric;
 using CalcBase.Numbers;
 using CalcBase.Operators;
 using CalcBase.Operators.Arithmetic;
@@ -29,10 +28,35 @@ namespace CalcBase
         public static readonly Number Three = new(3);
         public static readonly Number Four = new(4);
 
-        // Functions
+        // Trigonometric functions
+        public static readonly SingleArgumentFunction Sin = new("Sine", "sin", NumberType.Sin);
+        public static readonly SingleArgumentFunction Cos = new("Cosine", "cos", NumberType.Cos);
+        public static readonly SingleArgumentFunction Tan = new("Tangent", "tan", NumberType.Tan);
+        public static readonly SingleArgumentFunction Asin = new("Arcsine", "asin", NumberType.Asin);
+        public static readonly SingleArgumentFunction Acos = new("Arccosine", "acos", NumberType.Acos);
+        public static readonly SingleArgumentFunction Atan = new("Arctangent", "atan", NumberType.Atan);
+        public static readonly DualArgumentFunction Atan2 = new("Two argument arctangent", "atan2", (y, x) => NumberType.Atan2(y, x));
+        public static readonly SingleArgumentFunction Sinh = new("Hyperbolic sine", "sinh", NumberType.Sinh);
+        public static readonly SingleArgumentFunction Cosh = new("Hyperbolic cosine", "cosh", NumberType.Cosh);
+        public static readonly SingleArgumentFunction Tanh = new("Hyperbolic tangent", "tanh", NumberType.Tanh);
+
+        public static readonly SingleArgumentFunction Log = new("Natural (base-E) logarithm", "log", NumberType.Log);
+        public static readonly SingleArgumentFunction Log2 = new("Base-2 logarithm", "log2", NumberType.Log2);
+        public static readonly SingleArgumentFunction Log10 = new("Base-10 logarithm", "log10", NumberType.Log10);
+
+        // Number tweaking functions
+        public static readonly SingleArgumentFunction Abs = new("Absolute", "abs", NumberType.Abs);
+        public static readonly SingleArgumentFunction Sign = new("Sign", "sign", (x) => NumberType.Sign(x));
+        public static readonly SingleArgumentFunction Ceil = new("Ceiling", "ceil", NumberType.Ceiling);
+        public static readonly SingleArgumentFunction Floor = new("Floor", "floor", NumberType.Floor);
+        public static readonly SingleArgumentFunction Trunc = new("Trunc", "trunc", NumberType.Truncate);
         public static readonly RoundFunction Round = new();
-        public static readonly CosFunction Cos = new();
-        public static readonly SinFunction Sin = new();
+        public static readonly DualArgumentFunction Min = new("Minimum of two", "min", NumberType.Min);
+        public static readonly DualArgumentFunction Max = new("Maximum of two", "max", NumberType.Max);
+
+        // Other functions
+        public static readonly SingleArgumentFunction Sqrt = new("Square root", "sqrt", NumberType.Sqrt);
+        public static readonly SingleArgumentFunction Cbrt = new("Cube root", "cbrt", NumberType.Cbrt);
 
         // Mathematical operators
         public static readonly NegationOperator Negation = new();
@@ -161,67 +185,56 @@ namespace CalcBase
         /// <summary>
         /// All operators
         /// </summary>
-        public IOperator[] Operators { get; init; }
+        public static readonly IOperator[] Operators =
+            [Negation, Addition, Division, Exponent, Multiplication, Quotient, Reminder, Subtraction, Inverse, And, Or, Xor];
 
         /// <summary>
         /// All functions
         /// </summary>
-        public IFunction[] Functions { get; init; }
+        public static readonly IFunction[] Functions =
+            [Sin, Cos, Tan, Asin, Acos, Atan, Atan2, Sinh, Cosh, Tanh, Log, Log2, Log10,
+            Abs, Sign, Ceil, Floor, Trunc, Round, Min, Max, Sqrt, Cbrt];
 
         /// <summary>
         /// All constants
         /// </summary>
-        public IConstant[] Constants { get; init; }
+        public static readonly IConstant[] Constants = [Pi, SpeedOfLight, GravitationConstant];
 
         /// <summary>
         /// All quantities
         /// </summary>
-        public IQuantity[] Quantities { get; init; }
+        public static readonly IQuantity[] Quantities =
+            [Time, Length, Speed, Mass, Density, Acceleration, Area, Volume, Force, Frequency,
+            Voltage, Current, Resistance, Conductance, Capacitance, Inductance, Impedance, Charge, Power];
 
         /// <summary>
         /// All units
         /// </summary>
-        public IUnit[] Units { get; init; }
+        public static readonly IUnit[] Units =
+            [Second, Metre, Kilogram, MetrePerSecond, SquareMetre, Newton,
+            Inch, Foot, Yard, Mile, NauticalMile, MilePerHour];
 
         /// <summary>
         /// All formulas
         /// </summary>
-        public IFormula[] Formulas { get; init; }
-
+        public static readonly IFormula[] Formulas =
+            [AreaOfSquare, AreaOfRectangle, AreaOfTriangle, AreaOfCircle, AreaOfSphere,
+            VolumeOfCube, VolumeOfBox,
+            AccelerationFormula, TravelDistance, TravelSpeed];
+        
         /// <summary>
         /// Enumerate constants by their symbols starting from longest, ending with shorters
         /// </summary>
-        public IEnumerable<(string symbol, IConstant constant)> ConstantsBySymbols => Constants
+        public static IEnumerable<(string symbol, IConstant constant)> ConstantsBySymbols => Constants
             .SelectMany(c => c.Symbols.Select(s => (symbol: s, constant: c)))
             .OrderByDescending(x => x.symbol.Length);
 
         /// <summary>
         /// Enumerate units by their symbols starting from longest, ending with shorters
         /// </summary>
-        public IEnumerable<(string symbol, IUnit unit)> UnitsBySymbols => Units
+        public static IEnumerable<(string symbol, IUnit unit)> UnitsBySymbols => Units
             .SelectMany(u => u.Symbols.Select(s => (symbol: s, unit: u)))
             .OrderByDescending(x => x.symbol.Length);
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public Factory()
-        {
-            Constants = [Pi, SpeedOfLight, GravitationConstant];
-
-            Operators = [Negation, Addition, Division, Exponent, Multiplication, Quotient, Reminder, Subtraction, Inverse, And, Or, Xor];
-
-            Functions = [Round, Cos, Sin];
-            
-            Quantities = [Time, Length, Speed, Mass, Density, Acceleration, Area, Volume, Force, Frequency,
-                Voltage, Current, Resistance, Conductance, Capacitance, Inductance, Impedance, Charge, Power];
-
-            Units = [Second, Metre, Kilogram, MetrePerSecond, SquareMetre, Newton,
-                Inch, Foot, Yard, Mile, NauticalMile, MilePerHour];
-
-            Formulas = [AreaOfSquare, AreaOfRectangle, AreaOfTriangle, AreaOfCircle, AreaOfSphere, VolumeOfCube, VolumeOfBox,
-                AccelerationFormula, TravelDistance, TravelSpeed];
-        }
 
         /// <summary>
         /// Utility function to create physics variable
