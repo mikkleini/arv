@@ -20,12 +20,11 @@ namespace CalcBase
     /// </summary>
     public partial class Parser
     {
-        private static readonly string BinaryNumberPrefix = "0b";
-        private static readonly string HexadecimalNumberPrefix = "0x";
-        private static readonly char RadixPointSymbol = '.';
-        private static readonly char ArgumentSeparatorSymbol = ',';
-        private static readonly char ExponentPointSymbol = 'E';
-        private static readonly int IntTypeBits = 128;
+        public static readonly string BinaryNumberPrefix = "0b";
+        public static readonly string HexadecimalNumberPrefix = "0x";
+        public static readonly char RadixPointSymbol = '.';
+        public static readonly char ArgumentSeparatorSymbol = ',';
+        public static readonly char ExponentPointSymbol = 'E';
 
         /// <summary>
         /// Constructor
@@ -49,7 +48,7 @@ namespace CalcBase
             // Is it a function ?
             IFunction? func = Factory.Functions
                 .OrderByDescending(f => f.Symbol.Length)
-                .FirstOrDefault(f => text.StartsWith(f.Symbol, StringComparison.InvariantCultureIgnoreCase));
+                .FirstOrDefault(f => text.StartsWith(f.Symbol, StringComparison.Ordinal));
             if (func != null)
             {
                 return new FunctionToken()
@@ -62,7 +61,7 @@ namespace CalcBase
 
             // Is it a constant ?
             (symbol, IConstant? constant) = Factory.ConstantsBySymbols
-                .FirstOrDefault(c => text.StartsWith(c.symbol, StringComparison.InvariantCultureIgnoreCase));
+                .FirstOrDefault(c => text.StartsWith(c.symbol, StringComparison.Ordinal));
             if (constant != null)
             {
                 return new ConstantToken()
@@ -75,7 +74,7 @@ namespace CalcBase
 
             // Is it a unit ?
             (symbol, IUnit? unit) = Factory.UnitsBySymbols
-                .FirstOrDefault(u => text.StartsWith(u.symbol, StringComparison.InvariantCultureIgnoreCase));
+                .FirstOrDefault(u => text.StartsWith(u.symbol, StringComparison.Ordinal));
             if (unit != null)
             {
                 return new UnitToken()
@@ -385,7 +384,7 @@ namespace CalcBase
                 else if (current is OperatorToken opToken)
                 {                    
                     while (opStack.TryPeek(out IToken? stackedToken) &&
-                        (((stackedToken is OperatorToken stackedOpToken) && (opToken.Operator.Precedence > stackedOpToken.Operator.Precedence)) ||
+                        (((stackedToken is OperatorToken stackedOpToken) && (opToken.Operator.Precedence >= stackedOpToken.Operator.Precedence)) ||
                         (stackedToken is FunctionToken)))
                     {
                         postfix.Add(opStack.Pop());
