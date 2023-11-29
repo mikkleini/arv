@@ -45,11 +45,6 @@ namespace CalcBase
                 throw new ExpressionException("Incomplete binary number", start, pos - start);
             }
 
-            if (pos - start > 2 + IntTypeBits)
-            {
-                throw new ExpressionException("Too large binary number", start, pos - start);
-            }
-
             // Return token and end position
             return new NumberToken()
             {
@@ -101,11 +96,6 @@ namespace CalcBase
             if (pos - start < 3)
             {
                 throw new ExpressionException("Incomplete hexadecimal number", start, pos - start);
-            }
-
-            if (pos - start > 2 + (IntTypeBits / 4))
-            {
-                throw new ExpressionException("Too large hexadecimal number", start, pos - start);
             }
 
             // Determine dominant hexadecimal letters case

@@ -32,21 +32,24 @@ namespace CalcBaseTest
             Debug.WriteLine($"Test {infix} expect {expectedResult}");
 
             var infixTokens = parser.Tokenize(infix);
+
+            Debug.WriteLine($"  Infix:"); 
             foreach (var token in infixTokens)
             {
-                Debug.WriteLine($"  Infix: {token}");
+                Debug.WriteLine($"    {token}");
             }
 
             var postfixTokens = parser.ShuntingYard(infixTokens);
 
+            Debug.WriteLine($"  Postfix:");
             foreach (var token in postfixTokens)
             {
-                Debug.WriteLine($"  Postfix: {token}");
+                Debug.WriteLine($"    {token}");
             }
 
             Number actualResult = solver.Solve(postfixTokens);
 
-            Debug.WriteLine($"  Got: {actualResult}");
+            Debug.WriteLine($"  Result: {actualResult}");
 
             Assert.Multiple(() =>
             {
@@ -90,11 +93,11 @@ namespace CalcBaseTest
             TestEquation("2 * 3 + 4", 10);
             TestEquation("10 / 2 - 1", 4);
             TestEquation("5 + 2 * 3", 11);
+            TestEquation("4 / 2 * 8", 16);
             TestEquation("5 + (7-4) * 3", 14);
             TestEquation("3 + 3 ** 3", 30);
             TestEquation("-2-2", -4);
             TestEquation("101 % 20", 1);
-            TestEquation("2/2*8", 8);
 
             // These are bit problematic - in C# % is reminder, but % is also symbol for modulus
             TestEquation("-15 % 7", -1);
@@ -125,6 +128,15 @@ namespace CalcBaseTest
             TestEquation("round(1.23456 * (2 + 1), 2)", 3.70M);
             TestEquation("sin((cos(0)*pi)/2)", 1);
             TestEquation("round(sin(Pi/2), 3)", 1);
+
+            Assert.Pass();
+        }
+
+        [Test]
+        public void TestMixedRadix()
+        {
+            TestEquation("0x400/2", new Number(0x200, IntegerRadix.Hexadecimal));
+            TestEquation("0xF/6", new Number(2.5M, IntegerRadix.Decimal));
 
             Assert.Pass();
         }

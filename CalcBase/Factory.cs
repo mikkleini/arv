@@ -53,6 +53,7 @@ namespace CalcBase
         public static readonly RoundFunction Round = new();
         public static readonly DualArgumentFunction Min = new("Minimum of two", "min", NumberType.Min);
         public static readonly DualArgumentFunction Max = new("Maximum of two", "max", NumberType.Max);
+        //public static readonly SingleArgumentFunction Hex = new("Number to hexadecimal", "hex", (x) => x);
 
         // Other functions
         public static readonly SingleArgumentFunction Sqrt = new("Square root", "sqrt", NumberType.Sqrt);
@@ -72,9 +73,9 @@ namespace CalcBase
         public static readonly InverseOperator Inverse = new();
         public static readonly AndOperator And = new();
         public static readonly OrOperator Or = new();
-        public static readonly XorOperator Xor = new();        
+        public static readonly XorOperator Xor = new();
 
-        // Quantities
+        // Physics quantities
         public static readonly Quantity Time = new("Time", ["t"]);
         public static readonly Quantity Length = new("Length", ["l"]);
         public static readonly Quantity Speed = new("Speed", ["v"]);
@@ -96,6 +97,9 @@ namespace CalcBase
         public static readonly Quantity Impedance = new("Impedance", ["Z"]);
         public static readonly Quantity Charge = new("Charge", ["C"]);
         public static readonly Quantity Power = new("Power", ["P"]);
+
+        // Digital quantities
+        public static readonly Quantity Digital = new("Digital quantity", [""]);
 
         // SI base units
         public static readonly SIBaseUnit Second = new("Second", ["s"], Time,
@@ -163,6 +167,20 @@ namespace CalcBase
         public static readonly ImperialUnit NauticalMile = new("Nautical mile", ["NM", "nmi", "M"], 1852M, Metre);
         public static readonly ImperialUnit MilePerHour = new("Mile per hour", ["mph"], 0.44704M, MetrePerSecond);
 
+        // Digital units
+        public static readonly SIBaseUnit Bit = new("Bit", ["b"], Digital);
+        public static readonly SIBaseUnit Byte = new("Byte", ["B"], Digital,
+            [("KiB", "kibibyte", 1 << 10),
+             ("KB",  "kilobyte", 1 << 10),
+             ("MiB", "mebibyte", 1 << 20),
+             ("MB",  "megabyte", 1 << 20),
+             ("GiB", "gibibyte", 1 << 30),
+             ("GB",  "gigabyte", 1 << 30),
+             ("TiB", "gibibyte", 1 << 40),
+             ("TB",  "terabyte", 1 << 40),
+             ("PiB", "pebibyte", 1 << 50),
+             ("PB",  "petabyte", 1 << 50)]);
+
         // Constants
         public static readonly Constant Pi = new("Pi", ["π", "pi"], 3.14159265358979323846M);
         public static readonly PhysicsConstant SpeedOfLight = new("Speed of light in vacuum", ["c"], 299792458.0M, MetrePerSecond);
@@ -205,14 +223,16 @@ namespace CalcBase
         /// </summary>
         public static readonly IQuantity[] Quantities =
             [Time, Length, Speed, Mass, Density, Acceleration, Area, Volume, Force, Frequency,
-            Voltage, Current, Resistance, Conductance, Capacitance, Inductance, Impedance, Charge, Power];
+            Voltage, Current, Resistance, Conductance, Capacitance, Inductance, Impedance, Charge, Power,
+            Digital];
 
         /// <summary>
         /// All units
         /// </summary>
         public static readonly IUnit[] Units =
             [Second, Metre, Kilogram, MetrePerSecond, SquareMetre, Newton,
-            Inch, Foot, Yard, Mile, NauticalMile, MilePerHour];
+            Inch, Foot, Yard, Mile, NauticalMile, MilePerHour,
+            Bit, Byte];
 
         /// <summary>
         /// All formulas
