@@ -1,12 +1,13 @@
 ﻿namespace CalcBase.Numbers
 {
     /// <summary>
-    /// Integer radix
+    /// Integer radix flags
     /// </summary>
+    [Flags]
     public enum IntegerRadix
     {
-        Binary = 2,
-        Decimal = 10,
-        Hexadecimal = 16
+        Binary = 1,
+        Decimal = 4,
+        Hexadecimal = 8
     }
 }

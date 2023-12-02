@@ -20,13 +20,12 @@ namespace CalcBase.Operators.Bitwise
         /// <returns>Result of operation</returns>
         public NumberType Calculate(NumberType a)
         {
-            if ((NumberType.Sign(a) < 0) || !NumberType.IsInteger(a))
+            if (!a.IsNatural())
             {
-                throw new SolverException($"{Name} can only be performed with natural number");
+                throw new SolverException($"{Name} can only be performed with natural numbers");
             }
 
-            var bigA = (BigInteger)a;
-            return new NumberType(~bigA);
+            return new NumberType(~((BigInteger)a));
         }
     }
 }

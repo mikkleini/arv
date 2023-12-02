@@ -22,19 +22,17 @@ namespace CalcBase.Operators.Bitwise
         /// <returns>Result of operation</returns>
         public NumberType Calculate(NumberType a, NumberType b)
         {
-            if ((NumberType.Sign(a) < 0) || !NumberType.IsInteger(a))
+            if (!a.IsNatural())
             {
                 throw new SolverException($"{Name} can only be performed with natural numbers");
             }
 
-            if ((NumberType.Sign(b) < 0) || !NumberType.IsInteger(b))
+            if (!b.IsNatural())
             {
                 throw new SolverException($"{Name} can only be performed with natural numbers");
             }
 
-            var bigA = (BigInteger)a;
-            var bigB = (BigInteger)b;
-            return new NumberType(bigA & bigB);
+            return new NumberType(((BigInteger)a) & ((BigInteger)b));
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using CalcBase.Units;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CalcBase.Numbers
 {
@@ -19,14 +18,14 @@ namespace CalcBase.Numbers
         public IntegerRadix Radix { get; init; }
 
         /// <summary>
-        /// In case of hexadecimal radix - dominant letter case
+        /// Used letter case(s) in hexadecimal number
         /// </summary>
-        public DominantHexadecimalCase DominantCase { get; init; } = DominantHexadecimalCase.None;
+        public HexadecimalCase HexadecimalCase { get; init; }
 
         /// <summary>
         /// Is presented with scientific notation ?
         /// </summary>
-        public bool IsScientificNotation { get; init; } = false;
+        public bool IsScientificNotation { get; init; }
 
         /// <summary>
         /// Constructor
@@ -36,11 +35,11 @@ namespace CalcBase.Numbers
         /// <param name="isScientificNotation">Is scientific notation ?</param>
         /// <param name="dominantCase">Dominant hexadecimal number case</param>
         public Number(NumberType value, IntegerRadix radix = IntegerRadix.Decimal,
-            bool isScientificNotation = false, DominantHexadecimalCase dominantCase = DominantHexadecimalCase.None)
+            bool isScientificNotation = false, HexadecimalCase dominantCase = HexadecimalCase.None)
         {
             Value = value;
             Radix = radix;
-            DominantCase = dominantCase;
+            HexadecimalCase = dominantCase;
             IsScientificNotation = isScientificNotation;
         }
 
@@ -52,7 +51,7 @@ namespace CalcBase.Numbers
         /// <param name="isScientificNotation">Is scientific notation ?</param>
         /// <param name="dominantCase">Dominant hexadecimal number case</param>
         public static Number Create(NumberType value, IntegerRadix radix = IntegerRadix.Decimal,
-            bool isScientificNotation = false, DominantHexadecimalCase dominantCase = DominantHexadecimalCase.None)
+            bool isScientificNotation = false, HexadecimalCase dominantCase = HexadecimalCase.None)
         {
             return new Number(value, radix, isScientificNotation, dominantCase);
         }

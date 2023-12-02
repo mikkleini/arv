@@ -64,8 +64,7 @@ namespace CalcBase
         internal static NumberToken ReadHexadecimalNumber(ReadOnlySpan<char> infix, int start)
         {
             BigInteger value = 0;
-            int countLowerCase = 0;
-            int countUpperCase = 0;
+            HexadecimalCase letterCase = HexadecimalCase.None;
             int pos;
 
             // Start after prefix
@@ -79,12 +78,12 @@ namespace CalcBase
                 else if ((c >= 'a') && (c <= 'f'))
                 {
                     value = (value << 4) | (BigInteger)(10 + (c - 'a'));
-                    countLowerCase++;
+                    letterCase |= HexadecimalCase.Lower;
                 }
                 else if ((c >= 'A') && (c <= 'F'))
                 {
                     value = (value << 4) | (BigInteger)(10 + (c - 'A'));
-                    countUpperCase++;
+                    letterCase |= HexadecimalCase.Upper;
                 }
                 else
                 {
@@ -98,23 +97,12 @@ namespace CalcBase
                 throw new ExpressionException("Incomplete hexadecimal number", start, pos - start);
             }
 
-            // Determine dominant hexadecimal letters case
-            DominantHexadecimalCase dominantCase = DominantHexadecimalCase.None;
-            if (countUpperCase > countLowerCase)
-            {
-                dominantCase = DominantHexadecimalCase.Upper;
-            }
-            else if (countUpperCase < countLowerCase)
-            {
-                dominantCase = DominantHexadecimalCase.Lower;
-            }
-
             // Return token and end position
             return new NumberToken()
             {
                 Position = start,
                 Length = pos - start,
-                Number = new Number(value, IntegerRadix.Hexadecimal, false, dominantCase)
+                Number = new Number(value, IntegerRadix.Hexadecimal, false, letterCase)
             };
         }
 
@@ -178,7 +166,7 @@ namespace CalcBase
                         hasRadixPoint = true;
                         lenNumber++;
                     }
-                    else if (c == ExponentPointSymbol)
+                    else if ((c == ExponentPointSymbolUpper) || (c == ExponentPointSymbolLower))
                     {
                         if (hasExponent)
                         {
@@ -222,7 +210,7 @@ namespace CalcBase
                 // Integer has no radix point and exponent is positive
                 if (!hasRadixPoint && (exponent > 0))
                 {
-                    NumberType value = NumberType.Parse(infix.Slice(start, lenNumber));
+                    NumberType value = NumberType.Parse(infix.Slice(start, lenNumber).ToString());
                     if (hasExponent)
                     {
                         value *= NumberType.Pow(10, exponent);
@@ -243,7 +231,7 @@ namespace CalcBase
                     // Check for overflow
                     try
                     {
-                        value = NumberType.Parse(infix.Slice(start, lenNumber), CultureInfo.InvariantCulture);
+                        value = NumberType.Parse(infix.Slice(start, lenNumber).ToString(), CultureInfo.InvariantCulture);
                     }
                     catch (OverflowException)
                     {

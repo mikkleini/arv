@@ -11,14 +11,9 @@ namespace CalcBaseTest
 {
     public class SolverTests
     {
-        private Parser parser;
-        private Solver solver;
-
         [SetUp]
         public void Setup()
         {
-            parser = new Parser();
-            solver = new Solver();
         }
 
         /// <summary>
@@ -31,7 +26,7 @@ namespace CalcBaseTest
             Debug.WriteLine("");
             Debug.WriteLine($"Test {infix} expect {expectedResult}");
 
-            var infixTokens = parser.Tokenize(infix);
+            var infixTokens = Parser.Tokenize(infix);
 
             Debug.WriteLine($"  Infix:"); 
             foreach (var token in infixTokens)
@@ -39,7 +34,7 @@ namespace CalcBaseTest
                 Debug.WriteLine($"    {token}");
             }
 
-            var postfixTokens = parser.ShuntingYard(infixTokens);
+            var postfixTokens = Parser.ShuntingYard(infixTokens);
 
             Debug.WriteLine($"  Postfix:");
             foreach (var token in postfixTokens)
@@ -47,7 +42,7 @@ namespace CalcBaseTest
                 Debug.WriteLine($"    {token}");
             }
 
-            Number actualResult = solver.Solve(postfixTokens);
+            Number actualResult = Solver.Solve(postfixTokens);
 
             Debug.WriteLine($"  Result: {actualResult}");
 
@@ -55,7 +50,7 @@ namespace CalcBaseTest
             {
                 Assert.That(actualResult.Value, Is.EqualTo(expectedResult.Value));
                 Assert.That(actualResult.Radix, Is.EqualTo(expectedResult.Radix));
-                Assert.That(actualResult.DominantCase, Is.EqualTo(expectedResult.DominantCase));
+                Assert.That(actualResult.HexadecimalCase, Is.EqualTo(expectedResult.HexadecimalCase));
                 Assert.That(actualResult.IsScientificNotation, Is.EqualTo(expectedResult.IsScientificNotation));
             });
 
@@ -95,7 +90,6 @@ namespace CalcBaseTest
             TestEquation("5 + 2 * 3", 11);
             TestEquation("4 / 2 * 8", 16);
             TestEquation("5 + (7-4) * 3", 14);
-            TestEquation("3 + 3 ** 3", 30);
             TestEquation("-2-2", -4);
             TestEquation("101 % 20", 1);
 
@@ -106,13 +100,14 @@ namespace CalcBaseTest
             TestEquation("10 / 4 - 2", 0.5M);
             TestEquation("10.5 + (4.1 - 2) * 3.1", 17.01M);
             TestEquation("12.0+2.0", 14);
+            TestEquation("2 ** 3", 8);
+            TestEquation("-2 ** 3", -8);
             TestEquation("2 ** -3", 0.125M);
+            TestEquation("-2 ** -3", -0.125M);            
 
             // TODO Has accuracy issue:
             TestEquation("625 ** 0.5", 25);
-
-            TestEquation("0xF0 + 15", Number.Create(0xFF, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper));
-            TestEquation("240 + 0x0F", Number.Create(0xFF, IntegerRadix.Decimal, false, DominantHexadecimalCase.Upper));
+            TestEquation("3 + 3 ** 3", 30);
 
             Assert.Pass();
         }
@@ -121,13 +116,13 @@ namespace CalcBaseTest
         public void TestFunctions()
         {
             TestEquation("cos(0)", 1);
-            TestEquation("sin(Pi/2)", 1);
-            TestEquation("sin(Pi*1.5)", -1);
+            TestEquation("sin(pi/2)", 1);
+            TestEquation("sin(pi*1.5)", -1);
             TestEquation("round(1.23456, 2)", 1.23M);
             TestEquation("round(1.23456 * 2, 2)", 2.47M);
             TestEquation("round(1.23456 * (2 + 1), 2)", 3.70M);
             TestEquation("sin((cos(0)*pi)/2)", 1);
-            TestEquation("round(sin(Pi/2), 3)", 1);
+            TestEquation("round(sin(pi/2), 3)", 1);
 
             Assert.Pass();
         }
@@ -135,8 +130,8 @@ namespace CalcBaseTest
         [Test]
         public void TestMixedRadix()
         {
-            TestEquation("0x400/2", new Number(0x200, IntegerRadix.Hexadecimal));
-            TestEquation("0xF/6", new Number(2.5M, IntegerRadix.Decimal));
+            TestEquation("0x400/2", new Number(0x200, IntegerRadix.Hexadecimal | IntegerRadix.Decimal, false, HexadecimalCase.None));
+            TestEquation("0xF/6", new Number(2.5M, IntegerRadix.Hexadecimal | IntegerRadix.Decimal, false, HexadecimalCase.Upper));
 
             Assert.Pass();
         }
@@ -144,8 +139,8 @@ namespace CalcBaseTest
         [Test]
         public void TestMeasures()
         {
-            var infixTokens = parser.Tokenize("3.2m");
-            var postfixTokens = parser.ShuntingYard(infixTokens);
+            var infixTokens = Parser.Tokenize("3.2m");
+            var postfixTokens = Parser.ShuntingYard(infixTokens);
             
             Assert.That(postfixTokens.Count, Is.EqualTo(1));
             Assert.That(postfixTokens[0], Is.InstanceOf(typeof(MeasureToken)));

@@ -24,14 +24,8 @@ namespace CalcBase
         public static readonly string HexadecimalNumberPrefix = "0x";
         public static readonly char RadixPointSymbol = '.';
         public static readonly char ArgumentSeparatorSymbol = ',';
-        public static readonly char ExponentPointSymbol = 'E';
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public Parser()
-        {
-        }
+        public static readonly char ExponentPointSymbolUpper = 'E';
+        public static readonly char ExponentPointSymbolLower = 'e';
 
         /// <summary>
         /// Read text (don't yet know if it's constant, unit, variable or function)
@@ -40,7 +34,7 @@ namespace CalcBase
         /// <param name="start">Number start position</param>
         /// <returns>Text token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal IToken ReadText(ReadOnlySpan<char> infix, int start)
+        internal static IToken ReadText(ReadOnlySpan<char> infix, int start)
         {
             string symbol;
             string text = infix.Slice(start).ToString();
@@ -94,7 +88,7 @@ namespace CalcBase
         /// </summary>
         /// <param name="prevToken">Previous token or null if none</param>
         /// <returns>Operator</returns>
-        internal IOperator DecideMinusOperator(IToken? prevToken)
+        internal static IOperator DecideMinusOperator(IToken? prevToken)
         {
             if (prevToken == null)
             {
@@ -116,7 +110,7 @@ namespace CalcBase
         /// Tokenize infix expression
         /// </summary>
         /// <returns></returns>
-        public List<IToken> Tokenize(string infix)
+        public static List<IToken> Tokenize(string infix)
         {
             List<IToken> tokens = new();
             int i = 0;
@@ -215,7 +209,7 @@ namespace CalcBase
         /// <param name="infix">Infix tokens</param>
         /// <param name="funcIndex">Function index</param>
         /// <returns></returns>
-        private void CheckFunctionArguments(List<IToken> infix, int funcIndex)
+        private static void CheckFunctionArguments(List<IToken> infix, int funcIndex)
         {
             FunctionToken funcToken = (FunctionToken)infix[funcIndex];
             int numExpectedArgs = funcToken.ArgumentCount;
@@ -268,7 +262,7 @@ namespace CalcBase
         /// </summary>
         /// <param name="infix">Infix tokens</param>
         /// <exception cref="ExpressionException"></exception>
-        public void InfixErrorCheck(List<IToken> infix, int startIndex = 0)
+        public static void InfixErrorCheck(List<IToken> infix, int startIndex = 0)
         {
             int parenthesisDepth = 0;
 
@@ -328,7 +322,7 @@ namespace CalcBase
         /// </summary>
         /// <param name="infix">Token in infix order</param>
         /// <returns>List of tokens in postfix (RPN) order</returns>
-        public List<IToken> ShuntingYard(List<IToken> infix)
+        public static List<IToken> ShuntingYard(List<IToken> infix)
         {
             List<IToken> postfix = new();
             Stack<IToken> opStack = new();
@@ -382,7 +376,7 @@ namespace CalcBase
                     }
                 }
                 else if (current is OperatorToken opToken)
-                {                    
+                {
                     while (opStack.TryPeek(out IToken? stackedToken) &&
                         (((stackedToken is OperatorToken stackedOpToken) && (opToken.Operator.Precedence >= stackedOpToken.Operator.Precedence)) ||
                         (stackedToken is FunctionToken)))

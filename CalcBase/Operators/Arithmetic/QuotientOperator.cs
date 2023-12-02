@@ -21,7 +21,7 @@ namespace CalcBase.Operators.Arithmetic
         /// <returns>Result of operation</returns>
         public NumberType Calculate(NumberType a, NumberType b)
         {
-            return NumberType.Floor(a / b);
+            return NumberType.Truncate(a / b);
         }
     }
 }

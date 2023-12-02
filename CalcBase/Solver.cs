@@ -12,15 +12,11 @@ using System.Reflection;
 
 namespace CalcBase
 {
+    /// <summary>
+    /// Postfix (RPN) expressions solver
+    /// </summary>
     public class Solver
     {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public Solver()
-        {
-        }
-
         /// <summary>
         /// Solve operation
         /// </summary>
@@ -28,7 +24,7 @@ namespace CalcBase
         /// <param name="opToken">Operator token</param>
         /// <returns>Result</returns>
         /// <exception cref="SolverException"></exception>
-        private Number SolveOperation(Stack<Number> numberStack, OperatorToken opToken)
+        private static Number SolveOperation(Stack<Number> numberStack, OperatorToken opToken)
         {
             IOperator op = opToken.Operator;
 
@@ -45,11 +41,11 @@ namespace CalcBase
 
                 if (a is Measure measure)
                 {
-                    return new Measure(result, measure.Unit, a.Radix, a.IsScientificNotation, a.DominantCase);
+                    return new Measure(result, measure.Unit, a.Radix, a.IsScientificNotation, a.HexadecimalCase);
                 }
                 else
                 {
-                    return new Number(result, a.Radix, a.IsScientificNotation, a.DominantCase);
+                    return new Number(result, a.Radix, a.IsScientificNotation, a.HexadecimalCase);
                 }
             }
             else if ((op.OpCount == OperatorOpCountType.Binary) && (op is IBinaryOperator binOp))
@@ -75,12 +71,12 @@ namespace CalcBase
                 }
                 else if (a.IsScientificNotation || b.IsScientificNotation)
                 {
-                    resultUseScientificNotation = NumberType.Abs(NumberType.Exp10(result)) > 5;
+                    resultUseScientificNotation = false;// NumberType.Abs(NumberType (result)) > 5;
                 }
 
                 // Vote radix and potential hexadecimal casing
-                IntegerRadix resultRadix = a.Radix;
-                DominantHexadecimalCase resultHexCase = a.DominantCase != DominantHexadecimalCase.None ? a.DominantCase : b.DominantCase;
+                IntegerRadix resultRadix = a.Radix | b.Radix;
+                HexadecimalCase resultHexCase = a.HexadecimalCase | b.HexadecimalCase;
 
                 // If both operands are measure and have different units, then there should be a formula to get the resulting unit
                 if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
@@ -122,7 +118,7 @@ namespace CalcBase
         /// <param name="funcToken">Function token</param>
         /// <returns>Result</returns>
         /// <exception cref="SolverException"></exception>
-        private Number SolveFunction(Stack<Number> numberStack, FunctionToken funcToken)
+        private static Number SolveFunction(Stack<Number> numberStack, FunctionToken funcToken)
         {
             IFunction func = funcToken.Function;
             NumberType result;
@@ -140,7 +136,7 @@ namespace CalcBase
                     throw new ExpressionException(ex.Message, funcToken);
                 }
 
-                return new Number(result, noArgFunc.OutputRadix, false, DominantHexadecimalCase.None);
+                return new Number(result, noArgFunc.OutputRadix, false, HexadecimalCase.None);
             }
             // Is it single argument function ?
             else if (func is ISingleArgumentFunction singleFunc)
@@ -160,7 +156,7 @@ namespace CalcBase
                     throw new ExpressionException(ex.Message, funcToken);
                 }
 
-                return new Number(result, a.Radix, a.IsScientificNotation, a.DominantCase);
+                return new Number(result, a.Radix, a.IsScientificNotation, a.HexadecimalCase);
             }
             // Is it dual argument function ?
             else if (func is IDualArgumentFunction dualFunc)
@@ -185,7 +181,7 @@ namespace CalcBase
                     throw new ExpressionException(ex.Message, funcToken);
                 }
 
-                return new Number(result, a.Radix, a.IsScientificNotation, a.DominantCase);
+                return new Number(result, a.Radix, a.IsScientificNotation, a.HexadecimalCase);
             }
             else
             {
@@ -199,7 +195,7 @@ namespace CalcBase
         /// </summary>
         /// <param name="tokens">Tokens in postfix order</param>
         /// <returns>Result</returns>
-        public Number Solve(IEnumerable<IToken> tokens)
+        public static Number Solve(IEnumerable<IToken> tokens)
         {
             Stack<Number> numberStack = new();
             

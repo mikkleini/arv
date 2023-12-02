@@ -16,7 +16,7 @@
         /// <returns></returns>
         public NumberType Calculate(NumberType a, NumberType b)
         {
-            if (!NumberType.IsInteger(b))
+            if (!b.IsInteger())
             {
                 throw new Exception("Digits argument is not integer");
             }

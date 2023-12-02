@@ -21,6 +21,20 @@ namespace CalcBase.Operators.Arithmetic
         /// <returns>Result of operation</returns>
         public NumberType Calculate(NumberType a, NumberType b)
         {
+            // TODO Workaround for BigRational inacuracy issue
+            // Link: https://github.com/c-ohle/RationalNumerics/issues/12
+            if (a.IsInteger() && b.IsInteger())
+            {
+                if (b >= 0)
+                {
+                    return (NumberType)BigInteger.Pow((BigInteger)a, (int)b);
+                }
+                else
+                {
+                    return new NumberType(1) / (NumberType)BigInteger.Pow((BigInteger)a, (int)-b);
+                }
+            }
+
             return NumberType.Pow(a, b);
         }
     }

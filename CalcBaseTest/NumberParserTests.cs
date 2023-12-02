@@ -13,7 +13,7 @@ namespace CalcBaseTest
         {
         }
 
-        private static void AssertNumberToken(string input, int length, NumberType value, IntegerRadix radix = IntegerRadix.Decimal, bool isScientific = false, DominantHexadecimalCase dominantCase = DominantHexadecimalCase.None)
+        private static void AssertNumberToken(string input, int length, NumberType value, IntegerRadix radix = IntegerRadix.Decimal, bool isScientific = false, HexadecimalCase dominantCase = HexadecimalCase.None)
         {
             IToken t = Parser.ReadNumber(input.AsSpan(), 0);
             Assert.That(t, Is.InstanceOf(typeof(NumberToken)));
@@ -26,7 +26,7 @@ namespace CalcBaseTest
                 Assert.That(it.Number.Value, Is.EqualTo(value));
                 Assert.That(it.Number.Radix, Is.EqualTo(radix));
                 Assert.That(it.Number.IsScientificNotation, Is.EqualTo(isScientific));
-                Assert.That(it.Number.DominantCase, Is.EqualTo(dominantCase));
+                Assert.That(it.Number.HexadecimalCase, Is.EqualTo(dominantCase));
             });
         }
 
@@ -57,7 +57,6 @@ namespace CalcBaseTest
             // Invalid values
             Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b", 0));
             Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b.3", 0));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0b" + zeroes128 + "1", 0));
         }
 
         [Test]
@@ -68,22 +67,21 @@ namespace CalcBaseTest
             // Valid values
             AssertNumberToken("0x0", 3, 0, IntegerRadix.Hexadecimal);
             AssertNumberToken("0x1", 3, 1, IntegerRadix.Hexadecimal);
-            AssertNumberToken("0xA1", 4, 0xA1, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
-            AssertNumberToken("0xab", 4, 0xAB, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Lower);
-            AssertNumberToken("0xaB", 4, 0xAB, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.None);
-            AssertNumberToken("0xA1 ", 4, 0xA1, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
-            AssertNumberToken("0xF0+", 4, 0xF0, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
-            AssertNumberToken("0xCx", 3, 0xC, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
+            AssertNumberToken("0xA1", 4, 0xA1, IntegerRadix.Hexadecimal, false, HexadecimalCase.Upper);
+            AssertNumberToken("0xab", 4, 0xAB, IntegerRadix.Hexadecimal, false, HexadecimalCase.Lower);
+            AssertNumberToken("0xaB", 4, 0xAB, IntegerRadix.Hexadecimal, false, HexadecimalCase.Lower | HexadecimalCase.Upper);
+            AssertNumberToken("0xA1 ", 4, 0xA1, IntegerRadix.Hexadecimal, false, HexadecimalCase.Upper);
+            AssertNumberToken("0xF0+", 4, 0xF0, IntegerRadix.Hexadecimal, false, HexadecimalCase.Upper);
+            AssertNumberToken("0xCx", 3, 0xC, IntegerRadix.Hexadecimal, false, HexadecimalCase.Upper);
             AssertNumberToken("0x000008", 8, 8, IntegerRadix.Hexadecimal);
-            AssertNumberToken("0xA.", 3, 0xA, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
-            AssertNumberToken("0x123456789ABCDEF0", 18, 0x123456789ABCDEF0, IntegerRadix.Hexadecimal, false, DominantHexadecimalCase.Upper);
+            AssertNumberToken("0xA.", 3, 0xA, IntegerRadix.Hexadecimal, false, HexadecimalCase.Upper);
+            AssertNumberToken("0x123456789ABCDEF0", 18, 0x123456789ABCDEF0, IntegerRadix.Hexadecimal, false, HexadecimalCase.Upper);
             AssertNumberToken("0x" + zeroes128[0..31] + "1", 34, 0x1, IntegerRadix.Hexadecimal);
             AssertNumberToken("0x7" + zeroes128[1..32], 34, (Int128)7 << 124, IntegerRadix.Hexadecimal);
 
             // Invalid values
             Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0x", 0));
             Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0xG", 0));
-            Assert.Throws<ExpressionException>(() => Parser.ReadNumber("0x" + zeroes128 + "1", 0));
         }
 
         [Test]

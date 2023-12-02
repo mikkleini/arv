@@ -21,7 +21,7 @@ namespace CalcBase.Numbers
         /// <param name="isScientificNotation">Is scientific notation ?</param>
         /// <param name="dominantCase">Dominant hexadecimal number case</param>
         public Measure(NumberType value, IUnit unit, IntegerRadix radix = IntegerRadix.Decimal,
-            bool isScientificNotation = false, DominantHexadecimalCase dominantCase = DominantHexadecimalCase.None)
+            bool isScientificNotation = false, HexadecimalCase dominantCase = Numbers.HexadecimalCase.None)
             : base(value, radix, isScientificNotation, dominantCase)
         {
             Unit = unit;
@@ -33,7 +33,7 @@ namespace CalcBase.Numbers
         /// <param name="number">Number</param>
         /// <param name="unit">Unit</param>
         public Measure(Number number, IUnit unit)
-            : base(number.Value, number.Radix, number.IsScientificNotation, number.DominantCase)
+            : base(number.Value, number.Radix, number.IsScientificNotation, number.HexadecimalCase)
         {
             Unit = unit;
         }

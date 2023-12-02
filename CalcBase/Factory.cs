@@ -14,7 +14,7 @@ namespace CalcBase
     /// <summary>
     /// Factory of elements
     /// </summary>
-    public class Factory : Singleton<Factory>
+    public static class Factory
     {
         // Numbers
         public static readonly Number MinusFour = new(-4);
@@ -40,13 +40,13 @@ namespace CalcBase
         public static readonly SingleArgumentFunction Cosh = new("Hyperbolic cosine", "cosh", NumberType.Cosh);
         public static readonly SingleArgumentFunction Tanh = new("Hyperbolic tangent", "tanh", NumberType.Tanh);
 
-        public static readonly SingleArgumentFunction Log = new("Natural (base-E) logarithm", "log", NumberType.Log);
-        public static readonly SingleArgumentFunction Log2 = new("Base-2 logarithm", "log2", NumberType.Log2);
-        public static readonly SingleArgumentFunction Log10 = new("Base-10 logarithm", "log10", NumberType.Log10);
+        public static readonly SingleArgumentFunction Ln = new("Natural (base-E) logarithm", "ln", x => NumberType.Log(x));
+        public static readonly SingleArgumentFunction Log2 = new("Base-2 logarithm", "log2", x => NumberType.Log2(x));
+        public static readonly SingleArgumentFunction Log10 = new("Base-10 logarithm", "log10", x=> NumberType.Log10(x));
 
         // Number tweaking functions
         public static readonly SingleArgumentFunction Abs = new("Absolute", "abs", NumberType.Abs);
-        public static readonly SingleArgumentFunction Sign = new("Sign", "sign", (x) => NumberType.Sign(x));
+        public static readonly SingleArgumentFunction Sign = new("Sign", "sign", x => NumberType.Sign(x));
         public static readonly SingleArgumentFunction Ceil = new("Ceiling", "ceil", NumberType.Ceiling);
         public static readonly SingleArgumentFunction Floor = new("Floor", "floor", NumberType.Floor);
         public static readonly SingleArgumentFunction Trunc = new("Trunc", "trunc", NumberType.Truncate);
@@ -210,7 +210,7 @@ namespace CalcBase
         /// All functions
         /// </summary>
         public static readonly IFunction[] Functions =
-            [Sin, Cos, Tan, Asin, Acos, Atan, Atan2, Sinh, Cosh, Tanh, Log, Log2, Log10,
+            [Sin, Cos, Tan, Asin, Acos, Atan, Atan2, Sinh, Cosh, Tanh, Ln, Log2, Log10,
             Abs, Sign, Ceil, Floor, Trunc, Round, Min, Max, Sqrt, Cbrt];
 
         /// <summary>

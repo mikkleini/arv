@@ -12,8 +12,6 @@ namespace CalcCLI
 {
     public class Program
     {
-        private static readonly Parser parser;
-        private static readonly Solver solver;
         private static List<string> expressionHistory = new();
         private static int selectedExpression = -1;
 
@@ -22,9 +20,6 @@ namespace CalcCLI
         /// </summary>
         static Program()
         {
-            parser = new();
-            solver = new();
-
             // TODO For testing only. To be removed.
             expressionHistory.Add("1+2");
             expressionHistory.Add("3*4");
@@ -153,36 +148,45 @@ namespace CalcCLI
             try
             {
                 expression = expression.TrimEnd('=');
-                var infix = parser.Tokenize(expression);
-                parser.InfixErrorCheck(infix);
-                var postfix = parser.ShuntingYard(infix);
-                Number result = solver.Solve(postfix);
+                var infix = Parser.Tokenize(expression);
+                Parser.InfixErrorCheck(infix);
+                var postfix = Parser.ShuntingYard(infix);
+                Number result = Solver.Solve(postfix);
 
                 // Create result string
                 StringBuilder resultStr = new();
                 resultStr.Append(expression);
                 resultStr.Append('=');
 
-                // What radix ?
-                if ((result.Radix != IntegerRadix.Decimal) && (NumberType.IsInteger(result.Value)))
+                // If radix is not only decimal and value is integer,
+                // then output in other formats.
+                if ((result.Radix != IntegerRadix.Decimal) && (result.Value.IsInteger()))
                 {
-                    if (result.Radix == IntegerRadix.Hexadecimal)
+                    BigInteger resultInt = (BigInteger)result.Value;
+
+                    // First output decimal value
+                    resultStr.Append(resultInt.ToString());
+
+                    // Then output other formats
+                    if ((result.Radix & IntegerRadix.Hexadecimal) != 0)
                     {
+                        resultStr.Append(" | ");
                         resultStr.Append(Parser.HexadecimalNumberPrefix);
-                        if (result.DominantCase == DominantHexadecimalCase.Lower)
+                        if (result.HexadecimalCase == HexadecimalCase.Lower)
                         {
-                            // TODO Figure out why the hexadecimal output has leading zeroes
-                            resultStr.Append(result.Value.ToString("x").TrimStart('0'));
+                            resultStr.Append(resultInt.ToString("x"));
                         }
                         else
                         {
-                            resultStr.Append(result.Value.ToString("X").TrimStart('0'));
+                            resultStr.Append(resultInt.ToString("X"));
                         }
                     }
-                    else if (result.Radix == IntegerRadix.Binary)
+
+                    if ((result.Radix & IntegerRadix.Binary) != 0)
                     {
+                        resultStr.Append(" | ");
                         resultStr.Append(Parser.BinaryNumberPrefix);
-                        resultStr.Append($"{result.Value:b}");
+                        resultStr.Append(resultInt.ToString("b"));
                     }
                 }
                 else
