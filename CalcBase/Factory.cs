@@ -28,6 +28,35 @@ namespace CalcBase
         public static readonly Number Three = new(3);
         public static readonly Number Four = new(4);
 
+        // Standard SI unit prefixes, names and exponents
+        public static readonly (string prefix, string name, int exponent)[] SIStandardUnitMultiples =
+        [
+            new("Q", "quetta", 30),
+            new("R", "ronna", 27),
+            new("Y", "yotta", 24),
+            new("Z", "zetta", 21),
+            new("E", "exa", 18),
+            new("P", "peta", 15),
+            new("T", "tera", 12),
+            new("G", "giga", 9),
+            new("M", "mega", 6),
+            new("k", "kilo", 3),
+            new("ha", "hecto", 2),
+            new("da", "deca", 1),
+            new("d", "deci", -1),
+            new("c", "centi", -2),
+            new("m", "milli", -3),
+            new("µ", "micro", -6),
+            new("n", "nano", -9),
+            new("p", "pico", -12),
+            new("f", "femto", -15),
+            new("a", "atto", -18),
+            new("z", "zepto", -21),
+            new("y", "yocto", -24),
+            new("r", "ronto", -27),
+            new("q", "quecto", -30),
+        ];
+
         // Trigonometric functions
         public static readonly SingleArgumentFunction Sin = new("Sine", "sin", NumberType.Sin);
         public static readonly SingleArgumentFunction Cos = new("Cosine", "cos", NumberType.Cos);
@@ -89,9 +118,9 @@ namespace CalcBase
 
         // Electrical quantities
         public static readonly Quantity Voltage = new("Voltage", ["V", "U"]);
-        public static readonly Quantity Current = new("Current", ["I"]);
-        public static readonly Quantity Resistance = new("Resistance", ["R"]);
-        public static readonly Quantity Conductance = new("Conductance", ["G"]);
+        public static readonly Quantity Current = new("Electric current", ["I"]);
+        public static readonly Quantity Resistance = new("Electric resistance", ["R"]);
+        public static readonly Quantity Conductance = new("Electric conductance", ["G"]);
         public static readonly Quantity Capacitance = new("Capacitance", ["C"]);
         public static readonly Quantity Inductance = new("Inductance", ["L"]);
         public static readonly Quantity Impedance = new("Impedance", ["Z"]);
@@ -103,61 +132,62 @@ namespace CalcBase
 
         // SI base units
         public static readonly SIBaseUnit Second = new("Second", ["s"], Time,
-            [("as", "attosecond", 1e-18M),
-            ("fs", "femtosecond", 1e-15M),
-            ("ps", "picosecond", 1e-12M),
-            ("ns", "nanosecond", 1e-9M),
-            ("µs", "microsecond", 1e-6M),
-            ("ms", "millisecond", 1e-3M),
-            ("m", "minute", 60M),
-            ("h", "hour", 3600M),
-            ("d", "day", 3600M * 24M)]);
+            CreateStandardUnitMultiples("s", "second")
+            .Append(new("m", "minute", 60))
+            .Append(new("h", "hour", 3600))
+            .Append(new("d", "day", 24 * 3600))
+            .ToArray());
 
-        public static readonly SIBaseUnit Metre = new("Metre", ["m"], Length,
-            [("fm", "femtometre", 1e-15M),
-            ("pm", "picometre", 1e-12M),
-            ("nm", "nanometre", 1e-9M),
-            ("µm", "micrometre", 1e-6M),
-            ("mm", "millimetre", 1e-3M),
-            ("cm", "centimetre", 1e-2M),
-            ("dm", "decimetre", 1e-1M),
-            ("km", "kilometre", 1e+3M)]);
+        public static readonly SIBaseUnit Metre = new("Metre", ["m"], Length, CreateStandardUnitMultiples("m", "metre"));
 
         public static readonly SIBaseUnit Kilogram = new("Kilogram", ["kg"], Mass,
-            [("ng", "nanogram", 1e-9M),
-             ("mg", "milligram", 1e-6M),
-             ("g", "gram", 1e-3M),
-             ("t", "tonne", 1e+3M)]);
+            CreateStandardUnitMultiples("g", "gram", -3)
+            .Append(new("t", "tonne", 1e+3M))
+            .ToArray());
+
+        public static readonly SIBaseUnit Ampere = new("Ampere", ["A"], Current, CreateStandardUnitMultiples("A", "ampere"));
 
         // SI derived units
         public static readonly SIDerivedUnit MetrePerSecond = new("Metre per second", ["m/s"], Speed,
             [Metre, Second, Division],
-            [(["µm/s"], "micrometre per second", 1e-6M),
-            (["mm/s"], "millimetre per second", 1e-3M),
-            (["km/s"], "kilometre per second", 1e+3M),
-            (["km/h"], "kilometre per hour", 3.6M)]);
+            [
+                new("µm/s", "micrometre per second", 1e-6M),
+                new("mm/s", "millimetre per second", 1e-3M),
+                new("km/s", "kilometre per second", 1e+3M),
+                new("km/h", "kilometre per hour", 3.6M)
+            ]);
 
         public static readonly SIDerivedUnit MetrePerSecondSquared = new("Metre per second squared", ["m/s^2", "m/s²"], Acceleration,
             [Metre, Second, Two, Exponent, Division],
-            [(["µm/s²"], "micrometre per second squared", 1e-6M),
-            (["mm/s²"], "millimetre per second squared", 1e-3M),
-            (["km/s²"], "kilometre per second squared", 1e+3M)]);
+            [
+                new("µm/s²", "micrometre per second squared", 1e-6M),
+                new("mm/s²", "millimetre per second squared", 1e-3M),
+                new("km/s²", "kilometre per second squared", 1e+3M)
+            ]);
 
         public static readonly SIDerivedUnit SquareMetre = new("Square metre", ["m^2"], Speed,
             [Metre, Two, Exponent],
-            [(["µm²"], "square micrometre", 1e-12M),
-            (["mm²"], "square millimetre", 1e-6M),
-            (["cm²"], "square centimetre", 1e-4M),
-            (["dm²"], "square decimetre", 1e-2M),
-            (["dam²"], "are", 1e+2M),
-            (["hm²"], "hectare", 1e+4M),
-            (["km²"], "square kilometre", 1e+6M)]);
+            [
+                new("µm²", "square micrometre", 1e-12M),
+                new("mm²", "square millimetre", 1e-6M),
+                new("cm²", "square centimetre", 1e-4M),
+                new("dm²", "square decimetre", 1e-2M),
+                new("dam²", "are", 1e+2M),
+                new("hm²", "hectare", 1e+4M),
+                new("km²", "square kilometre", 1e+6M)
+            ]);
 
         public static readonly SIDerivedUnit Litre = new("Litre", ["l", "L"], Volume,
             [new Number(1e-3M), Metre, Three, Exponent, Multiplication]);
 
         public static readonly SIDerivedUnit Newton = new("Newton", ["N"], Force,
             [Kilogram, Metre, Time, MinusTwo, Exponent, Multiplication, Multiplication]);
+
+        // TODO Equation in SI base units: kg⋅m2⋅s−3⋅A−1 */
+        public static readonly SIDerivedUnit Volt = new("Volt", ["V"], Voltage, [], CreateStandardUnitMultiples("V", "volt"));
+
+        // TODO Equation in SI base units: kg⋅m2⋅s−3⋅A−2 */
+        public static readonly SIDerivedUnit Ohm = new("Electric resistance", ["Ω", "ohm"], Resistance, [], CreateStandardUnitMultiples("Ω", "ohm"));
 
         // Imperial units
         public static readonly ImperialUnit Inch = new("Inch", ["\"", "in"], 0.0254M, Metre);
@@ -170,16 +200,18 @@ namespace CalcBase
         // Digital units
         public static readonly SIBaseUnit Bit = new("Bit", ["b"], Digital);
         public static readonly SIBaseUnit Byte = new("Byte", ["B"], Digital,
-            [("KiB", "kibibyte", 1 << 10),
-             ("KB",  "kilobyte", 1 << 10),
-             ("MiB", "mebibyte", 1 << 20),
-             ("MB",  "megabyte", 1 << 20),
-             ("GiB", "gibibyte", 1 << 30),
-             ("GB",  "gigabyte", 1 << 30),
-             ("TiB", "gibibyte", 1 << 40),
-             ("TB",  "terabyte", 1 << 40),
-             ("PiB", "pebibyte", 1 << 50),
-             ("PB",  "petabyte", 1 << 50)]);
+            [
+                new("KiB", "kibibyte", 1 << 10),
+                new("KB",  "kilobyte", 1 << 10),
+                new("MiB", "mebibyte", 1 << 20),
+                new("MB",  "megabyte", 1 << 20),
+                new("GiB", "gibibyte", 1 << 30),
+                new("GB",  "gigabyte", 1 << 30),
+                new("TiB", "gibibyte", 1 << 40),
+                new("TB",  "terabyte", 1 << 40),
+                new("PiB", "pebibyte", 1 << 50),
+                new("PB",  "petabyte", 1 << 50)
+            ]);
 
         // Constants
         public static readonly Constant Pi = new("Pi", ["π", "pi"], 3.14159265358979323846M);
@@ -187,18 +219,21 @@ namespace CalcBase
         public static readonly Constant GravitationConstant = new("Newtonian constant of gravitation", ["G"], new Number(6.6743e-11M, isScientificNotation: true)); // TODO Make it physics contant with unit: N * m^2 * kg^−2
 
         // Mathematical formulas
-        public static readonly Formula AreaOfSquare = new("Area of square", [PhyVar("Side", "a", Length), Two, Exponent], Area);
-        public static readonly Formula AreaOfRectangle = new("Area of rectangle", [PhyVar("Length", "l", Length), PhyVar("Width", "w", Length), Multiplication], Area);
-        public static readonly Formula AreaOfTriangle = new("Area of triangle", [PhyVar("Base", "b", Length), PhyVar("Height", "h", Length), Multiplication, Two, Division], Area);
-        public static readonly Formula AreaOfCircle = new("Area of circle", [Pi, PhyVar("Radius", "r", Length), Two, Exponent, Multiplication], Area);
-        public static readonly Formula AreaOfSphere = new("Area of sphere", [Four, Pi, PhyVar("Radius", "r", Length), Two, Exponent, Multiplication, Multiplication], Area);
-        public static readonly Formula VolumeOfCube = new("Volume of cube", [PhyVar("Side", "a", Length), Three, Exponent], Volume);
-        public static readonly Formula VolumeOfBox = new("Volume of box", [PhyVar("Length", "l", Length), PhyVar("Width", "w", Length), PhyVar("Height", "h", Length), Multiplication, Multiplication], Volume);
+        public static readonly Formula AreaOfSquare = new("Area of square", [PhyVar(Length, "Side", "a"), Two, Exponent], Area);
+        public static readonly Formula AreaOfRectangle = new("Area of rectangle", [PhyVar(Length, "Length", "l"), PhyVar(Length, "Width", "w"), Multiplication], Area);
+        public static readonly Formula AreaOfTriangle = new("Area of triangle", [PhyVar(Length, "Base", "b"), PhyVar(Length, "Height", "h"), Multiplication, Two, Division], Area);
+        public static readonly Formula AreaOfCircle = new("Area of circle", [Pi, PhyVar(Length, "Radius", "r"), Two, Exponent, Multiplication], Area);
+        public static readonly Formula AreaOfSphere = new("Area of sphere", [Four, Pi, PhyVar(Length, "Radius", "r"), Two, Exponent, Multiplication, Multiplication], Area);
+        public static readonly Formula VolumeOfCube = new("Volume of cube", [PhyVar(Length, "Side", "a"), Three, Exponent], Volume);
+        public static readonly Formula VolumeOfBox = new("Volume of box", [PhyVar(Length, "Length", "l"), PhyVar(Length, "Width", "w"), PhyVar(Length, "Height", "h"), Multiplication, Multiplication], Volume);
 
         // Physics formulas
-        public static readonly Formula AccelerationFormula = new("Acceleration", [PhyVar("Speed", "v", Speed), PhyVar("Time", "t", Time), Division], Acceleration);
-        public static readonly Formula TravelDistance = new("Travel distance", [PhyVar("Speed", "v", Speed), PhyVar("Time", "t", Time), Multiplication], Length);
-        public static readonly Formula TravelSpeed = new("Travel speed", [PhyVar("Distance", "d", Length), PhyVar("Time", "t", Time), Division], Speed);
+        public static readonly Formula AccelerationFormula = new("Acceleration", [PhyVar(Speed), PhyVar(Time), Division], Acceleration);
+        public static readonly Formula TravelDistance = new("Travel distance", [PhyVar(Speed), PhyVar(Time), Multiplication], Length);
+        public static readonly Formula TravelSpeed = new("Travel speed", [PhyVar(Length, "Distance", "d"), PhyVar(Time), Division], Speed);
+
+        // Electrical formulas
+        public static readonly Formula OhmsLaw = new("Ohm's law", [PhyVar(Voltage), PhyVar(Resistance), Division], Current);
 
         /// <summary>
         /// All operators
@@ -232,6 +267,7 @@ namespace CalcBase
         public static readonly IUnit[] Units =
             [Second, Metre, Kilogram, MetrePerSecond, SquareMetre, Newton,
             Inch, Foot, Yard, Mile, NauticalMile, MilePerHour,
+            Ampere, Ohm, Volt,
             Bit, Byte];
 
         /// <summary>
@@ -240,7 +276,8 @@ namespace CalcBase
         public static readonly IFormula[] Formulas =
             [AreaOfSquare, AreaOfRectangle, AreaOfTriangle, AreaOfCircle, AreaOfSphere,
             VolumeOfCube, VolumeOfBox,
-            AccelerationFormula, TravelDistance, TravelSpeed];
+            AccelerationFormula, TravelDistance, TravelSpeed,
+            OhmsLaw];
         
         /// <summary>
         /// Enumerate constants by their symbols starting from longest, ending with shorters
@@ -259,13 +296,37 @@ namespace CalcBase
         /// <summary>
         /// Utility function to create physics variable
         /// </summary>
+        /// <param name="quantity">Quantity</param>
         /// <param name="name">Name</param>
         /// <param name="symbol">Symbol</param>
-        /// <param name="quantity">Quantity</param>
         /// <returns>Physics variable</returns>
-        public static PhysicsVariable PhyVar(string name, string symbol, IQuantity quantity)
+        public static PhysicsVariable PhyVar(IQuantity quantity, string name, string symbol)
         {
             return new PhysicsVariable(name, [symbol], quantity);
+        }
+
+        /// <summary>
+        /// Utility function to create physics variable
+        /// </summary>
+        /// <param name="quantity">Quantity</param>
+        /// <returns>Physics variable</returns>
+        public static PhysicsVariable PhyVar(IQuantity quantity)
+        {
+            return new PhysicsVariable(quantity.Name, quantity.Symbols, quantity);
+        }
+
+        /// <summary>
+        /// Create SI standard unit multiples
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <param name="name">Name</param>
+        /// <param name="exponentOffset">Exponent offset</param>
+        /// <returns></returns>
+        public static UnitMultiple[] CreateStandardUnitMultiples(string symbol, string name, int exponentOffset = 0)
+        {
+            return SIStandardUnitMultiples
+                .Select(m => new UnitMultiple(m.prefix + symbol, m.name + name, NumberType.Pow(10, m.exponent + exponentOffset)))
+                .ToArray();
         }
     }
 }

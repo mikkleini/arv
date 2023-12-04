@@ -5,5 +5,6 @@
     /// </summary>
     public interface ISIUnit : IUnit
     {
+        UnitMultiple[] Multiples { get; }
     }
 }

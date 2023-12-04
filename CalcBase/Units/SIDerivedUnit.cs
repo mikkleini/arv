@@ -11,7 +11,7 @@ namespace CalcBase.Units
         public string[] Symbols { get; init; }
         public IQuantity Quantity { get; init; }
         public IElement[] Expression { get; init; }
-        public (string[] symbols, string name, NumberType weight)[] Weights { get; init; }
+        public UnitMultiple[] Multiples { get; init; }
 
         /// <summary>
         /// Constructor
@@ -26,7 +26,7 @@ namespace CalcBase.Units
             Symbols = symbols;
             Quantity = quantity;
             Expression = expression;
-            Weights = [];
+            Multiples = [];
         }
 
         /// <summary>
@@ -36,14 +36,14 @@ namespace CalcBase.Units
         /// <param name="symbols">Symbol(s)</param>
         /// <param name="quantity">Quantity</param>
         /// <param name="expression">Expression</param>
-        /// <param name="weights">Unit weights</param>
-        public SIDerivedUnit(string name, string[] symbols, IQuantity quantity, IElement[] expression, (string[] symbols, string name, NumberType weight)[] weights)
+        /// <param name="multiples">Unit multiples</param>
+        public SIDerivedUnit(string name, string[] symbols, IQuantity quantity, IElement[] expression, UnitMultiple[] multiples)
         {
             Name = name;
             Symbols = symbols;
             Quantity = quantity;
             Expression = expression;
-            Weights = weights;
+            Multiples = multiples;
         }
     }
 }
