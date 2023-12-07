@@ -98,6 +98,10 @@ namespace CalcBase
             {
                 return Factory.Negation;
             }
+            else if (prevToken is ArgumentSeparatorToken)
+            {
+                return Factory.Negation;
+            }
             else if (prevToken is OperatorToken)
             {
                 return Factory.Negation;
