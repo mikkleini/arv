@@ -165,7 +165,7 @@ namespace CalcBase
                 new("km/s²", "kilometre per second squared", 1e+3M)
             ]);
 
-        public static readonly SIDerivedUnit SquareMetre = new("Square metre", ["m^2"], Speed,
+        public static readonly SIDerivedUnit SquareMetre = new("Square metre", ["m^2"], Area,
             [Metre, Two, Exponent],
             [
                 new("µm²", "square micrometre", 1e-12M),

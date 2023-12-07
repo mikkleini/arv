@@ -103,7 +103,7 @@ namespace CalcBaseTest
             TestEquation("2 ** 3", 8);
             TestEquation("-2 ** 3", -8);
             TestEquation("2 ** -3", 0.125M);
-            TestEquation("-2 ** -3", -0.125M);            
+            TestEquation("-2 ** -3", -0.125M);
 
             // TODO Has accuracy issue:
             TestEquation("625 ** 0.5", 25);
@@ -123,6 +123,7 @@ namespace CalcBaseTest
             TestEquation("round(1.23456 * (2 + 1), 2)", 3.70M);
             TestEquation("sin((cos(0)*pi)/2)", 1);
             TestEquation("round(sin(pi/2), 3)", 1);
+            TestEquation("floor(min(10-20, max(-40, -50))/2)", -20);
 
             Assert.Pass();
         }

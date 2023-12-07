@@ -9,6 +9,8 @@ using CalcBase.Formulas;
 using CalcBase.Quantities;
 using CalcBase.Units;
 using System.Reflection;
+using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CalcBase
 {
@@ -17,6 +19,28 @@ namespace CalcBase
     /// </summary>
     public class Solver
     {
+        private static readonly FormulaEqualityComparer FormulaEqComp = new();
+
+        /// <summary>
+        /// Try finding SI derived unit from expression
+        /// </summary>
+        /// <param name="expression">Expression</param>
+        /// <returns>SI derived unit</returns>
+        private static ISIDerivedUnit? TryFindDerivedUnit(IElement[] expression)
+        {
+            return (SIDerivedUnit?) Factory.Units.FirstOrDefault(u => (u is ISIDerivedUnit devU) && (devU.Expression.SequenceEqual(expression)));
+        }
+
+        /// <summary>
+        /// Try finding formula from expression
+        /// </summary>
+        /// <param name="expression">Expression</param>
+        /// <returns>SI derived unit</returns>
+        private static IFormula? TryFindFormula(IElement[] expression)
+        {
+            return Factory.Formulas.FirstOrDefault(f => f.Expression.SequenceEqual(expression, FormulaEqComp));
+        }
+
         /// <summary>
         /// Solve operation
         /// </summary>
@@ -81,11 +105,18 @@ namespace CalcBase
                 // If both operands are measure and have different units, then there should be a formula to get the resulting unit
                 if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
                 {
-                    IElement[] expression = [measureA.Unit, measureB.Unit, binOp];
-                    IUnit? matchingUnit = Factory.Units.FirstOrDefault(u => (u is ISIDerivedUnit devU) && (devU.Expression.SequenceEqual(expression)));
-                    if (matchingUnit != null)
+                    // Check for derived SI unit
+                    ISIDerivedUnit? derivedUnit = TryFindDerivedUnit([measureA.Unit, measureB.Unit, binOp]);                    
+                    if (derivedUnit != null)
                     {
-                        return new Measure(result, matchingUnit, resultRadix, resultUseScientificNotation, resultHexCase);
+                        return new Measure(result, derivedUnit, resultRadix, resultUseScientificNotation, resultHexCase);
+                    }
+
+                    IFormula? formula = TryFindFormula([measureA.Unit.Quantity, measureB.Unit.Quantity, binOp]);
+                    if (formula != null)
+                    {
+                        IUnit? resultUnit = Factory.Units.FirstOrDefault(u => u.Quantity == formula.Result);
+                        return new Measure(result, resultUnit, resultRadix, resultUseScientificNotation, resultHexCase);
                     }
 
                     // TODO Find formula...

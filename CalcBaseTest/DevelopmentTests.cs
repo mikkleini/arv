@@ -67,8 +67,8 @@ namespace CalcBaseTest
             (TestRecord r, string n)[] tuples = recs.Select(r => (r, r.Name)).ToArray();            
             Assert.That(tuples[0].r, Is.EqualTo(a));
 
-            SIBaseUnit ua = new("UA", ["u"], Factory.Length, [("x", "y", 10)]);
-            SIBaseUnit ub = new("UB", ["u"], Factory.Length, [("x", "y", 20)]);
+            SIBaseUnit ua = new("UA", ["u"], Factory.Length, [new("x", "y", 10)]);
+            SIBaseUnit ub = new("UB", ["u"], Factory.Length, [new("x", "y", 20)]);
             IUnit[] units = [ua, ub];
             Assert.That(units[0], Is.EqualTo(ua));
 
