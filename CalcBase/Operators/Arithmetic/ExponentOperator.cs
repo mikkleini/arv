@@ -34,6 +34,10 @@ namespace CalcBase.Operators.Arithmetic
                     return new NumberType(1) / (NumberType)BigInteger.Pow((BigInteger)a, (int)-b);
                 }
             }
+            else if (b == Factory.Half)
+            {
+                return NumberType.Sqrt(a);
+            }
 
             return NumberType.Pow(a, b);
         }
