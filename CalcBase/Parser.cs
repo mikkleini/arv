@@ -42,7 +42,7 @@ namespace CalcBase
             // Is it a function ?
             IFunction? func = Factory.Functions
                 .OrderByDescending(f => f.Symbol.Length)
-                .FirstOrDefault(f => text.StartsWith(f.Symbol, StringComparison.Ordinal));
+                .FirstOrDefault(f => text.StartsWith(f.Symbol));
             if (func != null)
             {
                 return new FunctionToken()
@@ -55,7 +55,7 @@ namespace CalcBase
 
             // Is it a constant ?
             (symbol, IConstant? constant) = Factory.ConstantsBySymbols
-                .FirstOrDefault(c => text.StartsWith(c.symbol, StringComparison.Ordinal));
+                .FirstOrDefault(c => text.StartsWith(c.symbol));
             if (constant != null)
             {
                 return new ConstantToken()
@@ -68,7 +68,7 @@ namespace CalcBase
 
             // Is it a unit ?
             (symbol, IUnit? unit) = Factory.UnitsBySymbols
-                .FirstOrDefault(u => text.StartsWith(u.symbol, StringComparison.Ordinal));
+                .FirstOrDefault(u => text.StartsWith(u.symbol));
             if (unit != null)
             {
                 return new UnitToken()
@@ -76,6 +76,20 @@ namespace CalcBase
                     Position = start,
                     Length = symbol.Length,
                     Unit = unit
+                };
+            }
+
+            // Is it a SI unit multiple ?
+            (symbol, IUnit? siUnit, UnitMultiple multiple) = Factory.SIUnitMultiplesBySymbols
+                .FirstOrDefault(u => text.StartsWith(u.symbol));
+            if (siUnit != null)
+            {
+                return new UnitToken()
+                {
+                    Position = start,
+                    Length = symbol.Length,
+                    Unit = siUnit,
+                    UnitMultiple = multiple
                 };
             }
 
@@ -116,7 +130,7 @@ namespace CalcBase
         /// <returns></returns>
         public static List<IToken> Tokenize(string infix)
         {
-            List<IToken> tokens = new();
+            List<IToken> tokens = [];
             int i = 0;
 
             while (i < infix.Length)
@@ -328,7 +342,7 @@ namespace CalcBase
         /// <returns>List of tokens in postfix (RPN) order</returns>
         public static List<IToken> ShuntingYard(List<IToken> infix)
         {
-            List<IToken> postfix = new();
+            List<IToken> postfix = [];
             Stack<IToken> opStack = new();
 
             for (int i = 0; i < infix.Count; i++)
@@ -340,12 +354,20 @@ namespace CalcBase
                 {
                     if (next is UnitToken unitToken)
                     {
+                        NumberType numberValue = numberToken.Number.Value;
+
+                        // Is it multiple of SI unit ?
+                        if ((unitToken.UnitMultiple != null) && (unitToken.Unit is ISIBaseUnit))
+                        {
+                            numberValue *= unitToken.UnitMultiple.Value.Factor;
+                        }
+
                         // Combine number and unit token into measure token
                         postfix.Add(new MeasureToken()
                         {
                             Position = numberToken.Position,
                             Length = unitToken.Position + numberToken.Length - numberToken.Position,
-                            Measure = new Measure(numberToken.Number, unitToken.Unit)
+                            Measure = new Measure(numberToken.Number with { Value = numberValue }, unitToken.Unit)
                         });
 
                         // Leap over unit token

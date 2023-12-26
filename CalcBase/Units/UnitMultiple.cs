@@ -9,8 +9,8 @@ namespace CalcBase.Units
     /// <summary>
     /// (SI) unit multiple
     /// </summary>
-    /// <param name="symbol">Symbol</param>
-    /// <param name="name">Name</param>
-    /// <param name="factor">Factor</param>
-    public record struct UnitMultiple(string symbol, string name, NumberType factor);
+    /// <param name="Symbol">Symbol</param>
+    /// <param name="Name">Name</param>
+    /// <param name="Factor">Factor</param>
+    public record struct UnitMultiple(string Symbol, string Name, NumberType Factor);
 }

@@ -132,18 +132,20 @@ namespace CalcBase
 
         // SI base units
         public static readonly SIBaseUnit Second = new("Second", ["s"], Time,
-            CreateStandardUnitMultiples("s", "second")
-            .Append(new("m", "minute", 60))
-            .Append(new("h", "hour", 3600))
-            .Append(new("d", "day", 24 * 3600))
-            .ToArray());
+            [
+                ..CreateStandardUnitMultiples("s", "second"),
+                new("m", "minute", 60),
+                new("h", "hour", 3600),
+                new("d", "day", 24 * 3600)
+            ]);
 
         public static readonly SIBaseUnit Metre = new("Metre", ["m"], Length, CreateStandardUnitMultiples("m", "metre"));
 
         public static readonly SIBaseUnit Kilogram = new("Kilogram", ["kg"], Mass,
-            CreateStandardUnitMultiples("g", "gram", -3)
-            .Append(new("t", "tonne", 1e+3M))
-            .ToArray());
+            [
+                ..CreateStandardUnitMultiples("g", "gram", -3),
+                new("t", "tonne", 1e+3M)
+            ]);
 
         public static readonly SIBaseUnit Ampere = new("Ampere", ["A"], Current, CreateStandardUnitMultiples("A", "ampere"));
 
@@ -291,6 +293,14 @@ namespace CalcBase
         /// </summary>
         public static IEnumerable<(string symbol, IUnit unit)> UnitsBySymbols => Units
             .SelectMany(u => u.Symbols.Select(s => (symbol: s, unit: u)))
+            .OrderByDescending(x => x.symbol.Length);
+
+        /// <summary>
+        /// Enumerate SI units by their multiples symboles from longest, ending with shorters
+        /// </summary>
+        public static IEnumerable<(string symbol, ISIBaseUnit unit, UnitMultiple multiple)> SIUnitMultiplesBySymbols => Units
+            .Where(u => u is ISIBaseUnit).Cast<ISIBaseUnit>()
+            .SelectMany(u => u.Multiples.Select(m => (symbol: m.Symbol, unit: u, multiple: m)))
             .OrderByDescending(x => x.symbol.Length);
 
         /// <summary>

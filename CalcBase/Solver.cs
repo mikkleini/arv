@@ -115,12 +115,13 @@ namespace CalcBase
                     IFormula? formula = TryFindFormula([measureA.Unit.Quantity, measureB.Unit.Quantity, binOp]);
                     if (formula != null)
                     {
+                        System.Diagnostics.Debug.WriteLine($"{formula.Name}");
                         IUnit? resultUnit = Factory.Units.FirstOrDefault(u => u.Quantity == formula.Result);
                         return new Measure(result, resultUnit, resultRadix, resultUseScientificNotation, resultHexCase);
                     }
 
                     // TODO Find formula...
-                    throw new ExpressionException("No suitable derived unit or formula found", opToken.Position, opToken.Length);                    
+                    throw new ExpressionException("No suitable derived unit or formula found", opToken.Position, opToken.Length);
                 }
                 else if (a is Measure mA)
                 {

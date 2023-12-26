@@ -12,7 +12,7 @@ namespace CalcCLI
 {
     public class Program
     {
-        private static List<string> expressionHistory = new();
+        private static List<string> expressionHistory = [];
         private static int selectedExpression = -1;
 
         /// <summary>
