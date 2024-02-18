@@ -12,6 +12,8 @@ namespace CalcCLI
 {
     public class Program
     {
+        private static bool isColoredCLI = true;
+        private static ConsoleColor normalColor = ConsoleColor.White;
         private static List<string> expressionHistory = [];
         private static int selectedExpression = -1;
 
@@ -20,10 +22,15 @@ namespace CalcCLI
         /// </summary>
         static Program()
         {
-            // TODO For testing only. To be removed.
-            expressionHistory.Add("1+2");
-            expressionHistory.Add("3*4");
-            expressionHistory.Add("0x400/2");
+            if (Console.IsOutputRedirected)
+            {
+                isColoredCLI = false;
+            }
+
+            if (isColoredCLI)
+            {
+                normalColor = Console.ForegroundColor;
+            }
         }
 
         /// <summary>
@@ -32,8 +39,7 @@ namespace CalcCLI
         /// <param name="args"></param>
         public static void Main(string[] args)
         {
-            Console.WriteLine("Welcome to calculator");
-
+            WriteColor("Welcome to calculator", ConsoleColor.DarkGray, true);
             RunEntry();
         }
 
@@ -84,7 +90,8 @@ namespace CalcCLI
                     {
                         int pos = Console.CursorLeft;
                         expression.Remove(pos, 1);
-                        Console.Write(expression.ToString().Substring(pos) + " ");
+                        Console.Write(expression.ToString().Substring(pos));
+                        Console.Write(" ");
                         Console.CursorLeft = pos;
                     }
                 }
@@ -123,7 +130,7 @@ namespace CalcCLI
                     if ((c != '\0') && (char.IsAscii(c)))
                     {
                         // Insert or append ?
-                        if (Console.CursorLeft < expression.Length)
+                        if (Console.CursorLeft <= expression.Length)
                         {
                             int pos = Console.CursorLeft - 1;
                             expression.Insert(pos, c);
@@ -145,81 +152,87 @@ namespace CalcCLI
         /// <param name="expression">Expression</param>
         private static void DoTheMath(string expression)
         {
+            Number result;
+
             try
             {
                 expression = expression.TrimEnd('=');
                 var infix = Parser.Tokenize(expression);
                 Parser.InfixErrorCheck(infix);
                 var postfix = Parser.ShuntingYard(infix);
-                Number result = Solver.Solve(postfix);
-
-                // Create result string
-                StringBuilder resultStr = new();
-                resultStr.Append(expression);
-                resultStr.Append('=');
-
-                // If radix is not only decimal and value is integer,
-                // then output in other formats.
-                if ((result.Radix != IntegerRadix.Decimal) && (result.Value.IsInteger()))
-                {
-                    BigInteger resultInt = (BigInteger)result.Value;
-
-                    // First output decimal value
-                    resultStr.Append(resultInt.ToString());
-
-                    // Then output other formats
-                    if ((result.Radix & IntegerRadix.Hexadecimal) != 0)
-                    {
-                        resultStr.Append(" | ");
-                        resultStr.Append(Parser.HexadecimalNumberPrefix);
-                        if (result.HexadecimalCase == HexadecimalCase.Lower)
-                        {
-                            resultStr.Append(resultInt.ToString("x"));
-                        }
-                        else
-                        {
-                            resultStr.Append(resultInt.ToString("X"));
-                        }
-                    }
-
-                    if ((result.Radix & IntegerRadix.Binary) != 0)
-                    {
-                        resultStr.Append(" | ");
-                        resultStr.Append(Parser.BinaryNumberPrefix);
-                        resultStr.Append(resultInt.ToString("b"));
-                    }
-                }
-                else
-                {
-                    resultStr.Append(result.Value.ToString());
-                }
-
-                // If result is measure, then append unit
-                if (result is Measure measureResult)
-                {
-                    resultStr.Append(measureResult.Unit.Symbols.First());
-                }
-
-                Console.WriteLine(resultStr);
-
-                // Add expression to history
-                if ((expressionHistory.Count > 0) && (expressionHistory.Last() != expression))
-                {
-                    expressionHistory.Add(expression);
-                    selectedExpression = expressionHistory.Count - 1;
-                }
+                result = Solver.Solve(postfix);
             }
             catch (ExpressionException ex)
             {
-                Console.WriteLine($"{expression}");
-                Console.Error.WriteLine(ChRep(' ', ex.Position) + ChRep('^', ex.Length));
-                Console.Error.WriteLine(ex.Message);
+                Console.WriteLine(expression);
+                WriteColor(ChRep(' ', ex.Position) + ChRep('^', ex.Length), ConsoleColor.Red, true);
+                WriteErrorColor(ex.Message, ConsoleColor.Red, true);
+                return;
             }
             catch (SolverException ex)
             {
-                Console.WriteLine($"{expression}");
-                Console.Error.WriteLine(ex.Message);
+                Console.WriteLine(expression);
+                WriteErrorColor(ex.Message, ConsoleColor.Red, true);
+                return;
             }
+
+            Console.Write(expression);
+
+            // If radix is not only decimal and value is integer,
+            // then output in other formats.
+            if ((result.Radix != IntegerRadix.Decimal) && (result.Value.IsInteger()))
+            {
+                BigInteger resultInt = (BigInteger)result.Value;
+
+                // Output hexadecimal if it was used
+                if ((result.Radix & IntegerRadix.Hexadecimal) != 0)
+                {
+                    WriteColor("=", ConsoleColor.Green);
+                    WriteColor(Parser.HexadecimalNumberPrefix, normalColor);
+                    if (result.HexadecimalCase == HexadecimalCase.Lower)
+                    {
+                        WriteColor(resultInt.ToString("x"), normalColor);
+                    }
+                    else
+                    {
+                        WriteColor(resultInt.ToString("X"), normalColor);
+                    }
+                }
+
+                // Output binary if it was used
+                if ((result.Radix & IntegerRadix.Binary) != 0)
+                {
+                    WriteColor("=", ConsoleColor.Green);
+                    WriteColor(Parser.BinaryNumberPrefix, normalColor);
+                    WriteColor(resultInt.ToString("b"), normalColor);
+                }
+
+                // Output decimal value
+                WriteColor("=", ConsoleColor.Green);
+                WriteColor(resultInt.ToString(), normalColor);
+            }
+            else
+            {
+                WriteColor("=", ConsoleColor.Green);
+                WriteColor(result.Value.ToString(), normalColor);
+            }
+
+            // If result is measure, then append unit
+            if (result is Measure measureResult)
+            {
+                WriteColor(measureResult.Unit.Symbols.First(), normalColor);
+            }
+
+            Console.WriteLine();
+
+            // Add expression to history unless it's already there at the end
+            if (expressionHistory.LastOrDefault() != expression)
+            {
+                expressionHistory.Add(expression);
+            }
+
+            // Make selected expression deliberately out-of-range so the next "up" button will lead to selection of this expression
+            selectedExpression = expressionHistory.Count;
         }
 
         /// <summary>
@@ -239,6 +252,11 @@ namespace CalcCLI
         /// <param name="dir">Direction</param>
         private static void ExpressionHistoryWalk(StringBuilder expression, int dir)
         {
+            if (expressionHistory.Count == 0)
+            {
+                return;
+            }
+
             // "Walk" but stick to boundary
             int newPos = Math.Max(0, Math.Min(expressionHistory.Count - 1, selectedExpression + dir));
             if (newPos == selectedExpression)
@@ -264,6 +282,62 @@ namespace CalcCLI
             {
                 Console.Write(ChRep(' ', prevLength - expression.Length));
                 Console.CursorLeft = expression.Length;
+            }
+        }
+
+        /// <summary>
+        /// Write colored text to console
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="color">Color</param>
+        /// <param name="lineEnd">Line end?</param>
+        private static void WriteColor(string text, ConsoleColor color, bool lineEnd = false)
+        {
+            if (isColoredCLI)
+            {
+                Console.ForegroundColor = color;
+            }
+
+            if (lineEnd)
+            {
+                Console.WriteLine(text);
+            }
+            else
+            {
+                Console.Write(text);
+            }
+
+            if (isColoredCLI)
+            {
+                Console.ForegroundColor = normalColor;
+            }
+        }
+
+        /// <summary>
+        /// Write colored error text to console
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="color">Color</param>
+        /// <param name="lineEnd">Line end?</param>
+        private static void WriteErrorColor(string text, ConsoleColor color, bool lineEnd = false)
+        {
+            if (isColoredCLI)
+            {
+                Console.ForegroundColor = color;
+            }
+
+            if (lineEnd)
+            {
+                Console.Error.WriteLine(text);
+            }
+            else
+            {
+                Console.Error.Write(text);
+            }
+
+            if (isColoredCLI)
+            {
+                Console.ForegroundColor = normalColor;
             }
         }
     }
