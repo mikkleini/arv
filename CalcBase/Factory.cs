@@ -103,6 +103,8 @@ namespace CalcBase
         public static readonly AndOperator And = new();
         public static readonly OrOperator Or = new();
         public static readonly XorOperator Xor = new();
+        public static readonly LeftShiftOperator LeftShift = new();
+        public static readonly RightShiftOperator RightShift = new();
 
         // Physics quantities
         public static readonly Quantity Time = new("Time", ["t"]);
@@ -241,7 +243,7 @@ namespace CalcBase
         /// All operators
         /// </summary>
         public static readonly IOperator[] Operators =
-            [Negation, Addition, Division, Exponent, Multiplication, Quotient, Reminder, Subtraction, Inverse, And, Or, Xor];
+            [Negation, Addition, Division, Exponent, Multiplication, Quotient, Reminder, Subtraction, Inverse, And, Or, Xor, LeftShift, RightShift];
 
         /// <summary>
         /// All functions
