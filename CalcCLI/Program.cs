@@ -12,9 +12,9 @@ namespace CalcCLI
 {
     public class Program
     {
-        private static bool isColoredCLI = true;
-        private static ConsoleColor normalColor = ConsoleColor.White;
-        private static List<string> expressionHistory = [];
+        private static readonly bool isColoredCLI = true;
+        private static readonly ConsoleColor normalColor = ConsoleColor.White;
+        private static readonly List<string> expressionHistory = [];
         private static int selectedExpression = -1;
 
         /// <summary>

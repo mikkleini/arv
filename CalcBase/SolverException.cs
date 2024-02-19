@@ -3,17 +3,11 @@
     /// <summary>
     /// Solver exception
     /// </summary>
-    public class SolverException : Exception
+    /// <remarks>
+    /// Constructor
+    /// </remarks>
+    /// <param name="message">Message</param>
+    public class SolverException(string message) : Exception(message)
     {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="message">Message</param>
-        /// <param name="position">Errornous expression position</param>
-        /// <param name="length">Errornous expression length</param>
-        public SolverException(string message)
-            : base(message)
-        {
-        }
     }
 }
