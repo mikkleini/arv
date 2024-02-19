@@ -378,6 +378,10 @@ namespace CalcBase
                         postfix.Add(numberToken);
                     }
                 }
+                else if (current is UnitToken unitToken1)
+                {
+                    throw new ExpressionException($"Excessive unit: {unitToken1.Unit.Name}", current.Position, current.Length);
+                }
                 else if (current is ConstantToken constToken)
                 {
                     postfix.Add(constToken);
