@@ -73,14 +73,16 @@ namespace CalcCLI
                         expression.Clear();
                     }
                 }
-                // Delete last character ?
+                // Delete previous character ?
                 else if (key.Key == ConsoleKey.Backspace)
                 {
-                    if (expression.Length > 0)
+                    if (Console.CursorLeft < expression.Length)
                     {
-                        expression.Remove(expression.Length - 1, 1);
-                        Console.Write(' ');
-                        Console.CursorLeft--;
+                        int pos = Console.CursorLeft;
+                        expression.Remove(pos, 1);
+                        Console.Write(expression.ToString().Substring(pos));
+                        Console.Write(" ");
+                        Console.CursorLeft = pos;
                     }
                 }
                 // Delete current character ?
@@ -132,10 +134,10 @@ namespace CalcCLI
                         // Insert or append ?
                         if (Console.CursorLeft <= expression.Length)
                         {
-                            int pos = Console.CursorLeft - 1;
-                            expression.Insert(pos, c);
-                            Console.Write(expression.ToString().Substring(pos + 1));
-                            Console.CursorLeft = pos + 1;
+                            int pos = Console.CursorLeft;
+                            expression.Insert(pos - 1, c);
+                            Console.Write(expression.ToString().Substring(pos));
+                            Console.CursorLeft = pos;
                         }
                         else
                         {
