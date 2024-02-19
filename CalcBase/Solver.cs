@@ -274,6 +274,8 @@ namespace CalcBase
         /// <returns>Enumerable of tuples of value and unit</returns>
         public static IEnumerable<(string, string)> GetResultStrings(Number result)
         {
+            Debug.WriteLine($"Result {result.Value}");
+
             // If radix is not (only) decimal and value is integer, then output in other radixes.
             if ((result.Radix != IntegerRadix.Decimal) && (result.Value.IsInteger()))
             {

@@ -207,16 +207,17 @@ namespace CalcBase
         public static readonly SIBaseUnit Bit = new("Bit", ["b"], Digital);
         public static readonly SIBaseUnit Byte = new("Byte", ["B"], Digital,
             [
-                new("KiB", "kibibyte", 1 << 10, true),
-                new("KB",  "kilobyte", 1 << 10, true),
-                new("MiB", "mebibyte", 1 << 20, true),
-                new("MB",  "megabyte", 1 << 20, true),
-                new("GiB", "gibibyte", 1 << 30, true),
-                new("GB",  "gigabyte", 1 << 30, true),
-                new("TiB", "gibibyte", 1 << 40, true),
-                new("TB",  "terabyte", 1 << 40, true),
-                new("PiB", "pebibyte", 1 << 50, true),
-                new("PB",  "petabyte", 1 << 50, true)
+                new("B",   "byte",     BigInteger.One,       true),
+                new("KiB", "kibibyte", BigInteger.One << 10, true),
+                new("KB",  "kilobyte", BigInteger.One << 10, false),
+                new("MiB", "mebibyte", BigInteger.One << 20, true),
+                new("MB",  "megabyte", BigInteger.One << 20, false),
+                new("GiB", "gibibyte", BigInteger.One << 30, true),
+                new("GB",  "gigabyte", BigInteger.One << 30, false),
+                new("TiB", "gibibyte", BigInteger.One << 40, true),
+                new("TB",  "terabyte", BigInteger.One << 40, false),
+                new("PiB", "pebibyte", BigInteger.One << 50, true),
+                new("PB",  "petabyte", BigInteger.One << 50, false)
             ]);
 
         // Constants
