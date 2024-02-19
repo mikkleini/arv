@@ -36,6 +36,7 @@ namespace CalcBase
         /// <exception cref="ExpressionException">Error in expression</exception>
         internal static IToken ReadText(ReadOnlySpan<char> infix, int start)
         {
+            List<IToken> candidateTokens = new List<IToken>();
             string symbol;
             string text = infix.Slice(start).ToString();
 
@@ -45,12 +46,12 @@ namespace CalcBase
                 .FirstOrDefault(f => text.StartsWith(f.Symbol));
             if (func != null)
             {
-                return new FunctionToken()
+                candidateTokens.Add(new FunctionToken()
                 {
                     Position = start,
                     Length = func.Symbol.Length,
                     Function = func
-                };
+                });
             }
 
             // Is it a constant ?
@@ -58,12 +59,12 @@ namespace CalcBase
                 .FirstOrDefault(c => text.StartsWith(c.symbol));
             if (constant != null)
             {
-                return new ConstantToken()
+                candidateTokens.Add(new ConstantToken()
                 {
                     Position = start,
                     Length = symbol.Length,
                     Constant = constant
-                };
+                });
             }
 
             // Is it a unit ?
@@ -71,12 +72,12 @@ namespace CalcBase
                 .FirstOrDefault(u => text.StartsWith(u.symbol));
             if (unit != null)
             {
-                return new UnitToken()
+                candidateTokens.Add(new UnitToken()
                 {
                     Position = start,
                     Length = symbol.Length,
                     Unit = unit
-                };
+                });
             }
 
             // Is it a SI unit multiple ?
@@ -84,13 +85,19 @@ namespace CalcBase
                 .FirstOrDefault(u => text.StartsWith(u.symbol));
             if (siUnit != null)
             {
-                return new UnitToken()
+                candidateTokens.Add(new UnitToken()
                 {
                     Position = start,
                     Length = symbol.Length,
                     Unit = siUnit,
                     UnitMultiple = multiple
-                };
+                });
+            }
+
+            // Longest (or first) token will be chosen
+            if (candidateTokens.Count > 0)
+            {
+                return candidateTokens.OrderByDescending(t => t.Length).First();
             }
 
             throw new ExpressionException($"Unknown function/constant/unit: {text}", start, text.Length);
