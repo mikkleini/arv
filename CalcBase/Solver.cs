@@ -8,9 +8,6 @@ using CalcBase.Constants;
 using CalcBase.Formulas;
 using CalcBase.Quantities;
 using CalcBase.Units;
-using System.Reflection;
-using System.Linq;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CalcBase
 {
@@ -117,7 +114,14 @@ namespace CalcBase
                     {
                         System.Diagnostics.Debug.WriteLine($"{formula.Name}");
                         IUnit? resultUnit = Factory.Units.FirstOrDefault(u => u.Quantity == formula.Result);
-                        return new Measure(result, resultUnit, resultRadix, resultUseScientificNotation, resultHexCase);
+                        if (resultUnit != null)
+                        {
+                            return new Measure(result, resultUnit, resultRadix, resultUseScientificNotation, resultHexCase);
+                        }
+                        else
+                        {
+                            return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
+                        }
                     }
 
                     // TODO Find formula...
@@ -261,6 +265,87 @@ namespace CalcBase
             }
 
             return numberStack.Pop();
+        }
+
+        /// <summary>
+        /// Get different result strings from result
+        /// </summary>
+        /// <param name="result">Result</param>
+        /// <returns>Enumerable of tuples of value and unit</returns>
+        public static IEnumerable<(string, string)> GetResultStrings(Number result)
+        {
+            // If radix is not (only) decimal and value is integer, then output in other radixes.
+            if ((result.Radix != IntegerRadix.Decimal) && (result.Value.IsInteger()))
+            {
+                BigInteger resultInt = (BigInteger)result.Value;
+
+                // Output hexadecimal if it was used
+                if ((result.Radix & IntegerRadix.Hexadecimal) != 0)
+                {
+                    if (result.HexadecimalCase == HexadecimalCase.Lower)
+                    {
+                        yield return ($"{Parser.HexadecimalNumberPrefix}{resultInt:x}", string.Empty);
+                    }
+                    else
+                    {
+                        yield return ($"{Parser.HexadecimalNumberPrefix}{resultInt:X}", string.Empty);
+                    }
+                }
+
+                // Output binary if it was used
+                if ((result.Radix & IntegerRadix.Binary) != 0)
+                {
+                    yield return ($"{Parser.BinaryNumberPrefix}{resultInt:b}", string.Empty);
+                }
+            }
+
+            // Result is a measure ?
+            if (result is Measure measureResult)
+            {
+                // SI unit?
+                if (measureResult.Unit is ISIUnit siUnit)
+                {
+                    UnitMultiple[] multiples = siUnit.Multiples.Where(m => m.UseForDisplay).ToArray();
+
+                    if (multiples.Length > 0)
+                    {
+                        if (result.Value < multiples.First().Factor)
+                        {
+                            NumberType factoredValue = result.Value / multiples.First().Factor;
+                            yield return ($"{factoredValue}", multiples.First().Symbol);
+                        }
+                        else if (result.Value >= multiples.Last().Factor)
+                        {
+                            NumberType factoredValue = result.Value / multiples.Last().Factor;
+                            yield return ($"{factoredValue}", multiples.Last().Symbol);
+                        }
+                        else
+                        {
+                            for (int f = 0; f < multiples.Length - 1; f++)
+                            {
+                                if ((multiples[f].Factor <= result.Value) && (result.Value < multiples[f + 1].Factor))
+                                {
+                                    NumberType factoredValue = result.Value / multiples[f].Factor;
+                                    yield return ($"{factoredValue}", multiples[f].Symbol);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        yield return ($"{result.Value}", measureResult.Unit.Symbols.First());
+                    }
+                }
+                else
+                {
+                    yield return ($"{result.Value}", measureResult.Unit.Symbols.First());
+                }
+            }
+            else
+            {
+                yield return ($"{result.Value}", string.Empty);
+            }
         }
     }
 }

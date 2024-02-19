@@ -80,7 +80,7 @@ namespace CalcBase
             }
 
             // Is it a SI unit multiple ?
-            (symbol, IUnit? siUnit, UnitMultiple multiple) = Factory.SIUnitMultiplesBySymbols
+            (symbol, ISIUnit? siUnit, UnitMultiple multiple) = Factory.SIUnitMultiplesBySymbols
                 .FirstOrDefault(u => text.StartsWith(u.symbol));
             if (siUnit != null)
             {
@@ -357,7 +357,7 @@ namespace CalcBase
                         NumberType numberValue = numberToken.Number.Value;
 
                         // Is it multiple of SI unit ?
-                        if ((unitToken.UnitMultiple != null) && (unitToken.Unit is ISIBaseUnit))
+                        if ((unitToken.UnitMultiple != null) && (unitToken.Unit is ISIUnit))
                         {
                             numberValue *= unitToken.UnitMultiple.Value.Factor;
                         }

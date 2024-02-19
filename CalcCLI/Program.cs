@@ -7,6 +7,7 @@ using System.Data;
 using System.Linq.Expressions;
 using CalcBase.Tokens;
 using System.Numerics;
+using System.Collections.Generic;
 
 namespace CalcCLI
 {
@@ -180,51 +181,18 @@ namespace CalcCLI
 
             Console.Write(expression);
 
-            // If radix is not only decimal and value is integer,
-            // then output in other formats.
-            if ((result.Radix != IntegerRadix.Decimal) && (result.Value.IsInteger()))
-            {
-                BigInteger resultInt = (BigInteger)result.Value;
-
-                // Output hexadecimal if it was used
-                if ((result.Radix & IntegerRadix.Hexadecimal) != 0)
-                {
-                    WriteColor("=", ConsoleColor.Green);
-                    WriteColor(Parser.HexadecimalNumberPrefix, normalColor);
-                    if (result.HexadecimalCase == HexadecimalCase.Lower)
-                    {
-                        WriteColor(resultInt.ToString("x"), normalColor);
-                    }
-                    else
-                    {
-                        WriteColor(resultInt.ToString("X"), normalColor);
-                    }
-                }
-
-                // Output binary if it was used
-                if ((result.Radix & IntegerRadix.Binary) != 0)
-                {
-                    WriteColor("=", ConsoleColor.Green);
-                    WriteColor(Parser.BinaryNumberPrefix, normalColor);
-                    WriteColor(resultInt.ToString("b"), normalColor);
-                }
-
-                // Output decimal value
-                WriteColor("=", ConsoleColor.Green);
-                WriteColor(resultInt.ToString(), normalColor);
-            }
-            else
+            // Write all available values
+            foreach ((string value, string unit) in Solver.GetResultStrings(result))
             {
                 WriteColor("=", ConsoleColor.Green);
-                WriteColor(result.Value.ToString(), normalColor);
+                WriteColor(value, normalColor);
+                if (!string.IsNullOrWhiteSpace(unit))
+                {
+                    WriteColor(unit, ConsoleColor.Yellow);
+                }
             }
 
-            // If result is measure, then append unit
-            if (result is Measure measureResult)
-            {
-                WriteColor(measureResult.Unit.Symbols.First(), normalColor);
-            }
-
+            // End the line
             Console.WriteLine();
 
             // Add expression to history unless it's already there at the end
