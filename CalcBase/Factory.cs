@@ -132,7 +132,8 @@ namespace CalcBase
         public static readonly Quantity Power = new("Power", ["P"]);
 
         // Digital quantities
-        public static readonly Quantity Digital = new("Digital quantity", [""]);
+        public static readonly Quantity DataSize = new("Data size", [""]);
+        public static readonly Quantity DataRate = new("Datarate", [""]);
 
         // SI base units
         public static readonly SIBaseUnit Second = new("Second", ["s"], Time,
@@ -204,8 +205,8 @@ namespace CalcBase
         public static readonly ImperialUnit MilePerHour = new("Mile per hour", ["mph"], 0.44704M, MetrePerSecond);
 
         // Digital units
-        public static readonly SIBaseUnit Bit = new("Bit", ["b"], Digital);
-        public static readonly SIBaseUnit Byte = new("Byte", ["B"], Digital,
+        public static readonly SIBaseUnit Bit = new("Bit", ["b"], DataSize);
+        public static readonly SIBaseUnit Byte = new("Byte", ["B"], DataSize,
             [
                 new("B",   "byte",     BigInteger.One,       true),
                 new("KiB", "kibibyte", BigInteger.One << 10, true),
@@ -218,6 +219,14 @@ namespace CalcBase
                 new("TB",  "terabyte", BigInteger.One << 40, false),
                 new("PiB", "pebibyte", BigInteger.One << 50, true),
                 new("PB",  "petabyte", BigInteger.One << 50, false)
+            ]);
+
+        public static readonly SIDerivedUnit BytesPerSecond = new("Bytes per second", ["B/s"], DataRate,
+            [Byte, Second, Division],
+            [
+                new("B/s", "bytes per second",       BigInteger.One, true),
+                new("KiB/s", "kilobytes per second", BigInteger.One << 10, true),
+                new("MiB/s", "megabytes per second", BigInteger.One << 20, true),
             ]);
 
         // Constants
@@ -266,7 +275,7 @@ namespace CalcBase
         public static readonly IQuantity[] Quantities =
             [Time, Length, Speed, Mass, Density, Acceleration, Area, Volume, Force, Frequency,
             Voltage, Current, Resistance, Conductance, Capacitance, Inductance, Impedance, Charge, Power,
-            Digital];
+            DataSize, DataRate];
 
         /// <summary>
         /// All units
@@ -275,7 +284,7 @@ namespace CalcBase
             [Second, Metre, Kilogram, MetrePerSecond, SquareMetre, Newton,
             Inch, Foot, Yard, Mile, NauticalMile, MilePerHour,
             Ampere, Ohm, Volt,
-            Bit, Byte];
+            Bit, Byte, BytesPerSecond];
 
         /// <summary>
         /// All formulas
