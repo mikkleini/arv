@@ -99,20 +99,22 @@ namespace CalcBase
                 IntegerRadix resultRadix = a.Radix | b.Radix;
                 HexadecimalCase resultHexCase = a.HexadecimalCase | b.HexadecimalCase;
 
-                // If both operands are measure and have different units, then there should be a formula to get the resulting unit
+                // If both operands are measures and have different units, then there should be a formula to get the resulting unit
                 if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
                 {
                     // Check for derived SI unit
-                    ISIDerivedUnit? derivedUnit = TryFindDerivedUnit([measureA.Unit, measureB.Unit, binOp]);                    
+                    ISIDerivedUnit? derivedUnit = TryFindDerivedUnit([measureA.Unit, measureB.Unit, binOp]);
                     if (derivedUnit != null)
                     {
+                        Debug.WriteLine($"Derived unit: {derivedUnit.Name}");
                         return new Measure(result, derivedUnit, resultRadix, resultUseScientificNotation, resultHexCase);
                     }
 
+                    // Check for formula
                     IFormula? formula = TryFindFormula([measureA.Unit.Quantity, measureB.Unit.Quantity, binOp]);
                     if (formula != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"{formula.Name}");
+                        Debug.WriteLine($"Formula: {formula.Name}");
                         IUnit? resultUnit = Factory.Units.FirstOrDefault(u => u.Quantity == formula.Result);
                         if (resultUnit != null)
                         {
@@ -124,7 +126,7 @@ namespace CalcBase
                         }
                     }
 
-                    // TODO Find formula...
+                    // TODO Check for reverse formulas.
                     throw new ExpressionException("No suitable derived unit or formula found", opToken.Position, opToken.Length);
                 }
                 else if (a is Measure mA)
@@ -304,37 +306,15 @@ namespace CalcBase
             // Result is a measure ?
             if (result is Measure measureResult)
             {
-                // SI unit?
-                if (measureResult.Unit is ISIUnit siUnit)
+                UnitMultiple? multiple = SearchUnitMultiple(measureResult);
+                if (multiple != null)
                 {
-                    UnitMultiple[] multiples = siUnit.Multiples.Where(m => m.UseForDisplay).ToArray();
+                    NumberType factoredValue = result.Value / multiple.Value.Factor;
+                    yield return ($"{factoredValue}", multiple.Value.Symbol);
 
-                    if (multiples.Length > 0)
-                    {
-                        if (result.Value < multiples.First().Factor)
-                        {
-                            NumberType factoredValue = result.Value / multiples.First().Factor;
-                            yield return ($"{factoredValue}", multiples.First().Symbol);
-                        }
-                        else if (result.Value >= multiples.Last().Factor)
-                        {
-                            NumberType factoredValue = result.Value / multiples.Last().Factor;
-                            yield return ($"{factoredValue}", multiples.Last().Symbol);
-                        }
-                        else
-                        {
-                            for (int f = 0; f < multiples.Length - 1; f++)
-                            {
-                                if ((multiples[f].Factor <= result.Value) && (result.Value < multiples[f + 1].Factor))
-                                {
-                                    NumberType factoredValue = result.Value / multiples[f].Factor;
-                                    yield return ($"{factoredValue}", multiples[f].Symbol);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    else
+                    // If factor is not 10-based number then return the value with primary unit
+                    // Example: 1KiB means 1024B and 1024 is not 10-based, hence both 1KiB and 1024B are returned.
+                    if (!NumberType.Log10(multiple.Value.Factor).IsInteger())
                     {
                         yield return ($"{result.Value}", measureResult.Unit.Symbols.First());
                     }
@@ -348,6 +328,45 @@ namespace CalcBase
             {
                 yield return ($"{result.Value}", string.Empty);
             }
+        }
+
+        /// <summary>
+        /// Search for potential measure unit multiple
+        /// </summary>
+        /// <param name="measure">Measure</param>
+        /// <returns>Unit multiple (if exists)</returns>
+        private static UnitMultiple? SearchUnitMultiple(Measure measure)
+        {
+            if (measure.Unit is ISIUnit siUnit)
+            {
+                UnitMultiple[] multiples = siUnit.Multiples.Where(m => m.UseForDisplay).ToArray();
+
+                if (multiples.Length > 0)
+                {
+                    if (measure.Value < multiples.First().Factor)
+                    {
+                        NumberType factoredValue = measure.Value / multiples.First().Factor;
+                        return multiples.First();
+                    }
+                    else if (measure.Value >= multiples.Last().Factor)
+                    {
+                        NumberType factoredValue = measure.Value / multiples.Last().Factor;
+                        return multiples.Last();
+                    }
+                    else
+                    {
+                        for (int f = 0; f < multiples.Length - 1; f++)
+                        {
+                            if ((multiples[f].Factor <= measure.Value) && (measure.Value < multiples[f + 1].Factor))
+                            {
+                                return multiples[f];
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }
