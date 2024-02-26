@@ -10,5 +10,6 @@ namespace CalcBase.Units
         string Name { get; }
         string[] Symbols { get; }
         IQuantity Quantity { get; }
+        UnitMultiple[] Multiples { get; }
     }
 }

@@ -15,6 +15,6 @@ namespace CalcBase.Tokens
         /// <summary>
         /// Optional unit multiple
         /// </summary>
-        public UnitMultiple? UnitMultiple { get; init; } = null;
+        public required UnitMultiple UnitMultiple { get; init; }
     }
 }

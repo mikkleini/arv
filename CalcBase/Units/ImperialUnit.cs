@@ -7,11 +7,12 @@ namespace CalcBase.Units
     /// </summary>
     public record ImperialUnit : IImperialUnit
     {
-        public string Name { get; init; }
-        public string[] Symbols { get; init; }
+        public string Name => Multiples.Single(m => m.Factor == 1).Name;
+        public string[] Symbols => Multiples.Single(m => m.Factor == 1).Symbols;
         public NumberType EqualSIValue { get; init; }
         public ISIUnit EqualSIUnit { get; init; }
         public IQuantity Quantity => EqualSIUnit.Quantity;
+        public UnitMultiple[] Multiples { get; init; }
 
         /// <summary>
         /// Constructor
@@ -20,12 +21,12 @@ namespace CalcBase.Units
         /// <param name="symbols">Symbol(s)</param>
         /// <param name="equalSIValue">Equal SI value</param>
         /// <param name="equalIUnit">Equal SI unit</param>
-        public ImperialUnit(string name, string[] symbols, NumberType equalSIValue, ISIUnit equalIUnit)
+        /// <param name="multiples">Unit multiples</param>
+        public ImperialUnit(NumberType equalSIValue, ISIUnit equalIUnit, UnitMultiple[] multiples)
         {
-            Name = name;
-            Symbols = symbols;
             EqualSIValue = equalSIValue;
             EqualSIUnit = equalIUnit;
+            Multiples = multiples;
         }
     }
 }

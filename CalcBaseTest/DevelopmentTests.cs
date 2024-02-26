@@ -64,11 +64,11 @@ namespace CalcBaseTest
             TestParentRecord[] parentRecs = recs.Select(r => new TestParentRecord() { Rec = r }).ToArray();
             Assert.That(parentRecs[0].Rec, Is.EqualTo(a));
 
-            (TestRecord r, string n)[] tuples = recs.Select(r => (r, r.Name)).ToArray();            
+            (TestRecord r, string n)[] tuples = recs.Select(r => (r, r.Name)).ToArray();
             Assert.That(tuples[0].r, Is.EqualTo(a));
 
-            SIBaseUnit ua = new("UA", ["u"], Factory.Length, [new("x", "y", 10)]);
-            SIBaseUnit ub = new("UB", ["u"], Factory.Length, [new("x", "y", 20)]);
+            SIBaseUnit ua = new(Factory.Length, [new("x", ["y"], 10, UnitContext.All)]);
+            SIBaseUnit ub = new(Factory.Length, [new("x", ["y"], 20, UnitContext.All)]);
             IUnit[] units = [ua, ub];
             Assert.That(units[0], Is.EqualTo(ua));
 

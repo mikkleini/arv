@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace CalcBase.Units
 {
     /// <summary>
-    /// (SI) unit multiple
+    /// Unit multiple
     /// </summary>
-    /// <param name="Symbol">Symbol</param>
     /// <param name="Name">Name</param>
+    /// <param name="Symbols">Symbols</param>
     /// <param name="Factor">Factor</param>
-    /// <param name="UseForDisplay">Use for displaying?</param>
-    public record struct UnitMultiple(string Symbol, string Name, NumberType Factor, bool UseForDisplay);
+    /// <param name="Context">Context</param>
+    public record struct UnitMultiple(string Name, string[] Symbols, NumberType Factor, UnitContext Context);
 }

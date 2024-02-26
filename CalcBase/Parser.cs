@@ -25,7 +25,7 @@ namespace CalcBase
         public static readonly char RadixPointSymbol = '.';
         public static readonly char ArgumentSeparatorSymbol = ',';
         public static readonly char ExponentPointSymbolUpper = 'E';
-        public static readonly char ExponentPointSymbolLower = 'e';
+        public static readonly char ExponentPointSymbolLower = 'e';  
 
         /// <summary>
         /// Read text (don't yet know if it's constant, unit, variable or function)
@@ -36,7 +36,7 @@ namespace CalcBase
         /// <exception cref="ExpressionException">Error in expression</exception>
         internal static IToken ReadText(ReadOnlySpan<char> infix, int start)
         {
-            List<IToken> candidateTokens = new List<IToken>();
+            List<IToken> candidateTokens = [];
             string symbol;
             string text = infix.Slice(start).ToString();
 
@@ -67,8 +67,8 @@ namespace CalcBase
                 });
             }
 
-            // Is it a unit ?
-            (symbol, IUnit? unit) = Factory.UnitsBySymbols
+            // Is it a unit multiple ?
+            (symbol, IUnit? unit, UnitMultiple multiple) = Factory.UnitAndMultiplesBySymbols
                 .FirstOrDefault(u => text.StartsWith(u.symbol));
             if (unit != null)
             {
@@ -76,20 +76,7 @@ namespace CalcBase
                 {
                     Position = start,
                     Length = symbol.Length,
-                    Unit = unit
-                });
-            }
-
-            // Is it a SI unit multiple ?
-            (symbol, ISIUnit? siUnit, UnitMultiple multiple) = Factory.SIUnitMultiplesBySymbols
-                .FirstOrDefault(u => text.StartsWith(u.symbol));
-            if (siUnit != null)
-            {
-                candidateTokens.Add(new UnitToken()
-                {
-                    Position = start,
-                    Length = symbol.Length,
-                    Unit = siUnit,
+                    Unit = unit,
                     UnitMultiple = multiple
                 });
             }
@@ -362,12 +349,7 @@ namespace CalcBase
                     if (next is UnitToken unitToken)
                     {
                         NumberType numberValue = numberToken.Number.Value;
-
-                        // Is it multiple of SI unit ?
-                        if ((unitToken.UnitMultiple != null) && (unitToken.Unit is ISIUnit))
-                        {
-                            numberValue *= unitToken.UnitMultiple.Value.Factor;
-                        }
+                        numberValue *= unitToken.UnitMultiple.Factor;
 
                         // Combine number and unit token into measure token
                         postfix.Add(new MeasureToken()

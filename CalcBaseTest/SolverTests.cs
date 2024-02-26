@@ -21,7 +21,7 @@ namespace CalcBaseTest
         /// </summary>
         /// <param name="infix">Infix expression</param>
         /// <param name="result">Expected result</param>
-        private void TestEquation(string infix, Number expectedResult)
+        private void TestEquation(string infix, Number expectedResult, int digits = 0)
         {
             Debug.WriteLine("");
             Debug.WriteLine($"Test {infix} expect {expectedResult}");
@@ -46,9 +46,17 @@ namespace CalcBaseTest
 
             Debug.WriteLine($"  Result: {actualResult}");
 
-            Assert.Multiple(() =>
+            if (digits > 0)
+            {
+                Assert.That(NumberType.Round(actualResult.Value, digits), Is.EqualTo(expectedResult.Value));
+            }
+            else
             {
                 Assert.That(actualResult.Value, Is.EqualTo(expectedResult.Value));
+            }
+
+            Assert.Multiple(() =>
+            {
                 Assert.That(actualResult.Radix, Is.EqualTo(expectedResult.Radix));
                 Assert.That(actualResult.HexadecimalCase, Is.EqualTo(expectedResult.HexadecimalCase));
                 Assert.That(actualResult.IsScientificNotation, Is.EqualTo(expectedResult.IsScientificNotation));
@@ -146,15 +154,21 @@ namespace CalcBaseTest
             Assert.That(postfixTokens.Count, Is.EqualTo(1));
             Assert.That(postfixTokens[0], Is.InstanceOf(typeof(MeasureToken)));
             MeasureToken mt = (MeasureToken)postfixTokens[0];
-
-            Assert.That(mt.Measure.Value, Is.EqualTo((NumberType)3.2M));
-            Assert.That(mt.Measure.Unit, Is.EqualTo(Factory.Metre));
+            Assert.Multiple(() =>
+            {
+                Assert.That(mt.Measure.Value, Is.EqualTo((NumberType)3.2M));
+                Assert.That(mt.Measure.Unit, Is.EqualTo(Factory.Metre));
+            });
         }
 
         [Test]
         public void TestDerivedUnits()
         {
             TestEquation("3m/2s", new Measure(1.5M, Factory.MetrePerSecond));
+            TestEquation("100km/2h", new Measure(13.889, Factory.MetrePerSecond), 3);
+            TestEquation("2cm*2cm", new Measure(0.0004M, Factory.SquareMetre));
+            TestEquation("2cm**2", new Measure(0.0004M, Factory.SquareMetre));
+            TestEquation("2in*2in", new Measure(0.00258064M, Factory.SquareMetre));
         }
     }
 }

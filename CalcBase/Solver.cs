@@ -99,37 +99,37 @@ namespace CalcBase
                 IntegerRadix resultRadix = a.Radix | b.Radix;
                 HexadecimalCase resultHexCase = a.HexadecimalCase | b.HexadecimalCase;
 
+                // Check for formula
+                IFormula? formula = TryFindFormula([a, b, binOp]);
+                if (formula != null)
+                {
+                    Debug.WriteLine($"  Formula: {formula.Name}");
+                    IUnit? resultUnit = Factory.Units.FirstOrDefault(u => u.Quantity == formula.Result);
+                    if (resultUnit != null)
+                    {
+                        return new Measure(result, resultUnit, resultRadix, resultUseScientificNotation, resultHexCase);
+                    }
+                    else
+                    {
+                        return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
+                    }
+                }
+
                 // If both operands are measures and have different units, then there should be a formula to get the resulting unit
-                if ((a is Measure measureA) && (b is Measure measureB) && (measureA.Unit != measureB.Unit))
+                if ((a is Measure measureA) && (b is Measure measureB))
                 {
                     // Check for derived SI unit
                     ISIDerivedUnit? derivedUnit = TryFindDerivedUnit([measureA.Unit, measureB.Unit, binOp]);
                     if (derivedUnit != null)
                     {
-                        Debug.WriteLine($"Derived unit: {derivedUnit.Name}");
+                        Debug.WriteLine($"  Derived unit: {derivedUnit.Name}");
                         return new Measure(result, derivedUnit, resultRadix, resultUseScientificNotation, resultHexCase);
                     }
 
-                    // Check for formula
-                    IFormula? formula = TryFindFormula([measureA.Unit.Quantity, measureB.Unit.Quantity, binOp]);
-                    if (formula != null)
-                    {
-                        Debug.WriteLine($"Formula: {formula.Name}");
-                        IUnit? resultUnit = Factory.Units.FirstOrDefault(u => u.Quantity == formula.Result);
-                        if (resultUnit != null)
-                        {
-                            return new Measure(result, resultUnit, resultRadix, resultUseScientificNotation, resultHexCase);
-                        }
-                        else
-                        {
-                            return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
-                        }
-                    }
-
                     // TODO Check for reverse formulas.
-                    throw new ExpressionException("No suitable derived unit or formula found", opToken.Position, opToken.Length);
                 }
-                else if (a is Measure mA)
+
+                if (a is Measure mA)
                 {
                     return new Measure(result, mA.Unit, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
@@ -306,20 +306,13 @@ namespace CalcBase
             // Result is a measure ?
             if (result is Measure measureResult)
             {
-                UnitMultiple? multiple = SearchUnitMultiple(measureResult);
-                if (multiple != null)
-                {
-                    NumberType factoredValue = result.Value / multiple.Value.Factor;
-                    yield return ($"{factoredValue}", multiple.Value.Symbol);
+                UnitMultiple multiple = GetFittingUnitMultiple(measureResult);                
+                NumberType factoredValue = result.Value / multiple.Factor;
+                yield return ($"{factoredValue}", multiple.Symbols.First());
 
-                    // If factor is not 10-based number then return the value with primary unit
-                    // Example: 1KiB means 1024B and 1024 is not 10-based, hence both 1KiB and 1024B are returned.
-                    if (!NumberType.Log10(multiple.Value.Factor).IsInteger())
-                    {
-                        yield return ($"{result.Value}", measureResult.Unit.Symbols.First());
-                    }
-                }
-                else
+                // If factor is not 10-based number then return the value with primary unit
+                // Example: 1KiB means 1024B and 1024 is not 10-based, hence both 1KiB and 1024B are returned.
+                if (!NumberType.Log10(multiple.Factor).IsInteger())
                 {
                     yield return ($"{result.Value}", measureResult.Unit.Symbols.First());
                 }
@@ -331,42 +324,24 @@ namespace CalcBase
         }
 
         /// <summary>
-        /// Search for potential measure unit multiple
+        /// Get unit multiple that fits best to represent measure value
         /// </summary>
         /// <param name="measure">Measure</param>
-        /// <returns>Unit multiple (if exists)</returns>
-        private static UnitMultiple? SearchUnitMultiple(Measure measure)
+        /// <returns>Unit multiple<returns>
+        private static UnitMultiple GetFittingUnitMultiple(Measure measure)
         {
-            if (measure.Unit is ISIUnit siUnit)
+            if (measure.Value < measure.Unit.Multiples.First().Factor)
             {
-                UnitMultiple[] multiples = siUnit.Multiples.Where(m => m.UseForDisplay).ToArray();
-
-                if (multiples.Length > 0)
-                {
-                    if (measure.Value < multiples.First().Factor)
-                    {
-                        NumberType factoredValue = measure.Value / multiples.First().Factor;
-                        return multiples.First();
-                    }
-                    else if (measure.Value >= multiples.Last().Factor)
-                    {
-                        NumberType factoredValue = measure.Value / multiples.Last().Factor;
-                        return multiples.Last();
-                    }
-                    else
-                    {
-                        for (int f = 0; f < multiples.Length - 1; f++)
-                        {
-                            if ((multiples[f].Factor <= measure.Value) && (measure.Value < multiples[f + 1].Factor))
-                            {
-                                return multiples[f];
-                            }
-                        }
-                    }
-                }
+                return measure.Unit.Multiples.First();
             }
-
-            return null;
+            else if (measure.Value >= measure.Unit.Multiples.Last().Factor)
+            {
+                return measure.Unit.Multiples.Last();
+            }
+            else
+            {
+                return measure.Unit.Multiples.Where(m => measure.Value >= m.Factor).LastOrDefault();
+            }
         }
     }
 }

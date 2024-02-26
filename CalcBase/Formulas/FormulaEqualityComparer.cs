@@ -1,4 +1,5 @@
-﻿using CalcBase.Units;
+﻿using CalcBase.Numbers;
+using CalcBase.Units;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -29,7 +30,16 @@ namespace CalcBase.Formulas
             IElement? realX = x;
             IElement? realY = y;
 
-            if (x is IUnit unitX)
+            if ((x is Number numberX) && (y is Number numberY) && (numberX.Value == numberY.Value))
+            {
+                return true;
+            }
+
+            if (x is Measure measureX)
+            {
+                realX = measureX.Unit.Quantity;
+            }
+            else if (x is IUnit unitX)
             {
                 realX = unitX.Quantity;
             }
@@ -38,7 +48,11 @@ namespace CalcBase.Formulas
                 realX = varX.Quantity;
             }
 
-            if (y is IUnit unitY)
+            if (y is Measure measureY)
+            {
+                realY = measureY.Unit.Quantity;
+            }
+            else if (y is IUnit unitY)
             {
                 realY = unitY.Quantity;
             }
