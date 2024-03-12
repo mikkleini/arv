@@ -170,5 +170,12 @@ namespace CalcBaseTest
             TestEquation("2cm**2", new Measure(0.0004M, Factory.SquareMetre));
             TestEquation("2in*2in", new Measure(0.00258064M, Factory.SquareMetre));
         }
+
+        [Test]
+        public void TextMixedNumbers()
+        {
+            TestEquation("3+2m", new Measure(5.0M, Factory.Metre));
+            TestEquation("3+2cm", new Measure(0.0032M, Factory.Metre));
+        }
     }
 }
