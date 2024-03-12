@@ -13,8 +13,6 @@ namespace CalcCLI
 {
     public class Program
     {
-        private static readonly bool isColoredCLI = true;
-        private static readonly ConsoleColor normalColor = ConsoleColor.White;
         private static readonly List<string> expressionHistory = [];
         private static int selectedExpression = -1;
 
@@ -23,14 +21,18 @@ namespace CalcCLI
         /// </summary>
         static Program()
         {
-            if (Console.IsOutputRedirected)
+            if (Console.IsOutputRedirected || Console.IsErrorRedirected)
             {
-                isColoredCLI = false;
+                ConsoleEx.IsColoredConsole = false;
+            }
+            else
+            {
+                ConsoleEx.IsColoredConsole = true;
             }
 
-            if (isColoredCLI)
+            if (ConsoleEx.IsColoredConsole)
             {
-                normalColor = Console.ForegroundColor;
+                ConsoleEx.NormalForegroundColor = Console.ForegroundColor;
             }
         }
 
@@ -40,7 +42,7 @@ namespace CalcCLI
         /// <param name="args"></param>
         public static void Main(string[] args)
         {
-            WriteColor("Welcome to calculator", ConsoleColor.DarkGray, true);
+            Console.Out.WriteColoredLine("Welcome to calculator", ConsoleColor.DarkGray);
             RunEntry();
         }
 
@@ -53,7 +55,7 @@ namespace CalcCLI
 
             while (true)
             {
-                ConsoleKeyInfo key = Console.ReadKey();
+                ConsoleKeyInfo key = Console.ReadKey(true);
 
                 // Exit ?
                 if (key.Key == ConsoleKey.Escape)
@@ -77,10 +79,11 @@ namespace CalcCLI
                 // Delete previous character ?
                 else if (key.Key == ConsoleKey.Backspace)
                 {
-                    if (Console.CursorLeft < expression.Length)
+                    if ((Console.CursorLeft > 0) && (Console.CursorLeft <= expression.Length))
                     {
-                        int pos = Console.CursorLeft;
+                        int pos = Console.CursorLeft - 1;
                         expression.Remove(pos, 1);
+                        Console.CursorLeft = pos;
                         Console.Write(expression.ToString().Substring(pos));
                         Console.Write(" ");
                         Console.CursorLeft = pos;
@@ -114,6 +117,15 @@ namespace CalcCLI
                         Console.CursorLeft++;
                     }
                 }
+                // Navigate to line beginning
+                else if (key.Key == ConsoleKey.Home)
+                {
+                    Console.CursorLeft = 0;
+                }
+                else if (key.Key == ConsoleKey.End)
+                {
+                    Console.CursorLeft = expression.Length;
+                }
                 // Navigate back in history ?
                 else if (key.Key == ConsoleKey.UpArrow)
                 {
@@ -123,6 +135,11 @@ namespace CalcCLI
                 else if (key.Key == ConsoleKey.DownArrow)
                 {
                     ExpressionHistoryWalk(expression, +1);
+                }
+                // Tab
+                else if (key.Key == ConsoleKey.Tab)
+                {
+                    // Special function, ignore now
                 }
                 // Character entry
                 else
@@ -136,9 +153,9 @@ namespace CalcCLI
                         if (Console.CursorLeft <= expression.Length)
                         {
                             int pos = Console.CursorLeft;
-                            expression.Insert(pos - 1, c);
+                            expression.Insert(pos, c);
                             Console.Write(expression.ToString().Substring(pos));
-                            Console.CursorLeft = pos;
+                            Console.CursorLeft = pos + 1;
                         }
                         else
                         {
@@ -167,28 +184,31 @@ namespace CalcCLI
             }
             catch (ExpressionException ex)
             {
-                Console.WriteLine(expression);
-                WriteColor(ChRep(' ', ex.Position) + ChRep('^', ex.Length), ConsoleColor.Red, true);
-                WriteErrorColor(ex.Message, ConsoleColor.Red, true);
+                // Show error on next line
+                Console.WriteLine();
+                Console.Error.WriteColoredLine(ChRep(' ', ex.Position) + ChRep('^', ex.Length), ConsoleColor.Red);
+                Console.Error.WriteColoredLine(ex.Message, ConsoleColor.Red);
                 return;
             }
             catch (SolverException ex)
             {
-                Console.WriteLine(expression);
-                WriteErrorColor(ex.Message, ConsoleColor.Red, true);
+                // Show error on next line
+                Console.WriteLine();
+                Console.Error.WriteColoredLine(ex.Message, ConsoleColor.Red);
                 return;
             }
 
-            Console.Write(expression);
+            // Place cursor to the end of expression
+            Console.CursorLeft = expression.Length;
 
             // Write all available values
             foreach ((string value, string unit) in Solver.GetResultStrings(result))
             {
-                WriteColor("=", ConsoleColor.Green);
-                WriteColor(value, normalColor);
+                Console.Out.WriteColored("=", ConsoleColor.Green);
+                Console.Out.Write(value);
                 if (!string.IsNullOrWhiteSpace(unit))
                 {
-                    WriteColor(unit, ConsoleColor.Yellow);
+                    Console.Out.WriteColored(unit, ConsoleColor.Yellow);
                 }
             }
 
@@ -252,62 +272,6 @@ namespace CalcCLI
             {
                 Console.Write(ChRep(' ', prevLength - expression.Length));
                 Console.CursorLeft = expression.Length;
-            }
-        }
-
-        /// <summary>
-        /// Write colored text to console
-        /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="color">Color</param>
-        /// <param name="lineEnd">Line end?</param>
-        private static void WriteColor(string text, ConsoleColor color, bool lineEnd = false)
-        {
-            if (isColoredCLI)
-            {
-                Console.ForegroundColor = color;
-            }
-
-            if (lineEnd)
-            {
-                Console.WriteLine(text);
-            }
-            else
-            {
-                Console.Write(text);
-            }
-
-            if (isColoredCLI)
-            {
-                Console.ForegroundColor = normalColor;
-            }
-        }
-
-        /// <summary>
-        /// Write colored error text to console
-        /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="color">Color</param>
-        /// <param name="lineEnd">Line end?</param>
-        private static void WriteErrorColor(string text, ConsoleColor color, bool lineEnd = false)
-        {
-            if (isColoredCLI)
-            {
-                Console.ForegroundColor = color;
-            }
-
-            if (lineEnd)
-            {
-                Console.Error.WriteLine(text);
-            }
-            else
-            {
-                Console.Error.Write(text);
-            }
-
-            if (isColoredCLI)
-            {
-                Console.ForegroundColor = normalColor;
             }
         }
     }
