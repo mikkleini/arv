@@ -9,10 +9,28 @@ namespace CalcBase.Units
     /// <summary>
     /// Unit multiple
     /// </summary>
-    /// <param name="Parent">Parent unit</param>
-    /// <param name="Name">Name</param>
-    /// <param name="Symbols">Symbols</param>
-    /// <param name="Factor">Factor</param>
-    /// <param name="Context">Context</param>
-    public record struct UnitMultiple(IUnit? Parent, string Name, string[] Symbols, NumberType Factor, UnitContext Context);
+    public record struct UnitMultiple : IElement
+    {
+        public IUnit Parent { get; internal set; }
+        public string Name { get; init; }
+        public string[] Symbols { get; init; }
+        public NumberType Factor { get; init; }
+        public UnitContext Context { get; init; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name">Name</param>
+        /// <param name="symbols">Symbols</param>
+        /// <param name="factor">Factor</param>
+        /// <param name="context">Context</param>
+        public UnitMultiple(string name, string[] symbols, NumberType factor, UnitContext context = UnitContext.All)
+        {
+            Parent = parent;
+            Name = name;
+            Symbols = symbols;
+            Factor = factor;
+            Context = context;
+        }
+    }
 }

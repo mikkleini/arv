@@ -68,7 +68,7 @@ namespace CalcBase
             }
 
             // Is it a unit multiple ?
-            (symbol, IUnit? unit, UnitMultiple multiple) = Factory.UnitAndMultiplesBySymbols
+            (symbol, UnitMultiple? unit) = Factory.UnitsBySymbols
                 .FirstOrDefault(u => text.StartsWith(u.symbol));
             if (unit != null)
             {
@@ -76,8 +76,7 @@ namespace CalcBase
                 {
                     Position = start,
                     Length = symbol.Length,
-                    Unit = unit,
-                    UnitMultiple = multiple
+                    Unit = unit.Value
                 });
             }
 
@@ -348,15 +347,12 @@ namespace CalcBase
                 {
                     if (next is UnitToken unitToken)
                     {
-                        NumberType numberValue = numberToken.Number.Value;
-                        numberValue *= unitToken.UnitMultiple.Factor;
-
                         // Combine number and unit token into measure token
                         postfix.Add(new MeasureToken()
                         {
                             Position = numberToken.Position,
                             Length = unitToken.Position + numberToken.Length - numberToken.Position,
-                            Measure = new Measure(numberToken.Number with { Value = numberValue }, unitToken.Unit)
+                            Measure = new Measure(numberToken.Number, unitToken.Unit)
                         });
 
                         // Leap over unit token

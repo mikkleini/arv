@@ -10,7 +10,7 @@ namespace CalcBase.Numbers
         /// <summary>
         /// Unit
         /// </summary>
-        public IUnit Unit { get; init; }
+        public UnitMultiple Unit { get; init; }
 
         /// <summary>
         /// Constructor
@@ -20,7 +20,7 @@ namespace CalcBase.Numbers
         /// <param name="radix">Radix</param>
         /// <param name="isScientificNotation">Is scientific notation ?</param>
         /// <param name="dominantCase">Dominant hexadecimal number case</param>
-        public Measure(NumberType value, IUnit unit, IntegerRadix radix = IntegerRadix.Decimal,
+        public Measure(NumberType value, UnitMultiple unit, IntegerRadix radix = IntegerRadix.Decimal,
             bool isScientificNotation = false, HexadecimalCase dominantCase = Numbers.HexadecimalCase.None)
             : base(value, radix, isScientificNotation, dominantCase)
         {
@@ -32,7 +32,7 @@ namespace CalcBase.Numbers
         /// </summary>
         /// <param name="number">Number</param>
         /// <param name="unit">Unit</param>
-        public Measure(Number number, IUnit unit)
+        public Measure(Number number, UnitMultiple unit)
             : base(number.Value, number.Radix, number.IsScientificNotation, number.HexadecimalCase)
         {
             Unit = unit;

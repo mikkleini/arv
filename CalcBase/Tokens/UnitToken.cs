@@ -10,11 +10,6 @@ namespace CalcBase.Tokens
         /// <summary>
         /// Unit
         /// </summary>
-        public required IUnit Unit { get; init; }
-
-        /// <summary>
-        /// Optional unit multiple
-        /// </summary>
-        public required UnitMultiple UnitMultiple { get; init; }
+        public required UnitMultiple Unit { get; init; }
     }
 }

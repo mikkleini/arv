@@ -21,7 +21,7 @@ namespace CalcBase.Units
         public SIBaseUnit(IQuantity quantity, UnitMultiple[] multiple)
         {
             Quantity = quantity;
-            Multiples = multiple;
+            Multiples = multiple.Select(m => m with { Parent = this }).ToArray();
         }
     }
 }

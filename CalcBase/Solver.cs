@@ -104,15 +104,8 @@ namespace CalcBase
                 if (formula != null)
                 {
                     Debug.WriteLine($"  Formula: {formula.Name}");
-                    IUnit? resultUnit = Factory.Units.FirstOrDefault(u => u.Quantity == formula.Result);
-                    if (resultUnit != null)
-                    {
-                        return new Measure(result, resultUnit, resultRadix, resultUseScientificNotation, resultHexCase);
-                    }
-                    else
-                    {
-                        return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
-                    }
+                    // TODO Find right unit
+                    return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
 
                 // If both operands are measures and have different units, then there should be a formula to get the resulting unit
@@ -123,7 +116,7 @@ namespace CalcBase
                     if (derivedUnit != null)
                     {
                         Debug.WriteLine($"  Derived unit: {derivedUnit.Name}");
-                        return new Measure(result, derivedUnit, resultRadix, resultUseScientificNotation, resultHexCase);
+                        //return new Measure(result, derivedUnit, resultRadix, resultUseScientificNotation, resultHexCase);
                     }
 
                     // TODO Check for reverse formulas.
@@ -306,15 +299,13 @@ namespace CalcBase
             // Result is a measure ?
             if (result is Measure measureResult)
             {
-                UnitMultiple multiple = GetFittingUnitMultiple(measureResult);                
-                NumberType factoredValue = result.Value / multiple.Factor;
-                yield return ($"{factoredValue}", multiple.Symbols.First());
+                yield return ($"{measureResult.Value}", measureResult.Unit.Symbols.First());
 
                 // If factor is not 10-based number then return the value with primary unit
                 // Example: 1KiB means 1024B and 1024 is not 10-based, hence both 1KiB and 1024B are returned.
-                if (!NumberType.Log10(multiple.Factor).IsInteger())
+                if (!NumberType.Log10(measureResult.Unit.Factor).IsInteger())
                 {
-                    yield return ($"{result.Value}", measureResult.Unit.Symbols.First());
+                    yield return ($"{measureResult.Value}", measureResult.Unit.Symbols.First());
                 }
             }
             else
@@ -330,17 +321,17 @@ namespace CalcBase
         /// <returns>Unit multiple<returns>
         private static UnitMultiple GetFittingUnitMultiple(Measure measure)
         {
-            if (measure.Value < measure.Unit.Multiples.First().Factor)
+            if (measure.Value < measure.Unit.Parent.Multiples.First().Factor)
             {
-                return measure.Unit.Multiples.First();
+                return measure.Unit.Parent.Multiples.First();
             }
-            else if (measure.Value >= measure.Unit.Multiples.Last().Factor)
+            else if (measure.Value >= measure.Unit.Parent.Multiples.Last().Factor)
             {
-                return measure.Unit.Multiples.Last();
+                return measure.Unit.Parent.Multiples.Last();
             }
             else
             {
-                return measure.Unit.Multiples.Where(m => measure.Value >= m.Factor).LastOrDefault();
+                return measure.Unit.Parent.Multiples.Where(m => measure.Value >= m.Factor).LastOrDefault();
             }
         }
     }

@@ -37,7 +37,7 @@ namespace CalcBase.Formulas
 
             if (x is Measure measureX)
             {
-                realX = measureX.Unit.Quantity;
+                realX = measureX.Unit.Parent.Quantity;
             }
             else if (x is IUnit unitX)
             {
@@ -50,7 +50,7 @@ namespace CalcBase.Formulas
 
             if (y is Measure measureY)
             {
-                realY = measureY.Unit.Quantity;
+                realY = measureY.Unit.Parent.Quantity;
             }
             else if (y is IUnit unitY)
             {

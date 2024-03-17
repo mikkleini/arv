@@ -10,6 +10,8 @@ using CalcBase.Quantities;
 using CalcBase.Units;
 using System.Numerics;
 
+#pragma warning disable CS8604 // Possible null reference argument. Suppress it in unit parent initialization.
+
 namespace CalcBase
 {
     /// <summary>
@@ -342,9 +344,9 @@ namespace CalcBase
         /// <summary>
         /// Enumerate units by their multiples symbols from longest, ending with shorters
         /// </summary>
-        public static IEnumerable<(string symbol, IUnit unit, UnitMultiple multiple)> UnitAndMultiplesBySymbols => Units
-            .SelectMany(u => u.Multiples.Select(m => (m.Symbols, unit: u, multiple: m)))
-            .SelectMany(m => m.Symbols.Select(s => (symbol: s, m.unit, m.multiple)))
+        public static IEnumerable<(string symbol, UnitMultiple unit)> UnitsBySymbols => Units
+            .SelectMany(u => u.Multiples.Select(m => (m.Symbols, unit: m)))
+            .SelectMany(m => m.Symbols.Select(s => (symbol: s, m.unit)))
             .OrderByDescending(x => x.symbol.Length);
 
         /// <summary>
