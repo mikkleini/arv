@@ -222,9 +222,11 @@ namespace CalcBase
                 new(MilePerHour, "Mile per hour", ["mph"], 1, UnitContext.All)
             ]);
 
-        public static readonly ImperialUnit SquareInch = new(0.00064516M, SquareMetre,
+        public static readonly ImperialUnit SquareFoot = new(0.09290304M, SquareMetre,
             [
-                new(SquareInch, "Square inch", ["inch²", "in²", "sq in"], 1, UnitContext.All)
+                new(SquareFoot, "Square yard", ["yd²", "sq yd"], 0.11111111111M, UnitContext.All),
+                new(SquareFoot, "Square foot", ["ft²", "sq ft"],              1, UnitContext.All),
+                new(SquareFoot, "Square inch", ["in²", "sq in"],            144, UnitContext.All),
             ]);
 
         // Digital units
@@ -318,7 +320,7 @@ namespace CalcBase
         /// </summary>
         public static readonly IUnit[] Units =
             [Second, Metre, Kilogram, MetrePerSecond, SquareMetre, Newton,
-            Foot, NauticalMile, MilePerHour,
+            Foot, NauticalMile, MilePerHour, SquareFoot,
             Ampere, Ohm, Volt,
             Bit, Byte, BytesPerSecond];
 
