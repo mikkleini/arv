@@ -23,7 +23,7 @@ namespace CalcBase.Units
         {
             Quantity = quantity;
             Expression = expression;
-            Multiples = multiples;
+            Multiples = multiples.Select(m => m with { Parent = this }).ToArray();
         }
     }
 }

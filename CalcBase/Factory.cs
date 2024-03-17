@@ -10,8 +10,6 @@ using CalcBase.Quantities;
 using CalcBase.Units;
 using System.Numerics;
 
-#pragma warning disable CS8604 // Possible null reference argument. Suppress it in unit parent initialization.
-
 namespace CalcBase
 {
     /// <summary>
@@ -137,133 +135,136 @@ namespace CalcBase
         public static readonly Quantity DataSize = new("Data size", [""]);
         public static readonly Quantity DataRate = new("Datarate", [""]);
 
+        // Dummies
+        internal static readonly DummyUnit DummyUnit = new();
+
         // SI base units
         public static readonly SIBaseUnit Second = new(Time,
             [
-                ..CreateStandardUnitMultiples(Second, "Second", "s"),
-                new(Second, "Minute", ["min"], 60, UnitContext.All),
-                new(Second, "Hour", ["h"], 3600, UnitContext.All),
-                new(Second, "Day", ["d"], 24 * 3600, UnitContext.All)
+                ..CreateStandardUnitMultiples("Second", "s"),
+                new("Minute", ["min"], 60, UnitContext.All),
+                new("Hour", ["h"], 3600, UnitContext.All),
+                new("Day", ["d"], 24 * 3600, UnitContext.All)
             ]);
 
-        public static readonly SIBaseUnit Metre = new(Length, CreateStandardUnitMultiples(Metre, "Metre", "m"));
+        public static readonly SIBaseUnit Metre = new(Length, CreateStandardUnitMultiples("Metre", "m"));
 
         public static readonly SIBaseUnit Kilogram = new(Mass,
             [
-                ..CreateStandardUnitMultiples(Kilogram, "Gram", "g", -3),
-                new(Kilogram, "Tonne", ["t"], 1e+3M, UnitContext.All)
+                ..CreateStandardUnitMultiples("Gram", "g", -3),
+                new("Tonne", ["t"], 1e+3M, UnitContext.All)
             ]);
 
-        public static readonly SIBaseUnit Ampere = new(Current, CreateStandardUnitMultiples(Ampere, "Ampere", "A"));
+        public static readonly SIBaseUnit Ampere = new(Current, CreateStandardUnitMultiples("Ampere", "A"));
 
         // SI derived units
         public static readonly SIDerivedUnit MetrePerSecond = new(Speed,
             [Metre, Second, Division],
             [
-                new(MetrePerSecond, "Micrometre per second", ["µm/s"], 1e-6M, UnitContext.All),
-                new(MetrePerSecond, "Millimetre per second", ["mm/s"], 1e-3M, UnitContext.All),
-                new(MetrePerSecond, "Metre per second",      ["m/s"],  1,     UnitContext.All),
-                new(MetrePerSecond, "Kilometre per hour",    ["km/h"], Division.Calculate(1, 3.6M), UnitContext.All),
-                new(MetrePerSecond, "Kilometre per second",  ["km/s"], 1e+3M, UnitContext.All)
+                new("Micrometre per second", ["µm/s"], 1e-6M, UnitContext.All),
+                new("Millimetre per second", ["mm/s"], 1e-3M, UnitContext.All),
+                new("Metre per second",      ["m/s"],  1,     UnitContext.All),
+                new("Kilometre per hour",    ["km/h"], Division.Calculate(1, 3.6M), UnitContext.All),
+                new("Kilometre per second",  ["km/s"], 1e+3M, UnitContext.All)
             ]);
 
         public static readonly SIDerivedUnit MetrePerSecondSquared = new(Acceleration,
             [Metre, Second, Two, Exponent, Division],
             [
-                new(MetrePerSecondSquared, "Micrometre per second squared", ["µm/s²"], 1e-6M, UnitContext.All),
-                new(MetrePerSecondSquared, "Millimetre per second squared", ["mm/s²"], 1e-3M, UnitContext.All),
-                new(MetrePerSecondSquared, "Metre per second squared",      ["m/s²"],  1,     UnitContext.All),
-                new(MetrePerSecondSquared, "Kilometre per second squared",  ["km/s²"], 1e+3M, UnitContext.All)
+                new("Micrometre per second squared", ["µm/s²"], 1e-6M, UnitContext.All),
+                new("Millimetre per second squared", ["mm/s²"], 1e-3M, UnitContext.All),
+                new("Metre per second squared",      ["m/s²"],  1,     UnitContext.All),
+                new("Kilometre per second squared",  ["km/s²"], 1e+3M, UnitContext.All)
             ]);
 
         public static readonly SIDerivedUnit SquareMetre = new(Area,
             [Metre, Two, Exponent],
             [
-                new(SquareMetre, "Square micrometre", ["µm²"],  1e-12M, UnitContext.All),
-                new(SquareMetre, "Square millimetre", ["mm²"],  1e-6M,  UnitContext.All),
-                new(SquareMetre, "Square centimetre", ["cm²"],  1e-4M,  UnitContext.All),
-                new(SquareMetre, "Square decimetre",  ["dm²"],  1e-2M,  UnitContext.All),
-                new(SquareMetre, "Square metre",      ["m²"],   1,      UnitContext.All),
-                new(SquareMetre, "Are",               ["dam²"], 1e+2M,  UnitContext.All),
-                new(SquareMetre, "Hectare",           ["hm²"],  1e+4M,  UnitContext.All),
-                new(SquareMetre, "Square kilometre",  ["km²"],  1e+6M,  UnitContext.All)
+                new("Square micrometre", ["µm²"],  1e-12M, UnitContext.All),
+                new("Square millimetre", ["mm²"],  1e-6M,  UnitContext.All),
+                new("Square centimetre", ["cm²"],  1e-4M,  UnitContext.All),
+                new("Square decimetre",  ["dm²"],  1e-2M,  UnitContext.All),
+                new("Square metre",      ["m²"],   1,      UnitContext.All),
+                new("Are",               ["dam²"], 1e+2M,  UnitContext.All),
+                new("Hectare",           ["hm²"],  1e+4M,  UnitContext.All),
+                new("Square kilometre",  ["km²"],  1e+6M,  UnitContext.All)
             ]);
 
         public static readonly SIDerivedUnit Litre = new(Volume,
             [new Number(1e-3M), Metre, Three, Exponent, Multiplication],
-            CreateStandardUnitMultiples(Litre, "Litre", "l"));
+            CreateStandardUnitMultiples("Litre", "l"));
 
         public static readonly SIDerivedUnit Newton = new(Force,
             [Kilogram, Metre, Time, MinusTwo, Exponent, Multiplication, Multiplication],
-            CreateStandardUnitMultiples(Newton, "Newton", "N"));
+            CreateStandardUnitMultiples("Newton", "N"));
 
         // TODO Equation in SI base units: kg⋅m2⋅s−3⋅A−1 */
-        public static readonly SIDerivedUnit Volt = new(Voltage, [], CreateStandardUnitMultiples(Volt, "Volt", "V"));
+        public static readonly SIDerivedUnit Volt = new(Voltage, [], CreateStandardUnitMultiples("Volt", "V"));
 
         // TODO Equation in SI base units: kg⋅m2⋅s−3⋅A−2 */
-        public static readonly SIDerivedUnit Ohm = new(Resistance, [], CreateStandardUnitMultiples(Ohm, "Ohm", "Ω"));
+        public static readonly SIDerivedUnit Ohm = new(Resistance, [], CreateStandardUnitMultiples("Ohm", "Ω"));
 
         // Imperial units
         public static readonly ImperialUnit Foot = new(0.3048M, Metre,
             [
-                new(Foot, "Thou", ["th", "mil"], Division.Calculate(1, 12000), UnitContext.All),
-                new(Foot, "Inch", ["\"", "in"],  Division.Calculate(1, 12),    UnitContext.All),
-                new(Foot, "Hand", ["hh"],        Division.Calculate(1, 3),     UnitContext.All),
-                new(Foot, "Foot", ["ft"],        1,                            UnitContext.All),
-                new(Foot, "Yard", ["yd", "'"],   36,                           UnitContext.All),
-                new(Foot, "Mile", ["mi"],        5280,                         UnitContext.All),
+                new("Thou", ["th", "mil"], Division.Calculate(1, 12000), UnitContext.All),
+                new("Inch", ["\"", "in"],  Division.Calculate(1, 12),    UnitContext.All),
+                new("Hand", ["hh"],        Division.Calculate(1, 3),     UnitContext.All),
+                new("Foot", ["ft"],        1,                            UnitContext.All),
+                new("Yard", ["yd", "'"],   36,                           UnitContext.All),
+                new("Mile", ["mi"],        5280,                         UnitContext.All),
             ]);
 
         public static readonly ImperialUnit NauticalMile = new(1852M, Metre,
             [
-                new(NauticalMile, "Nautical mile", ["NM", "nmi", "M"], 1, UnitContext.Nautical)
+                new("Nautical mile", ["NM", "nmi", "M"], 1, UnitContext.Nautical)
             ]);
 
         public static readonly ImperialUnit MilePerHour = new(0.44704M, MetrePerSecond,
             [
-                new(MilePerHour, "Mile per hour", ["mph"], 1, UnitContext.All)
+                new("Mile per hour", ["mph"], 1, UnitContext.All)
             ]);
 
         public static readonly ImperialUnit SquareFoot = new(0.09290304M, SquareMetre,
             [
-                new(SquareFoot, "Square yard", ["yd²", "sq yd"], 0.11111111111M, UnitContext.All),
-                new(SquareFoot, "Square foot", ["ft²", "sq ft"],              1, UnitContext.All),
-                new(SquareFoot, "Square inch", ["in²", "sq in"],            144, UnitContext.All),
+                new("Square yard", ["yd²", "sq yd"], 0.11111111111M, UnitContext.All),
+                new("Square foot", ["ft²", "sq ft"],              1, UnitContext.All),
+                new("Square inch", ["in²", "sq in"],            144, UnitContext.All),
             ]);
 
         // Digital units
         public static readonly SIBaseUnit Bit = new(DataSize,
             [
-                new(Bit, "Bit",     ["b", "bit"],    1,                      UnitContext.Programming),
+                new("Bit",     ["b", "bit"],    1,                      UnitContext.Programming),
                 //new("Kilobit", ["kbit"],        BigInteger.Pow(10, 3),  UnitContext.Programming),
                 //new("Kilobit", ["Kbit", "Kb"],  BigInteger.Pow(2,  10), UnitContext.Programming),
-                new(Bit, "Kibibit", ["kibit"],       BigInteger.Pow(2,  10), UnitContext.Programming),
+                new("Kibibit", ["kibit"],       BigInteger.Pow(2,  10), UnitContext.Programming),
                 //new("Megabit", ["Mbit"],        BigInteger.Pow(10, 3),  UnitContext.Programming),
                 //new("Megabit", ["Mbit", "Kb"],  BigInteger.Pow(2,  10), UnitContext.Programming),
-                new(Bit, "Mebibit", ["Mibit"],       BigInteger.Pow(2,  20), UnitContext.Programming),
+                new("Mebibit", ["Mibit"],       BigInteger.Pow(2,  20), UnitContext.Programming),
             ]);
 
         public static readonly SIBaseUnit Byte = new(DataSize,
             [
-                new(Byte, "Byte",     ["B"],   1,                    UnitContext.Programming),
-                new(Byte, "Kibibyte", ["KiB"], BigInteger.One << 10, UnitContext.Programming),
-                new(Byte, "Kilobyte", ["KB"],  BigInteger.One << 10, UnitContext.Programming),
-                new(Byte, "Mebibyte", ["MiB"], BigInteger.One << 20, UnitContext.Programming),
-                new(Byte, "Megabyte", ["MB"],  BigInteger.One << 20, UnitContext.Programming),
-                new(Byte, "Gibibyte", ["GiB"], BigInteger.One << 30, UnitContext.Programming),
-                new(Byte, "Gigabyte", ["GB"],  BigInteger.One << 30, UnitContext.Programming),
-                new(Byte, "Tebibyte", ["TiB"], BigInteger.One << 40, UnitContext.Programming),
-                new(Byte, "Terabyte", ["TB"],  BigInteger.One << 40, UnitContext.Programming),
-                new(Byte, "Pebibyte", ["PiB"], BigInteger.One << 50, UnitContext.Programming),
-                new(Byte, "Petabyte", ["PB"],  BigInteger.One << 50, UnitContext.Programming)
+                new("Byte",     ["B"],   1,                    UnitContext.Programming),
+                new("Kibibyte", ["KiB"], BigInteger.One << 10, UnitContext.Programming),
+                new("Kilobyte", ["KB"],  BigInteger.One << 10, UnitContext.Programming),
+                new("Mebibyte", ["MiB"], BigInteger.One << 20, UnitContext.Programming),
+                new("Megabyte", ["MB"],  BigInteger.One << 20, UnitContext.Programming),
+                new("Gibibyte", ["GiB"], BigInteger.One << 30, UnitContext.Programming),
+                new("Gigabyte", ["GB"],  BigInteger.One << 30, UnitContext.Programming),
+                new("Tebibyte", ["TiB"], BigInteger.One << 40, UnitContext.Programming),
+                new("Terabyte", ["TB"],  BigInteger.One << 40, UnitContext.Programming),
+                new("Pebibyte", ["PiB"], BigInteger.One << 50, UnitContext.Programming),
+                new("Petabyte", ["PB"],  BigInteger.One << 50, UnitContext.Programming)
             ]);
 
         public static readonly SIDerivedUnit BytesPerSecond = new(DataRate,
             [Byte, Second, Division],
             [
-                new(BytesPerSecond, "Bytes per second",     ["B/s"],   1,                    UnitContext.Programming),
-                new(BytesPerSecond, "Kilobytes per second", ["KiB/s"], BigInteger.One << 10, UnitContext.Programming),
-                new(BytesPerSecond, "Megabytes per second", ["MiB/s"], BigInteger.One << 20, UnitContext.Programming),
+                new("Bytes per second",     ["B/s"],   1,                    UnitContext.Programming),
+                new("Kilobytes per second", ["KiB/s"], BigInteger.One << 10, UnitContext.Programming),
+                new("Megabytes per second", ["MiB/s"], BigInteger.One << 20, UnitContext.Programming),
             ]);
 
         // Constants
@@ -376,15 +377,14 @@ namespace CalcBase
         /// <summary>
         /// Create SI standard unit multiples
         /// </summary>
-        /// <param name="parent">Parent unit</param>
         /// <param name="name">Name</param>
         /// <param name="symbol">Symbol</param>
         /// <param name="exponentOffset">Exponent offset</param>
         /// <returns></returns>
-        public static UnitMultiple[] CreateStandardUnitMultiples(IUnit? parent, string name, string symbol, int exponentOffset = 0)
+        public static UnitMultiple[] CreateStandardUnitMultiples(string name, string symbol, int exponentOffset = 0)
         {
             return SIStandardUnitMultiples
-                .Select(m => new UnitMultiple(parent, (m.Name + name).ToLower(), [m.Symbol + symbol], Exponent.Calculate(10, m.Exponent + exponentOffset), UnitContext.All))
+                .Select(m => new UnitMultiple((m.Name + name).ToLower(), [m.Symbol + symbol], Exponent.Calculate(10, m.Exponent + exponentOffset), UnitContext.All))
                 .ToArray();
         }
     }

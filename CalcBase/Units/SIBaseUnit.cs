@@ -17,11 +17,11 @@ namespace CalcBase.Units
         /// Constructor
         /// </summary>
         /// <param name="quantity">Quantity</param>
-        /// <param name="multiple">Unit multiples</param>
-        public SIBaseUnit(IQuantity quantity, UnitMultiple[] multiple)
+        /// <param name="multiples">Unit multiples</param>
+        public SIBaseUnit(IQuantity quantity, UnitMultiple[] multiples)
         {
             Quantity = quantity;
-            Multiples = multiple.Select(m => m with { Parent = this }).ToArray();
+            Multiples = multiples.Select(m => m with { Parent = this }).ToArray();
         }
     }
 }

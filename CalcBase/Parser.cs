@@ -76,7 +76,7 @@ namespace CalcBase
                 {
                     Position = start,
                     Length = symbol.Length,
-                    Unit = unit.Value
+                    Unit = unit
                 });
             }
 

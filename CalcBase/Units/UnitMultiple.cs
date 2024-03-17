@@ -9,9 +9,9 @@ namespace CalcBase.Units
     /// <summary>
     /// Unit multiple
     /// </summary>
-    public record struct UnitMultiple : IElement
+    public record UnitMultiple : IElement
     {
-        public IUnit Parent { get; internal set; }
+        public IUnit Parent { get; init; }
         public string Name { get; init; }
         public string[] Symbols { get; init; }
         public NumberType Factor { get; init; }
@@ -26,7 +26,7 @@ namespace CalcBase.Units
         /// <param name="context">Context</param>
         public UnitMultiple(string name, string[] symbols, NumberType factor, UnitContext context = UnitContext.All)
         {
-            Parent = parent;
+            Parent = Factory.DummyUnit;
             Name = name;
             Symbols = symbols;
             Factor = factor;

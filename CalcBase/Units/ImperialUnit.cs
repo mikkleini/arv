@@ -26,7 +26,7 @@ namespace CalcBase.Units
         {
             EqualSIValue = equalSIValue;
             EqualSIUnit = equalIUnit;
-            Multiples = multiples;
+            Multiples = multiples.Select(m => m with { Parent = this }).ToArray();
         }
     }
 }
