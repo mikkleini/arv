@@ -32,5 +32,16 @@ namespace CalcBase.Units
             Factor = factor;
             Context = context;
         }
+
+        /// <summary>
+        /// Custom ToString method because "Parent" property makes it recurssive.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            (this with { Parent = Factory.DummyUnit }).PrintMembers(builder);
+            return builder.ToString();
+        }
     }
 }

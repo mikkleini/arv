@@ -8,8 +8,9 @@ namespace CalcBase.Units
     /// </summary>
     public record SIBaseUnit : ISIBaseUnit    
     {
-        public string Name => Multiples.Single(m => m.Factor == 1).Name;
-        public string[] Symbols => Multiples.Single(m => m.Factor == 1).Symbols;
+        public UnitMultiple NominalMultiple => Multiples.Single(m => m.Factor == 1);
+        public string Name => NominalMultiple.Name;
+        public string[] Symbols => NominalMultiple.Symbols;
         public IQuantity Quantity { get; init; }
         public UnitMultiple[] Multiples { get; init; }
 

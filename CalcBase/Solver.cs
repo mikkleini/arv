@@ -47,6 +47,7 @@ namespace CalcBase
         /// <exception cref="SolverException"></exception>
         private static Number SolveOperation(Stack<Number> numberStack, OperatorToken opToken)
         {
+            NumberType result;
             IOperator op = opToken.Operator;
 
             // Is it unary operation ?
@@ -58,7 +59,7 @@ namespace CalcBase
                 }
 
                 Debug.WriteLine($"  Unary operation {op.Name} with {a.Value}");
-                NumberType result = unaryOp.Calculate(a.Value);
+                result = unaryOp.Calculate(a.Value);
 
                 if (a is Measure measure)
                 {
@@ -71,6 +72,7 @@ namespace CalcBase
             }
             else if ((op.OpCount == OperatorOpCountType.Binary) && (op is IBinaryOperator binOp))
             {
+                // Make sure operands are given
                 if (!numberStack.TryPop(out Number? b))
                 {
                     throw new ExpressionException("Missing operand", opToken.Position, opToken.Length);
@@ -81,25 +83,28 @@ namespace CalcBase
                     throw new ExpressionException("Missing operand", opToken.Position, opToken.Length);
                 }
 
-                Debug.WriteLine($"  Binary operation {op.Name} with {a.Value} and {b.Value}");
-                NumberType result = binOp.Calculate(a.Value, b.Value);
-
-                // Check if should use scientific notation
-                bool resultUseScientificNotation = false;
-                if (a.IsScientificNotation && b.IsScientificNotation)
+                // Just a numeric operation ?
+                if ((a is not Measure) && (b is not Measure))
                 {
-                    resultUseScientificNotation = true;
-                }
-                else if (a.IsScientificNotation || b.IsScientificNotation)
-                {
-                    resultUseScientificNotation = false;// NumberType.Abs(NumberType (result)) > 5;
+                    result = binOp.Calculate(a.Value, b.Value);
+                    return new Number(result,
+                        a.Radix | b.Radix,
+                        a.IsScientificNotation || b.IsScientificNotation,
+                        a.HexadecimalCase | b.HexadecimalCase);
                 }
 
-                // Vote radix and potential hexadecimal casing
-                IntegerRadix resultRadix = a.Radix | b.Radix;
-                HexadecimalCase resultHexCase = a.HexadecimalCase | b.HexadecimalCase;
+                // Check for derived SI unit
+                ISIDerivedUnit? derivedUnit = TryFindDerivedUnit([a, b, binOp]);
+                if (derivedUnit != null)
+                {
+                    Debug.WriteLine($"  Derived unit: {derivedUnit.Name}");
+                    result = binOp.Calculate(NominalSIValue(a), NominalSIValue(b));
+                    return new Measure(result, derivedUnit.NominalMultiple);
+                }
+
 
                 // Check for formula
+                /*
                 IFormula? formula = TryFindFormula([a, b, binOp]);
                 if (formula != null)
                 {
@@ -107,39 +112,96 @@ namespace CalcBase
                     // TODO Find right unit
                     return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
+                */
 
-                // If both operands are measures and have different units, then there should be a formula to get the resulting unit
+                // Are both operands measures ?
                 if ((a is Measure measureA) && (b is Measure measureB))
                 {
-                    // Check for derived SI unit
-                    ISIDerivedUnit? derivedUnit = TryFindDerivedUnit([measureA.Unit, measureB.Unit, binOp]);
-                    if (derivedUnit != null)
+                    // Only "linear" operations are allowed
+                    if (ReferenceEquals(binOp, Factory.Addition) || ReferenceEquals(binOp, Factory.Subtraction))
                     {
-                        Debug.WriteLine($"  Derived unit: {derivedUnit.Name}");
-                        //return new Measure(result, derivedUnit, resultRadix, resultUseScientificNotation, resultHexCase);
+                        // Measures of the same base unit ?
+                        if (measureA.Unit.Parent == measureB.Unit.Parent)
+                        {
+                            Debug.WriteLine($"  Binary operation {op.Name} with {measureA} and {measureB}");
+                            result = binOp.Calculate(measureA.Value * measureA.Unit.Factor, measureB.Value * measureB.Unit.Factor);
+                            return new Measure(result / measureA.Unit.Factor, measureA.Unit, a.Radix, a.IsScientificNotation, a.HexadecimalCase);
+                        }
+                        // Measures of the same quantity ?
+                        else if (measureA.Unit.Parent.Quantity == measureB.Unit.Parent.Quantity)
+                        {
+                            NumberType valueA = NominalSIValue(measureA);
+                            NumberType valueB = NominalSIValue(measureB);
+                            result = binOp.Calculate(valueA, valueB);
+
+                            // Deal with imperials
+                            if (measureA.Unit.Parent is IImperialUnit imperialUnit)
+                            {
+                                return new Measure((result / imperialUnit.EqualSIValue) / measureA.Unit.Factor, measureA.Unit);
+                            }
+                            else
+                            {
+                                return new Measure(result / measureA.Unit.Factor, measureA.Unit);
+                            }
+                        }
+                        else
+                        {
+                            throw new ExpressionException("Incompatible operands", opToken.Position, opToken.Length);
+                        }
                     }
-
-                    // TODO Check for reverse formulas.
-                }
-
-                if (a is Measure mA)
-                {
-                    return new Measure(result, mA.Unit, resultRadix, resultUseScientificNotation, resultHexCase);
-                }
-                else if (b is Measure mB)
-                {
-                    return new Measure(result, mB.Unit, resultRadix, resultUseScientificNotation, resultHexCase);
                 }
                 else
                 {
-                    return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
+                    // Only "scaling" operations are allowed
+                    if (ReferenceEquals(binOp, Factory.Multiplication))
+                    {
+                        if ((a is Measure mulMeasureA) && (b is not Measure))
+                        {
+                            result = binOp.Calculate(mulMeasureA.Value, b.Value);
+                            return new Measure(result, mulMeasureA.Unit);
+                        }
+                        else if ((a is not Measure) && (b is Measure mulMeasureB))
+                        {
+                            result = binOp.Calculate(a.Value, mulMeasureB.Value);
+                            return new Measure(result, mulMeasureB.Unit);
+                        }
+                    }
+                    else if (ReferenceEquals(binOp, Factory.Division) && (a is Measure divMeasureA) && (b is not Measure))
+                    {
+                        result = binOp.Calculate(divMeasureA.Value, b.Value);
+                        return new Measure(result, divMeasureA.Unit);
+                    }
                 }
+
+                throw new ExpressionException("Invalid operation", opToken.Position, opToken.Length);
             }
             else
             {
                 // Something's wrong
                 throw new ExpressionException($"Unsupported operation: {op}", opToken.Position, opToken.Length);
             }
+        }
+
+        /// <summary>
+        /// Get number nominal SI value
+        /// </summary>
+        /// <param name="number">Number</param>
+        /// <returns>Value</returns>
+        private static NumberType NominalSIValue(Number number)
+        {
+            if (number is Measure measure)
+            {
+                if (measure.Unit.Parent is ISIUnit)
+                {
+                    return measure.Value * measure.Unit.Factor;
+                }
+                else if (measure.Unit.Parent is IImperialUnit imperialUnit)
+                {
+                    return measure.Value * measure.Unit.Factor * imperialUnit.EqualSIValue;
+                }
+            }
+
+            return number.Value;
         }
 
         /// <summary>
@@ -331,7 +393,7 @@ namespace CalcBase
             }
             else
             {
-                return measure.Unit.Parent.Multiples.Where(m => measure.Value >= m.Factor).LastOrDefault();
+                return measure.Unit.Parent.Multiples.Where(m => measure.Value >= m.Factor).Last();
             }
         }
     }

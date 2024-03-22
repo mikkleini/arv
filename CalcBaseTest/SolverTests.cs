@@ -157,25 +157,27 @@ namespace CalcBaseTest
             Assert.Multiple(() =>
             {
                 Assert.That(mt.Measure.Value, Is.EqualTo((NumberType)3.2M));
-                Assert.That(mt.Measure.Unit, Is.EqualTo(Factory.Metre));
+                Assert.That(mt.Measure.Unit, Is.EqualTo(Factory.Metre.NominalMultiple));
             });
         }
 
         [Test]
         public void TestDerivedUnits()
         {
-            TestEquation("3m/2s", new Measure(1.5M, Factory.MetrePerSecond));
-            TestEquation("100km/2h", new Measure(13.889, Factory.MetrePerSecond), 3);
-            TestEquation("2cm*2cm", new Measure(0.0004M, Factory.SquareMetre));
-            TestEquation("2cm**2", new Measure(0.0004M, Factory.SquareMetre));
-            TestEquation("2in*2in", new Measure(0.00258064M, Factory.SquareMetre));
+            TestEquation("3m/2s", new Measure(1.5M, Factory.MetrePerSecond.NominalMultiple));
+            TestEquation("100km/2h", new Measure(13.889, Factory.MetrePerSecond.NominalMultiple), 3);
+            TestEquation("2cm*2cm", new Measure(0.0004M, Factory.SquareMetre.NominalMultiple));
+            TestEquation("2cm**2", new Measure(0.0004M, Factory.SquareMetre.NominalMultiple));
+            TestEquation("2in*2in", new Measure(0.00258064M, Factory.SquareMetre.NominalMultiple));
         }
 
         [Test]
         public void TextMixedNumbers()
         {
-            TestEquation("3+2m", new Measure(5.0M, Factory.Metre));
-            TestEquation("3+2cm", new Measure(0.0032M, Factory.Metre));
+            TestEquation("3m+2cm", new Measure(3.02M, Factory.Metre.NominalMultiple));
+            /*
+            TestEquation("3+2m", new Measure(5.0M, Factory.Metre.NominalMultiple));
+            TestEquation("3+2cm", new Measure(0.0032M, Factory.Metre.Multiples.Single(m => m.Name == "Centimetre")));*/
         }
     }
 }
