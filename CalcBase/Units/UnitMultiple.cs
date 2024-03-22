@@ -34,14 +34,18 @@ namespace CalcBase.Units
         }
 
         /// <summary>
-        /// Custom ToString method because "Parent" property makes it recurssive.
+        /// Custom print members function to avoid recurssive parent unit multiples printing
         /// </summary>
-        /// <returns></returns>
-        public override string ToString()
+        /// <param name="stringBuilder">Stringbuilder</param>
+        /// <returns>true if printed</returns>
+        protected virtual bool PrintMembers(StringBuilder stringBuilder)
         {
-            var builder = new StringBuilder();
-            (this with { Parent = Factory.DummyUnit }).PrintMembers(builder);
-            return builder.ToString();
+            stringBuilder.Append($"Parent = \"{Parent.Name}\", ");
+            stringBuilder.Append($"Name = \"{Name}\", ");
+            stringBuilder.Append($"Symbols = [{string.Join(',', Symbols.Select(s => $"\"{s}\""))}], ");
+            stringBuilder.Append($"Factor = {Factor}, ");
+            stringBuilder.Append($"Context = {Context}");
+            return true;
         }
     }
 }
