@@ -174,6 +174,13 @@ namespace CalcCLI
         {
             Number result;
 
+            // Add expression, even invalid, to history unless it's already there at the end
+            if (expressionHistory.LastOrDefault() != expression)
+            {
+                expressionHistory.Add(expression);
+            }
+
+            // Try to solve
             try
             {
                 expression = expression.TrimEnd('=');
@@ -214,12 +221,6 @@ namespace CalcCLI
 
             // End the line
             Console.WriteLine();
-
-            // Add expression to history unless it's already there at the end
-            if (expressionHistory.LastOrDefault() != expression)
-            {
-                expressionHistory.Add(expression);
-            }
 
             // Make selected expression deliberately out-of-range so the next "up" button will lead to selection of this expression
             selectedExpression = expressionHistory.Count;
