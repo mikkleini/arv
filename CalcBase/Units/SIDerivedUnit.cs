@@ -5,7 +5,7 @@ namespace CalcBase.Units
     /// <summary>
     /// SI derived unit
     /// </summary>
-    public record SIDerivedUnit : ISIDerivedUnit
+    public record SIDerivedUnit : ISIUnit
     {
         public UnitMultiple NominalMultiple => Multiples.Single(m => m.Factor == 1);
         public string Name => NominalMultiple.Name;

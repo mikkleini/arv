@@ -141,13 +141,18 @@ namespace CalcCLI
                 {
                     // Special function, ignore now
                 }
+                // Paste ?
+                else if ((key.Modifiers == ConsoleModifiers.Control) && (key.Key == ConsoleKey.V))
+                {
+                    
+                }
                 // Character entry
                 else
                 {
                     char c = key.KeyChar;
 
                     // Accept only visible characters
-                    if ((c != '\0') && (char.IsAscii(c)))
+                    if (c != '\0')
                     {
                         // Insert or append ?
                         if (Console.CursorLeft <= expression.Length)
@@ -179,6 +184,9 @@ namespace CalcCLI
             {
                 expressionHistory.Add(expression);
             }
+
+            // Make selected expression deliberately out-of-range so the next "up" button will lead to selection of this expression
+            selectedExpression = expressionHistory.Count;
 
             // Try to solve
             try
@@ -221,9 +229,6 @@ namespace CalcCLI
 
             // End the line
             Console.WriteLine();
-
-            // Make selected expression deliberately out-of-range so the next "up" button will lead to selection of this expression
-            selectedExpression = expressionHistory.Count;
         }
 
         /// <summary>

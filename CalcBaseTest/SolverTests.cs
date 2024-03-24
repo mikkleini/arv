@@ -165,19 +165,31 @@ namespace CalcBaseTest
         public void TestDerivedUnits()
         {
             TestEquation("3m/2s", new Measure(1.5M, Factory.MetrePerSecond.NominalMultiple));
-            TestEquation("100km/2h", new Measure(13.889, Factory.MetrePerSecond.NominalMultiple), 3);
-            TestEquation("2cm*2cm", new Measure(0.0004M, Factory.SquareMetre.NominalMultiple));
-            TestEquation("2cm**2", new Measure(0.0004M, Factory.SquareMetre.NominalMultiple));
-            TestEquation("2in*2in", new Measure(0.00258064M, Factory.SquareMetre.NominalMultiple));
+            TestEquation("100km/2h", new Measure(50, Factory.MetrePerHour.Multiples.Single(m => m.Name == "Kilometre per hour")));
+            TestEquation("2cm*2cm", new Measure(4, Factory.SquareMetre.Multiples.Single(m => m.Name == "Square centimetre")));
+            TestEquation("2cm**2", new Measure(4, Factory.SquareMetre.Multiples.Single(m => m.Name == "Square centimetre")));
+        }
+
+        [Test]
+        public void TestNonSIUnits()
+        {
+            TestEquation("2h+3600s", new Measure(3M, Factory.Hour.NominalMultiple));
+            TestEquation("3m³+500l", new Measure(3.5M, Factory.CubicMetre.NominalMultiple));
+        }
+
+        [Test]
+        public void TestImperialUnits()
+        {
+            TestEquation("2in*2in", new Measure(0.0277778M, Factory.SquareFoot.NominalMultiple), 7);
         }
 
         [Test]
         public void TextMixedNumbers()
         {
             TestEquation("3m+2cm", new Measure(3.02M, Factory.Metre.NominalMultiple));
-            /*
-            TestEquation("3+2m", new Measure(5.0M, Factory.Metre.NominalMultiple));
-            TestEquation("3+2cm", new Measure(0.0032M, Factory.Metre.Multiples.Single(m => m.Name == "Centimetre")));*/
+            TestEquation("3cm+2m", new Measure(203, Factory.Metre.Multiples.Single(m => m.Factor == 0.01M)));
+            TestEquation("3*2m", new Measure(6, Factory.Metre.NominalMultiple));
+            TestEquation("4cm/2", new Measure(2, Factory.Metre.Multiples.Single(m => m.Factor == 0.01M)));
         }
     }
 }

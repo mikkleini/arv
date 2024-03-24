@@ -8,9 +8,11 @@ using CalcBase.Formulas;
 using CalcBase.Functions;
 using CalcBase.Numbers;
 using CalcBase.Operators;
+using CalcBase.Operators.Conversion;
 using CalcBase.Quantities;
 using CalcBase.Tokens;
 using CalcBase.Units;
+using static System.Net.Mime.MediaTypeNames;
 
 [assembly: InternalsVisibleTo("CalcBaseTest")]
 namespace CalcBase
@@ -25,65 +27,180 @@ namespace CalcBase
         public static readonly char RadixPointSymbol = '.';
         public static readonly char ArgumentSeparatorSymbol = ',';
         public static readonly char ExponentPointSymbolUpper = 'E';
-        public static readonly char ExponentPointSymbolLower = 'e';  
+        public static readonly char ExponentPointSymbolLower = 'e';
+        public static readonly (char unicode, char simple)[] SpecialCharacterReplacements =
+        [
+            ('µ', 'u'),
+            ('²', '2'),
+            ('³', '3')
+        ];
+
+        private static readonly List<(string text, IElement element)> TextMatches = [];
+
+        /// <summary>
+        /// Prepare text matcher (lazy method)
+        /// </summary>
+        internal static void PrepareTextMatcher()
+        {
+            // Already prepared ?
+            if (TextMatches.Count > 0)
+            {
+                return;
+            }
+
+            // Add functions to matching list
+            TextMatches.AddRange(Factory.Functions.Select(f => (f.Symbol, (IElement)f)));
+
+            // Add constants to matching list
+            TextMatches.AddRange(Factory.Constants
+                .SelectMany(c => c.Symbols
+                .SelectMany(s => GetSymbolWithSimplification(s)
+                .Select(ss => (ss, (IElement)c)))));
+
+            // Add unit multiples with simplified symbols to the list
+            TextMatches.AddRange(Factory.Units
+                .SelectMany(u => u.Multiples
+                .SelectMany(m => m.Symbols
+                .SelectMany(s => GetSymbolWithSimplification(s)
+                .Select(ss => (ss, (IElement)m))))));
+
+            // Order list
+            //TextMatches.OrderBy(e => e.text.Length).ToList();
+
+            // Debug print conflicting symbols
+            #if DEBUG
+            foreach (var g in TextMatches.GroupBy(m => m.text).Where(g => g.Count() > 1))
+            {
+                System.Diagnostics.Debug.WriteLine($"Symbol conflict: \"{g.First().text}\" has {g.Count()} candidates");
+            }
+            #endif
+        }
+
+        /// <summary>
+        /// Get symbol with potential simplification (special characters replaced with simpler ones)
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <returns>Symbols</returns>
+        internal static IEnumerable<string> GetSymbolWithSimplification(string symbol)
+        {
+            // First return the original symbol
+            yield return symbol;
+
+            // Next check if symbol contains any special characters - if does, then replace them
+            bool hasBeenSimplified = false;
+            char[] s = symbol.ToCharArray();
+
+            foreach ((char unicode, char simple) in SpecialCharacterReplacements)
+            {
+                if (s.AsSpan().Contains(unicode))
+                {
+                    s.AsSpan().Replace(unicode, simple);
+                    hasBeenSimplified = true;
+                }
+            }
+
+            // If was simplified, then return it
+            if (hasBeenSimplified)
+            {
+                yield return new string(s);
+            }
+        }
+
+        /// <summary>
+        /// Check if matching text element fits the context
+        /// </summary>
+        /// <param name="element">Element</param>
+        /// <param name="prevToken">Previous token (if any)</param>
+        /// <returns>true if match fits the context</returns>
+        internal static bool CheckTextElementFitToContext(IElement element, IToken? prevToken)
+        {
+            if (element is UnitMultiple)
+            {
+                // Units can only follow numbers or be after unit compersion operator
+                return (prevToken != null) && ((prevToken is NumberToken) || ((prevToken is OperatorToken opToken) && (opToken.Operator is UnitConversionOperator)));
+            }
+            else if (element is IFunction)
+            {
+                // Functions can only be at the beginning, after operator or after opening bracket
+                return (prevToken == null) || (prevToken is OperatorToken) || (prevToken is LeftParenthesisToken);
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Read text (don't yet know if it's constant, unit, variable or function)
         /// </summary>
         /// <param name="infix">Infix expression</param>
         /// <param name="start">Number start position</param>
+        /// <param name="prevToken">Previous token (if any)</param>
         /// <returns>Text token</returns>
         /// <exception cref="ExpressionException">Error in expression</exception>
-        internal static IToken ReadText(ReadOnlySpan<char> infix, int start)
+        internal static IToken ReadText(ReadOnlySpan<char> infix, int start, IToken? prevToken)
         {
-            List<IToken> candidateTokens = [];
-            string symbol;
+            PrepareTextMatcher();
+
+            // Create new string because spans cannot be used inside lambdas
             string text = infix.Slice(start).ToString();
+            var matches = TextMatches.Where(m => text.StartsWith(m.text));
 
-            // Is it a function ?
-            IFunction? func = Factory.Functions
-                .OrderByDescending(f => f.Symbol.Length)
-                .FirstOrDefault(f => text.StartsWith(f.Symbol));
-            if (func != null)
+            // Any match ?
+            if (matches.Any())
             {
-                candidateTokens.Add(new FunctionToken()
+                // Get the match(es) with longest symbol (to avoid function 'cos' being matched as constant 'c')
+                int longestSymbol = matches.OrderByDescending(m => m.text.Length).First().text.Length;
+                var longestMatches = matches.Where(m => m.text.Length == longestSymbol);
+
+                // Are there more than one long matches ? Rare case, but possible for "min" as minute and "min" as function.
+                if (longestMatches.Count() > 1)
                 {
-                    Position = start,
-                    Length = func.Symbol.Length,
-                    Function = func
-                });
-            }
+                    // Use context fit check to rule out one or another
+                    longestMatches = longestMatches.Where(m => CheckTextElementFitToContext(m.element, prevToken));
 
-            // Is it a constant ?
-            (symbol, IConstant? constant) = Factory.ConstantsBySymbols
-                .FirstOrDefault(c => text.StartsWith(c.symbol));
-            if (constant != null)
-            {
-                candidateTokens.Add(new ConstantToken()
+                    // Are we down to one candidate ?
+                    if (longestMatches.Count() > 1)
+                    {
+                        throw new ExpressionException($"Ambigious function/constant/unit: {text}", start, longestSymbol);
+                    }
+                }
+
+                // Any match left ?
+                if (longestMatches.Any())
                 {
-                    Position = start,
-                    Length = symbol.Length,
-                    Constant = constant
-                });
-            }
+                    (string symbol, IElement element) = longestMatches.First();
 
-            // Is it a unit multiple ?
-            (symbol, UnitMultiple? unit) = Factory.UnitsBySymbols
-                .FirstOrDefault(u => text.StartsWith(u.symbol));
-            if (unit != null)
-            {
-                candidateTokens.Add(new UnitToken()
-                {
-                    Position = start,
-                    Length = symbol.Length,
-                    Unit = unit
-                });
-            }
-
-            // Longest (or first) token will be chosen
-            if (candidateTokens.Count > 0)
-            {
-                return candidateTokens.OrderByDescending(t => t.Length).First();
+                    if (element is IFunction func)
+                    {
+                        return new FunctionToken()
+                        {
+                            Function = func,
+                            Position = start,
+                            Length = symbol.Length,
+                        };
+                    }
+                    else if (element is IConstant constant)
+                    {
+                        return new ConstantToken()
+                        {
+                            Constant = constant,
+                            Position = start,
+                            Length = symbol.Length,
+                        };
+                    }
+                    else if (element is UnitMultiple unitMultiple)
+                    {
+                        return new UnitToken()
+                        {
+                            Unit = unitMultiple,
+                            Position = start,
+                            Length = symbol.Length
+                        };
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("Unimplemented element");
+                    }
+                }
             }
 
             throw new ExpressionException($"Unknown function/constant/unit: {text}", start, text.Length);
@@ -123,6 +240,7 @@ namespace CalcBase
         /// <returns></returns>
         public static List<IToken> Tokenize(string infix)
         {
+            IToken? prevToken = null;
             List<IToken> tokens = [];
             int i = 0;
 
@@ -143,7 +261,7 @@ namespace CalcBase
                 }
                 else if (char.IsLetter(c))
                 {
-                    token = ReadText(infix, i);
+                    token = ReadText(infix, i, prevToken);
                 }
                 else if (c == '(')
                 {
@@ -204,6 +322,7 @@ namespace CalcBase
                 {
                     tokens.Add(token);
                     i += token.Length;
+                    prevToken = token;
                 }
                 else
                 {
@@ -400,6 +519,21 @@ namespace CalcBase
                     }
 
                     opStack.Push(opToken);
+
+                    // Special case with unit conversion operator
+                    if (next is UnitToken unitToken2)
+                    {
+                        // Combine unit token to nominal measure and add it as an operand
+                        postfix.Add(new MeasureToken()
+                        {
+                            Position = unitToken2.Position,
+                            Length = unitToken2.Length,
+                            Measure = new Measure(Factory.One, unitToken2.Unit)
+                        });
+
+                        // Leap over unit token
+                        i++;
+                    }
                 }
                 else if (current is FunctionToken funcToken)
                 {

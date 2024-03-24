@@ -19,8 +19,8 @@ namespace CalcBase.Formulas
         IElement[] Expression { get; }
 
         /// <summary>
-        /// Result of the formula
+        /// Result unit of the formula
         /// </summary>
-        IQuantity Result { get; }
+        ISIUnit ResultUnit { get; }
     }
 }

@@ -37,28 +37,36 @@ namespace CalcBase.Formulas
 
             if (x is Measure measureX)
             {
-                realX = measureX.Unit.Parent.Quantity;
+                realX = measureX.Unit.Parent;
             }
             else if (x is IUnit unitX)
             {
-                realX = unitX.Quantity;
+                realX = unitX;
+            }
+            else if (x is UnitMultiple multipleX)
+            {
+                realX = multipleX.Parent;
             }
             else if (x is PhysicsVariable varX)
             {
-                realX = varX.Quantity;
+                realX = varX.Unit;
             }
 
             if (y is Measure measureY)
             {
-                realY = measureY.Unit.Parent.Quantity;
+                realY = measureY.Unit.Parent;
             }
             else if (y is IUnit unitY)
             {
-                realY = unitY.Quantity;
+                realY = unitY;
+            }
+            else if (y is UnitMultiple multipleY)
+            {
+                realY = multipleY.Parent;
             }
             else if (y is PhysicsVariable phyVar)
             {
-                realY = phyVar.Quantity;
+                realY = phyVar.Unit;
             }
 
             return realX?.Equals(realY) ?? false;

@@ -1,11 +1,16 @@
 ﻿using CalcBase.Quantities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CalcBase.Units
 {
     /// <summary>
-    /// Imperial unit
+    /// Non-SI unit that is accepted to be used
     /// </summary>
-    public record ImperialUnit : IUnit
+    public record NonSIUnit : IUnit
     {
         public UnitMultiple NominalMultiple => Multiples.Single(m => m.Factor == 1);
         public string Name => NominalMultiple.Name;
@@ -23,7 +28,7 @@ namespace CalcBase.Units
         /// <param name="equalSIValue">Equal SI value</param>
         /// <param name="equalIUnit">Equal SI unit</param>
         /// <param name="multiples">Unit multiples</param>
-        public ImperialUnit(NumberType equalSIValue, ISIUnit equalIUnit, UnitMultiple[] multiples)
+        public NonSIUnit(NumberType equalSIValue, ISIUnit equalIUnit, UnitMultiple[] multiples)
         {
             EqualSIValue = equalSIValue;
             EqualSIUnit = equalIUnit;

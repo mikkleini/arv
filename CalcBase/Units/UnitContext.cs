@@ -16,5 +16,7 @@ namespace CalcBase.Units
         ElectricalEngineering = 2,
         Programming = 4,
         Nautical = 8,
+        Engineering = 16,
+        Astronomy = 32,
     }
 }

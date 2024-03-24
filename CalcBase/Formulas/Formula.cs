@@ -1,4 +1,5 @@
 ﻿using CalcBase.Quantities;
+using CalcBase.Units;
 
 namespace CalcBase.Formulas
 {
@@ -9,19 +10,19 @@ namespace CalcBase.Formulas
     {
         public string Name { get; init; }
         public IElement[] Expression { get; init; }
-        public IQuantity Result { get; init; }
+        public ISIUnit ResultUnit { get; init; }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="name">Name</param>
         /// <param name="expression">Expression</param>
-        /// <param name="result">Result</param>
-        public Formula(string name, IElement[] expression, IQuantity result)
+        /// <param name="resultUnit">Resulting SI unit</param>
+        public Formula(string name, IElement[] expression, ISIUnit resultUnit)
         {
             Name = name;
             Expression = expression;
-            Result = result;
+            ResultUnit = resultUnit;
         }
     }
 }

@@ -6,6 +6,7 @@ using CalcBase.Numbers;
 using CalcBase.Operators;
 using CalcBase.Operators.Arithmetic;
 using CalcBase.Operators.Bitwise;
+using CalcBase.Operators.Conversion;
 using CalcBase.Quantities;
 using CalcBase.Units;
 using System.Numerics;
@@ -66,14 +67,13 @@ namespace CalcBase
         public static readonly SingleArgumentFunction Asin = new("Arcsine", "asin", NumberType.Asin);
         public static readonly SingleArgumentFunction Acos = new("Arccosine", "acos", NumberType.Acos);
         public static readonly SingleArgumentFunction Atan = new("Arctangent", "atan", NumberType.Atan);
-        public static readonly DualArgumentFunction Atan2 = new("Two argument arctangent", "atan2", (y, x) => NumberType.Atan2(y, x));
+        public static readonly DualArgumentFunction Atan2 = new("Two argument arctangent", "atan2", NumberType.Atan2);
         public static readonly SingleArgumentFunction Sinh = new("Hyperbolic sine", "sinh", NumberType.Sinh);
         public static readonly SingleArgumentFunction Cosh = new("Hyperbolic cosine", "cosh", NumberType.Cosh);
         public static readonly SingleArgumentFunction Tanh = new("Hyperbolic tangent", "tanh", NumberType.Tanh);
-
-        public static readonly SingleArgumentFunction Ln = new("Natural (base-E) logarithm", "ln", x => NumberType.Log(x));
-        public static readonly SingleArgumentFunction Log2 = new("Base-2 logarithm", "log2", x => NumberType.Log2(x));
-        public static readonly SingleArgumentFunction Log10 = new("Base-10 logarithm", "log10", x => NumberType.Log10(x));
+        public static readonly SingleArgumentFunction Ln = new("Natural (base-E) logarithm", "ln", NumberType.Log);
+        public static readonly SingleArgumentFunction Log2 = new("Base-2 logarithm", "log2", NumberType.Log2);
+        public static readonly SingleArgumentFunction Log10 = new("Base-10 logarithm", "log10",NumberType.Log10);
 
         // Number tweaking functions
         public static readonly SingleArgumentFunction Abs = new("Absolute", "abs", NumberType.Abs);
@@ -108,6 +108,9 @@ namespace CalcBase
         public static readonly LeftShiftOperator LeftShift = new();
         public static readonly RightShiftOperator RightShift = new();
 
+        // Special operators
+        public static readonly UnitConversionOperator UnitConversion = new();
+
         // Physics quantities
         public static readonly Quantity Time = new("Time", ["t"]);
         public static readonly Quantity Length = new("Length", ["l"]);
@@ -119,6 +122,10 @@ namespace CalcBase
         public static readonly Quantity Volume = new("Volume", ["V"]);
         public static readonly Quantity Force = new("Force", ["F"]);
         public static readonly Quantity Frequency = new("Frequency", ["f"]);
+        public static readonly Quantity Energy = new("Energy", ["E"]);
+        public static readonly Quantity ThermodynamicTemperature = new("Thermodynamic temperature", ["Θ"]);
+        public static readonly Quantity AmountOfSubstance = new("Amount of substance", ["N"]);
+        public static readonly Quantity LuminousIntensity = new ("Luminous intensity", ["J"]);
 
         // Electrical quantities
         public static readonly Quantity Voltage = new("Voltage", ["V", "U"]);
@@ -132,30 +139,20 @@ namespace CalcBase
         public static readonly Quantity Power = new("Power", ["P"]);
 
         // Digital quantities
-        public static readonly Quantity DataSize = new("Data size", [""]);
+        public static readonly Quantity DataSize = new("Datasize", [""]);
         public static readonly Quantity DataRate = new("Datarate", [""]);
 
         // Dummies
         internal static readonly DummyUnit DummyUnit = new();
 
         // SI base units
-        public static readonly SIBaseUnit Second = new(Time,
-            [
-                ..CreateStandardUnitMultiples("Second", "s"),
-                new("Minute", ["min"], 60, UnitContext.All),
-                new("Hour", ["h"], 3600, UnitContext.All),
-                new("Day", ["d"], 24 * 3600, UnitContext.All)
-            ]);
-
+        public static readonly SIBaseUnit Second = new(Time, CreateStandardUnitMultiples("Second", "s"));
         public static readonly SIBaseUnit Metre = new(Length, CreateStandardUnitMultiples("Metre", "m"));
-
-        public static readonly SIBaseUnit Kilogram = new(Mass,
-            [
-                ..CreateStandardUnitMultiples("Gram", "g", -3),
-                new("Tonne", ["t"], 1e+3M, UnitContext.All)
-            ]);
-
+        public static readonly SIBaseUnit Kilogram = new(Mass, CreateStandardUnitMultiples("Gram", "g", -3));
         public static readonly SIBaseUnit Ampere = new(Current, CreateStandardUnitMultiples("Ampere", "A"));
+        public static readonly SIBaseUnit Kelvin = new(ThermodynamicTemperature, CreateStandardUnitMultiples("Kelvin", "K"));
+        public static readonly SIBaseUnit Mole = new(AmountOfSubstance, CreateStandardUnitMultiples("Mole", "mol"));
+        public static readonly SIBaseUnit Candela = new(LuminousIntensity, CreateStandardUnitMultiples("Candela", "cd"));
 
         // SI derived units
         public static readonly SIDerivedUnit MetrePerSecond = new(Speed,
@@ -163,13 +160,13 @@ namespace CalcBase
             [
                 new("Micrometre per second", ["µm/s"], 1e-6M, UnitContext.All),
                 new("Millimetre per second", ["mm/s"], 1e-3M, UnitContext.All),
+                //new("Kilometre per hour",    ["km/h"], Division.Calculate(1, 3.6M), UnitContext.All),
                 new("Metre per second",      ["m/s"],  1,     UnitContext.All),
-                new("Kilometre per hour",    ["km/h"], Division.Calculate(1, 3.6M), UnitContext.All),
                 new("Kilometre per second",  ["km/s"], 1e+3M, UnitContext.All)
             ]);
 
         public static readonly SIDerivedUnit MetrePerSecondSquared = new(Acceleration,
-            [Metre, Second, Two, Exponent, Division],
+            [MetrePerSecond, Second, Division],
             [
                 new("Micrometre per second squared", ["µm/s²"], 1e-6M, UnitContext.All),
                 new("Millimetre per second squared", ["mm/s²"], 1e-3M, UnitContext.All),
@@ -185,24 +182,56 @@ namespace CalcBase
                 new("Square centimetre", ["cm²"],  1e-4M,  UnitContext.All),
                 new("Square decimetre",  ["dm²"],  1e-2M,  UnitContext.All),
                 new("Square metre",      ["m²"],   1,      UnitContext.All),
-                new("Are",               ["dam²"], 1e+2M,  UnitContext.All),
-                new("Hectare",           ["hm²"],  1e+4M,  UnitContext.All),
                 new("Square kilometre",  ["km²"],  1e+6M,  UnitContext.All)
             ]);
 
-        public static readonly SIDerivedUnit Litre = new(Volume,
-            [new Number(1e-3M), Metre, Three, Exponent, Multiplication],
-            CreateStandardUnitMultiples("Litre", "l"));
+        public static readonly SIDerivedUnit CubicMetre = new(Volume,
+            [Metre, Three, Exponent],
+            [
+                new("Cubic micrometre", ["µm³"],  1e-12M, UnitContext.All),
+                new("Cubic millimetre", ["mm³"],  1e-9M,  UnitContext.All),
+                new("Cubic centimetre", ["cm³"],  1e-6M,  UnitContext.All),
+                new("Cubic decimetre",  ["dm³"],  1e-3M,  UnitContext.All),
+                new("Cubic metre",      ["m³"],   1,      UnitContext.All),
+                new("Cubic decametre",  ["dam³"], 1e+3M,  UnitContext.All),
+                new("Cubic hectometre", ["hm³"],  1e+6M,  UnitContext.All),
+                new("Cubic kilometre",  ["km³"],  1e+9M,  UnitContext.All),
+            ]);
 
         public static readonly SIDerivedUnit Newton = new(Force,
-            [Kilogram, Metre, Time, MinusTwo, Exponent, Multiplication, Multiplication],
+            [Kilogram, Metre, Second, MinusTwo, Exponent, Multiplication, Multiplication],
             CreateStandardUnitMultiples("Newton", "N"));
+
+        public static readonly SIDerivedUnit Joule = new(Energy,
+            [Kilogram, Metre, Second, MinusTwo, Exponent, Metre, Two, Exponent, Multiplication, Multiplication],
+            CreateStandardUnitMultiples("Joule", "J"));
 
         // TODO Equation in SI base units: kg⋅m2⋅s−3⋅A−1 */
         public static readonly SIDerivedUnit Volt = new(Voltage, [], CreateStandardUnitMultiples("Volt", "V"));
 
         // TODO Equation in SI base units: kg⋅m2⋅s−3⋅A−2 */
         public static readonly SIDerivedUnit Ohm = new(Resistance, [], CreateStandardUnitMultiples("Ohm", "Ω"));
+
+        // Non-SI units, but widely used 
+        public static readonly NonSIUnit Minute           = new(60,                 Second,      [new("Minute", ["min"], 1, UnitContext.All)]);
+        public static readonly NonSIUnit Hour             = new(3600,               Second,      [new("Hour", ["h"], 1, UnitContext.All)]);
+        public static readonly NonSIUnit Day              = new(24 * 3600,          Second,      [new("Day", ["d"], 1, UnitContext.All)]);
+        public static readonly NonSIUnit JulianYear       = new(31557600,           Second,      [new("Julian year", ["a"], 1, UnitContext.Astronomy)]);
+        public static readonly NonSIUnit AstronomicalUnit = new(149597870700,       Metre,       [new("Astronomical unit", ["au"], 1, UnitContext.Astronomy)]);
+        public static readonly NonSIUnit Are              = new(100,                SquareMetre, [new("Are", ["dam²"], 1, UnitContext.All)]);
+        public static readonly NonSIUnit Hectare          = new(10000,              SquareMetre, [new("Hectare", ["ha", "hm²"], 1, UnitContext.All)]);
+        public static readonly NonSIUnit Litre            = new(0.001M,             CubicMetre,  CreateStandardUnitMultiples("Litre", "l"));
+        public static readonly NonSIUnit Tonne            = new(1000,               Kilogram,    [new("Tonne", ["t"], 1, UnitContext.All)]);
+        public static readonly NonSIUnit Dalton           = new(1.66053906660e-27M, Kilogram,    [new("Dalton", ["Da"], 1, UnitContext.All)]);
+        public static readonly NonSIUnit ElectronVolt     = new(1.602176634e-19M,   Joule,       [new("Electronvolt", ["eV"], 1, UnitContext.All)]);
+
+        // SI derived units
+        public static readonly SIDerivedUnit MetrePerHour = new(Speed,
+            [Metre, Hour, Division],
+            [
+                new("Metre per hour",     ["m/h"],  1,    UnitContext.All),
+                new("Kilometre per hour", ["km/h"], 1000, UnitContext.All)
+            ]);
 
         // Imperial units
         public static readonly ImperialUnit Foot = new(0.3048M, Metre,
@@ -232,6 +261,19 @@ namespace CalcBase
                 new("Square inch", ["in²", "sq in"],            144, UnitContext.All),
             ]);
 
+        public static readonly ImperialUnit Pound = new(0.45359237M, Kilogram,
+            [
+                new("Grain",         ["gr"],        Division.Calculate(1, 7000), UnitContext.All),
+                new("Drachm",        ["dr"],        Division.Calculate(1, 256),  UnitContext.All),
+                new("Ounce",         ["oz"],        Division.Calculate(1, 16),   UnitContext.All),
+                new("Pound",         ["lb"],        1,                           UnitContext.All),
+                new("Stone",         ["st"],        14,                          UnitContext.All),
+                new("Slug",          ["slug"],      32.17404856M,                UnitContext.Engineering),
+                new("Quarter",       ["qr", "qrt"], 28,                          UnitContext.All),
+                new("Hundredweight", ["cwt"],       112,                         UnitContext.All),
+                new("Ton",           ["it"],        2240,                        UnitContext.All), // Custom symbol, really is "t"
+            ]);
+
         // Digital units
         public static readonly SIBaseUnit Bit = new(DataSize,
             [
@@ -259,6 +301,14 @@ namespace CalcBase
                 new("Petabyte", ["PB"],  BigInteger.One << 50, UnitContext.Programming)
             ]);
 
+        public static readonly SIDerivedUnit BitsPerSecond = new(DataRate,
+            [Bit, Second, Division],
+            [
+                new("Bits per second",     ["b/s"],   1,                    UnitContext.Programming),
+                new("Kilobits per second", ["Kib/s"], BigInteger.One << 10, UnitContext.Programming),
+                new("Megabits per second", ["Mib/s"], BigInteger.One << 20, UnitContext.Programming),
+            ]);
+
         public static readonly SIDerivedUnit BytesPerSecond = new(DataRate,
             [Byte, Second, Division],
             [
@@ -273,30 +323,33 @@ namespace CalcBase
         public static readonly Constant GravitationConstant = new("Newtonian constant of gravitation", ["G"], new Number(6.6743e-11M, isScientificNotation: true)); // TODO Make it physics contant with unit: N * m^2 * kg^−2
 
         // Mathematical formulas
-        public static readonly Formula AreaOfSquare = new("Area of square", [PhyVar(Length, "Side", "a"), Two, Exponent], Area);
-        public static readonly Formula AreaOfRectangle = new("Area of rectangle", [PhyVar(Length, "Length", "l"), PhyVar(Length, "Width", "w"), Multiplication], Area);
-        public static readonly Formula AreaOfTriangle = new("Area of triangle", [PhyVar(Length, "Base", "b"), PhyVar(Length, "Height", "h"), Multiplication, Two, Division], Area);
-        public static readonly Formula AreaOfCircle = new("Area of circle", [Pi, PhyVar(Length, "Radius", "r"), Two, Exponent, Multiplication], Area);
-        public static readonly Formula AreaOfSphere = new("Area of sphere", [Four, Pi, PhyVar(Length, "Radius", "r"), Two, Exponent, Multiplication, Multiplication], Area);
-        public static readonly Formula VolumeOfCube = new("Volume of cube", [PhyVar(Length, "Side", "a"), Three, Exponent], Volume);
-        public static readonly Formula VolumeOfBox = new("Volume of box", [PhyVar(Length, "Length", "l"), PhyVar(Length, "Width", "w"), PhyVar(Length, "Height", "h"), Multiplication, Multiplication], Volume);
+        public static readonly Formula AreaOfSquare = new("Area of square", [PhyVar(Metre, "Side", "a"), Two, Exponent], SquareMetre);
+        public static readonly Formula AreaOfSquareMetre = new("Area of square", [PhyVar(Metre, "Side", "a"), Two, Exponent], SquareMetre);
+        public static readonly Formula AreaOfRectangle = new("Area of rectangle", [PhyVar(Metre, "Length", "l"), PhyVar(Metre, "Width", "w"), Multiplication], SquareMetre);
+        public static readonly Formula AreaOfTriangle = new("Area of triangle", [PhyVar(Metre, "Base", "b"), PhyVar(Metre, "Height", "h"), Multiplication, Two, Division], SquareMetre);
+        public static readonly Formula AreaOfCircle = new("Area of circle", [Pi, PhyVar(Metre, "Radius", "r"), Two, Exponent, Multiplication], SquareMetre);
+        public static readonly Formula AreaOfSphere = new("Area of sphere", [Four, Pi, PhyVar(Metre, "Radius", "r"), Two, Exponent, Multiplication, Multiplication], SquareMetre);
+        public static readonly Formula VolumeOfCube = new("Volume of cube", [PhyVar(Metre, "Side", "a"), Three, Exponent], CubicMetre);
+        public static readonly Formula VolumeOfBox = new("Volume of box", [PhyVar(Metre, "Length", "l"), PhyVar(Metre, "Width", "w"), PhyVar(Metre, "Height", "h"), Multiplication, Multiplication], CubicMetre);
 
         // Physics formulas
-        public static readonly Formula AccelerationFormula = new("Acceleration", [PhyVar(Speed), PhyVar(Time), Division], Acceleration);
-        public static readonly Formula TravelDistance = new("Travel distance", [PhyVar(Speed), PhyVar(Time), Multiplication], Length);
-        public static readonly Formula TravelSpeed = new("Travel speed", [PhyVar(Length, "Distance", "d"), PhyVar(Time), Division], Speed);
+        public static readonly Formula TravelDistance = new("Travel distance", [PhyVar(MetrePerSecond), PhyVar(Second), Multiplication], Metre);
+        public static readonly Formula TravelSpeed = new("Travel speed", [PhyVar(Metre, "Distance", "d"), PhyVar(Second), Division], MetrePerSecond);
+        public static readonly Formula TravelTime = new("Travel speed", [PhyVar(Metre, "Distance", "d"), PhyVar(MetrePerSecond), Division], Second);
+        public static readonly Formula AccelerationFormula = new("Acceleration", [PhyVar(MetrePerSecond), PhyVar(Second), Division], MetrePerSecondSquared);
 
         // Electrical formulas
-        public static readonly Formula OhmsLaw = new("Ohm's law", [PhyVar(Voltage), PhyVar(Resistance), Division], Current);
+        public static readonly Formula OhmsLaw = new("Ohm's law", [PhyVar(Volt, "Volt", "v"), PhyVar(Ohm, "Resitance", "r"), Division], Ampere);
 
         // Digital formulas
-        public static readonly Formula DataAmountByDataRate = new("Data amount by datarate and time", [PhyVar(DataRate), PhyVar(Time), Multiplication], DataSize);
+        public static readonly Formula BitrateByAmountAndTime = new("Datarate by data amount and time", [PhyVar(Bit), PhyVar(Second), Division], BitsPerSecond);
+        public static readonly Formula ByterateByAmountAndTime = new("Datarate by data amount and time", [PhyVar(Byte), PhyVar(Second), Division], BytesPerSecond);
 
         /// <summary>
         /// All operators
         /// </summary>
         public static readonly IOperator[] Operators =
-            [Negation, Addition, Division, Exponent, Multiplication, Quotient, Reminder, Subtraction, Inverse, And, Or, Xor, LeftShift, RightShift];
+            [Negation, Addition, Division, Exponent, Multiplication, Quotient, Reminder, Subtraction, Inverse, And, Or, Xor, LeftShift, RightShift, UnitConversion];
 
         /// <summary>
         /// All functions
@@ -314,7 +367,8 @@ namespace CalcBase
         /// All quantities
         /// </summary>
         public static readonly IQuantity[] Quantities =
-            [Time, Length, Speed, Mass, Density, Acceleration, Area, Volume, Force, Frequency,
+            [Time, Length, Speed, Mass, Density, Acceleration, Area, Volume, Force, Frequency, Energy,
+            ThermodynamicTemperature, AmountOfSubstance, LuminousIntensity,
             Voltage, Current, Resistance, Conductance, Capacitance, Inductance, Impedance, Charge, Power,
             DataSize, DataRate];
 
@@ -322,10 +376,13 @@ namespace CalcBase
         /// All units
         /// </summary>
         public static readonly IUnit[] Units =
-            [Second, Metre, Kilogram, MetrePerSecond, SquareMetre, Newton,
-            Foot, NauticalMile, MilePerHour, SquareFoot,
-            Ampere, Ohm, Volt,
-            Bit, Byte, BytesPerSecond];
+            [Second, Metre, Kilogram, Ampere, Kelvin, Mole, Candela,
+            MetrePerSecond, SquareMetre, CubicMetre, Newton, Joule,
+            Minute, Hour, Day, JulianYear, AstronomicalUnit, Are, Hectare, Litre, Tonne, Dalton, ElectronVolt,
+            MetrePerHour,
+            Foot, NauticalMile, MilePerHour, SquareFoot, Pound,
+            Ohm, Volt,
+            Bit, Byte, BitsPerSecond, BytesPerSecond];
 
         /// <summary>
         /// All formulas
@@ -333,45 +390,30 @@ namespace CalcBase
         public static readonly IFormula[] Formulas =
             [AreaOfSquare, AreaOfRectangle, AreaOfTriangle, AreaOfCircle, AreaOfSphere,
             VolumeOfCube, VolumeOfBox,
-            AccelerationFormula, TravelDistance, TravelSpeed,
+            TravelDistance, TravelSpeed, TravelTime, AccelerationFormula,
             OhmsLaw,
-            DataAmountByDataRate];
-        
-        /// <summary>
-        /// Enumerate constants by their symbols starting from longest, ending with shorters
-        /// </summary>
-        public static IEnumerable<(string symbol, IConstant constant)> ConstantsBySymbols => Constants
-            .SelectMany(c => c.Symbols.Select(s => (symbol: s, constant: c)))
-            .OrderByDescending(x => x.symbol.Length);
-
-        /// <summary>
-        /// Enumerate units by their multiples symbols from longest, ending with shorters
-        /// </summary>
-        public static IEnumerable<(string symbol, UnitMultiple unit)> UnitsBySymbols => Units
-            .SelectMany(u => u.Multiples.Select(m => (m.Symbols, unit: m)))
-            .SelectMany(m => m.Symbols.Select(s => (symbol: s, m.unit)))
-            .OrderByDescending(x => x.symbol.Length);
+            BitrateByAmountAndTime, ByterateByAmountAndTime];
 
         /// <summary>
         /// Utility function to create physics variable
         /// </summary>
-        /// <param name="quantity">Quantity</param>
+        /// <param name="unit">SI unit</param>
         /// <param name="name">Name</param>
         /// <param name="symbol">Symbol</param>
         /// <returns>Physics variable</returns>
-        public static PhysicsVariable PhyVar(IQuantity quantity, string name, string symbol)
+        public static PhysicsVariable PhyVar(ISIUnit unit, string name, params string[] symbols)
         {
-            return new PhysicsVariable(name, [symbol], quantity);
+            return new PhysicsVariable(name, symbols, unit);
         }
 
         /// <summary>
         /// Utility function to create physics variable
         /// </summary>
-        /// <param name="quantity">Quantity</param>
+        /// <param name="unit">SI unit</param>
         /// <returns>Physics variable</returns>
-        public static PhysicsVariable PhyVar(IQuantity quantity)
+        public static PhysicsVariable PhyVar(ISIUnit unit)
         {
-            return new PhysicsVariable(quantity.Name, quantity.Symbols, quantity);
+            return new PhysicsVariable(unit.Quantity.Name, unit.Quantity.Symbols, unit);
         }
 
         /// <summary>

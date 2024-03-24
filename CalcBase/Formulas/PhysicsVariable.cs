@@ -1,4 +1,5 @@
 ﻿using CalcBase.Quantities;
+using CalcBase.Units;
 
 namespace CalcBase.Formulas
 {
@@ -9,19 +10,19 @@ namespace CalcBase.Formulas
     {
         public string Name { get; init; }
         public string[] Symbols { get; init; }
-        public IQuantity Quantity { get; init; }
+        public ISIUnit Unit { get; init; }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="name">Name</param>
         /// <param name="symbols">Symbol(s)</param>
-        /// <param name="quantity">Quantity</param>
-        public PhysicsVariable(string name, string[] symbols, IQuantity quantity)
+        /// <param name="unit">SI unit</param>
+        public PhysicsVariable(string name, string[] symbols, ISIUnit unit)
         {
             Name = name;
             Symbols = symbols;
-            Quantity = quantity;
+            Unit = unit;
         }
     }
 }

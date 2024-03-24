@@ -8,6 +8,7 @@ using CalcBase.Constants;
 using CalcBase.Formulas;
 using CalcBase.Quantities;
 using CalcBase.Units;
+using System.Numerics.Generic;
 
 namespace CalcBase
 {
@@ -23,9 +24,9 @@ namespace CalcBase
         /// </summary>
         /// <param name="expression">Expression</param>
         /// <returns>SI derived unit</returns>
-        private static ISIDerivedUnit? TryFindDerivedUnit(IElement[] expression)
+        private static SIDerivedUnit? TryFindDerivedUnit(IElement[] expression)
         {
-            return (SIDerivedUnit?) Factory.Units.FirstOrDefault(u => (u is ISIDerivedUnit devU) && (devU.Expression.SequenceEqual(expression)));
+            return (SIDerivedUnit?)Factory.Units.FirstOrDefault(u => (u is SIDerivedUnit devU) && (devU.Expression.SequenceEqual(expression, FormulaEqComp)));
         }
 
         /// <summary>
@@ -94,25 +95,24 @@ namespace CalcBase
                 }
 
                 // Check for derived SI unit
-                ISIDerivedUnit? derivedUnit = TryFindDerivedUnit([a, b, binOp]);
+                SIDerivedUnit? derivedUnit = TryFindDerivedUnit([a, b, binOp]);
                 if (derivedUnit != null)
                 {
                     Debug.WriteLine($"  Derived unit: {derivedUnit.Name}");
-                    result = binOp.Calculate(NominalSIValue(a), NominalSIValue(b));
-                    return new Measure(result, derivedUnit.NominalMultiple);
+                    result = binOp.Calculate(NominalValue(a), NominalValue(b));
+                    UnitMultiple unit = GetFittingUnitMultiple(result, derivedUnit);
+                    return new Measure(result / unit.Factor, unit);
                 }
 
-
                 // Check for formula
-                /*
                 IFormula? formula = TryFindFormula([a, b, binOp]);
                 if (formula != null)
                 {
                     Debug.WriteLine($"  Formula: {formula.Name}");
-                    // TODO Find right unit
-                    return new Number(result, resultRadix, resultUseScientificNotation, resultHexCase);
+                    result = binOp.Calculate(NominalSIValue(a), NominalSIValue(b));
+                    UnitMultiple unit = GetFittingUnitMultiple(result, formula.ResultUnit);
+                    return new Measure(result / unit.Factor, unit);
                 }
-                */
 
                 // Are both operands measures ?
                 if ((a is Measure measureA) && (b is Measure measureB))
@@ -134,8 +134,12 @@ namespace CalcBase
                             NumberType valueB = NominalSIValue(measureB);
                             result = binOp.Calculate(valueA, valueB);
 
-                            // Deal with imperials
-                            if (measureA.Unit.Parent is IImperialUnit imperialUnit)
+                            // Deal with non-SI and imperial units
+                            if (measureA.Unit.Parent is NonSIUnit nonSIUnit)
+                            {
+                                return new Measure((result / nonSIUnit.EqualSIValue) / measureA.Unit.Factor, measureA.Unit);
+                            }
+                            else if (measureA.Unit.Parent is ImperialUnit imperialUnit)
                             {
                                 return new Measure((result / imperialUnit.EqualSIValue) / measureA.Unit.Factor, measureA.Unit);
                             }
@@ -183,6 +187,21 @@ namespace CalcBase
         }
 
         /// <summary>
+        /// Get number nominal value
+        /// </summary>
+        /// <param name="number">Number</param>
+        /// <returns>Value</returns>
+        private static NumberType NominalValue(Number number)
+        {
+            if (number is Measure measure)
+            {
+                return measure.Value * measure.Unit.Factor;
+            }
+
+            return number.Value;
+        }
+
+        /// <summary>
         /// Get number nominal SI value
         /// </summary>
         /// <param name="number">Number</param>
@@ -195,7 +214,11 @@ namespace CalcBase
                 {
                     return measure.Value * measure.Unit.Factor;
                 }
-                else if (measure.Unit.Parent is IImperialUnit imperialUnit)
+                else if (measure.Unit.Parent is NonSIUnit nonSIUnit)
+                {
+                    return measure.Value * measure.Unit.Factor * nonSIUnit.EqualSIValue;
+                }
+                else if (measure.Unit.Parent is ImperialUnit imperialUnit)
                 {
                     return measure.Value * measure.Unit.Factor * imperialUnit.EqualSIValue;
                 }
@@ -394,6 +417,28 @@ namespace CalcBase
             else
             {
                 return measure.Unit.Parent.Multiples.Where(m => measure.Value >= m.Factor).Last();
+            }
+        }
+
+        /// <summary>
+        /// Get unit multiple that fits best to represent value of unit
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <param name="unit">Base unit</param>
+        /// <returns>Unit multiple<returns>
+        private static UnitMultiple GetFittingUnitMultiple(NumberType value, IUnit unit)
+        {
+            if (value < unit.Multiples.First().Factor)
+            {
+                return unit.Multiples.First();
+            }
+            else if (value >= unit.Multiples.Last().Factor)
+            {
+                return unit.Multiples.Last();
+            }
+            else
+            {
+                return unit.Multiples.Where(m => value >= m.Factor).Last();
             }
         }
     }
