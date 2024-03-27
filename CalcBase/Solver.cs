@@ -98,8 +98,12 @@ namespace CalcBase
                 SIDerivedUnit? derivedUnit = TryFindDerivedUnit([a, b, binOp]);
                 if (derivedUnit != null)
                 {
-                    Debug.WriteLine($"  Derived unit: {derivedUnit.Name}");
-                    result = binOp.Calculate(NominalValue(a), NominalValue(b));
+                    NumberType valueA = NominalSIValue(a);
+                    NumberType valueB = NominalSIValue(b);
+                    
+                    Debug.WriteLine($"  Derived unit {derivedUnit.Name} with {valueA} and {valueB}");
+                    result = binOp.Calculate(valueA, valueB);
+
                     UnitMultiple unit = GetFittingUnitMultiple(result, derivedUnit);
                     return new Measure(result / unit.Factor, unit);
                 }
@@ -108,8 +112,26 @@ namespace CalcBase
                 IFormula? formula = TryFindFormula([a, b, binOp]);
                 if (formula != null)
                 {
-                    Debug.WriteLine($"  Formula: {formula.Name}");
-                    result = binOp.Calculate(NominalSIValue(a), NominalSIValue(b));
+                    NumberType valueA = NominalSIValue(a);
+                    NumberType valueB = NominalSIValue(b);
+
+                    Debug.WriteLine($"  Formula {formula.Name} with {valueA} and {valueB}");
+                    result = binOp.Calculate(valueA, valueB);
+
+                    // Need to convert to imperial ?
+                    if ((a is Measure measureImpA) && (measureImpA.Unit.Parent is ImperialUnit))
+                    {
+                        ImperialUnit? matchingImperialUnit = (ImperialUnit?)Factory.Units
+                            .FirstOrDefault(u => (u is ImperialUnit impUnit) && (impUnit.EqualSIUnit == formula.ResultUnit));
+                        if (matchingImperialUnit != null)
+                        {
+                            result /= matchingImperialUnit.EqualSIValue;
+                            UnitMultiple imperialUnitMultiple = GetFittingUnitMultiple(result, matchingImperialUnit);
+                            return new Measure(result / imperialUnitMultiple.Factor, imperialUnitMultiple);
+                        }
+                    }
+                    
+                    // Use formula SI unit
                     UnitMultiple unit = GetFittingUnitMultiple(result, formula.ResultUnit);
                     return new Measure(result / unit.Factor, unit);
                 }

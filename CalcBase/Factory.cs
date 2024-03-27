@@ -160,7 +160,7 @@ namespace CalcBase
             [
                 new("Micrometre per second", ["µm/s"], 1e-6M, UnitContext.All),
                 new("Millimetre per second", ["mm/s"], 1e-3M, UnitContext.All),
-                //new("Kilometre per hour",    ["km/h"], Division.Calculate(1, 3.6M), UnitContext.All),
+                //new("Kilometre per hour",    ["km/h"], Fraction(1, 3.6M), UnitContext.All),
                 new("Metre per second",      ["m/s"],  1,     UnitContext.All),
                 new("Kilometre per second",  ["km/s"], 1e+3M, UnitContext.All)
             ]);
@@ -236,12 +236,12 @@ namespace CalcBase
         // Imperial units
         public static readonly ImperialUnit Foot = new(0.3048M, Metre,
             [
-                new("Thou", ["th", "mil"], Division.Calculate(1, 12000), UnitContext.All),
-                new("Inch", ["\"", "in"],  Division.Calculate(1, 12),    UnitContext.All),
-                new("Hand", ["hh"],        Division.Calculate(1, 3),     UnitContext.All),
-                new("Foot", ["ft"],        1,                            UnitContext.All),
-                new("Yard", ["yd", "'"],   36,                           UnitContext.All),
-                new("Mile", ["mi"],        5280,                         UnitContext.All),
+                new("Thou", ["th", "mil"], Fraction(1, 12000), UnitContext.All),
+                new("Inch", ["\"", "in"],  Fraction(1, 12),    UnitContext.All),
+                new("Hand", ["hh"],        Fraction(1, 3),     UnitContext.All),
+                new("Foot", ["ft"],        1,                  UnitContext.All),
+                new("Yard", ["yd", "'"],   36,                 UnitContext.All),
+                new("Mile", ["mi"],        5280,               UnitContext.All),
             ]);
 
         public static readonly ImperialUnit NauticalMile = new(1852M, Metre,
@@ -256,22 +256,22 @@ namespace CalcBase
 
         public static readonly ImperialUnit SquareFoot = new(0.09290304M, SquareMetre,
             [
-                new("Square yard", ["yd²", "sq yd"], 0.11111111111M, UnitContext.All),
-                new("Square foot", ["ft²", "sq ft"],              1, UnitContext.All),
-                new("Square inch", ["in²", "sq in"],            144, UnitContext.All),
+                new("Square inch", ["in²", "sq in"], Fraction(1, 144), UnitContext.All),
+                new("Square foot", ["ft²", "sq ft"], 1,                UnitContext.All),
+                new("Square yard", ["yd²", "sq yd"], 9,                UnitContext.All),
             ]);
 
         public static readonly ImperialUnit Pound = new(0.45359237M, Kilogram,
             [
-                new("Grain",         ["gr"],        Division.Calculate(1, 7000), UnitContext.All),
-                new("Drachm",        ["dr"],        Division.Calculate(1, 256),  UnitContext.All),
-                new("Ounce",         ["oz"],        Division.Calculate(1, 16),   UnitContext.All),
-                new("Pound",         ["lb"],        1,                           UnitContext.All),
-                new("Stone",         ["st"],        14,                          UnitContext.All),
-                new("Slug",          ["slug"],      32.17404856M,                UnitContext.Engineering),
-                new("Quarter",       ["qr", "qrt"], 28,                          UnitContext.All),
-                new("Hundredweight", ["cwt"],       112,                         UnitContext.All),
-                new("Ton",           ["it"],        2240,                        UnitContext.All), // Custom symbol, really is "t"
+                new("Grain",         ["gr"],        Fraction(1, 7000), UnitContext.All),
+                new("Drachm",        ["dr"],        Fraction(1, 256),  UnitContext.All),
+                new("Ounce",         ["oz"],        Fraction(1, 16),   UnitContext.All),
+                new("Pound",         ["lb"],        1,                 UnitContext.All),
+                new("Stone",         ["st"],        14,                UnitContext.All),
+                new("Slug",          ["slug"],      32.17404856M,      UnitContext.Engineering),
+                new("Quarter",       ["qr", "qrt"], 28,                UnitContext.All),
+                new("Hundredweight", ["cwt"],       112,               UnitContext.All),
+                new("Ton",           ["it"],        2240,              UnitContext.All), // Custom symbol, really is "t"
             ]);
 
         // Digital units
@@ -395,6 +395,17 @@ namespace CalcBase
             BitrateByAmountAndTime, ByterateByAmountAndTime];
 
         /// <summary>
+        /// Calculate fraction
+        /// </summary>
+        /// <param name="dividend">Dividend</param>
+        /// <param name="divisor">Divisor</param>
+        /// <returns>Fraction</returns>
+        public static NumberType Fraction(NumberType dividend, NumberType divisor)
+        {
+            return dividend / divisor;
+        }
+
+        /// <summary>
         /// Utility function to create physics variable
         /// </summary>
         /// <param name="unit">SI unit</param>
@@ -426,7 +437,7 @@ namespace CalcBase
         public static UnitMultiple[] CreateStandardUnitMultiples(string name, string symbol, int exponentOffset = 0)
         {
             return SIStandardUnitMultiples
-                .Select(m => new UnitMultiple((m.Name + name).ToLower(), [m.Symbol + symbol], Exponent.Calculate(10, m.Exponent + exponentOffset), UnitContext.All))
+                .Select(m => new UnitMultiple((m.Name + name.ToLower()), [m.Symbol + symbol], Exponent.Calculate(10, m.Exponent + exponentOffset), UnitContext.All))
                 .ToArray();
         }
     }
