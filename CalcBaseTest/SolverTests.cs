@@ -165,8 +165,7 @@ namespace CalcBaseTest
         public void TestDerivedUnits()
         {
             TestEquation("3m/2s", new Measure(1.5M, Factory.MetrePerSecond.NominalMultiple));
-            //TestEquation("100km/2h", new Measure(50, Factory.MetrePerHour.MultipleNamed("Kilometre per hour")));
-            TestEquation("100km/2h", new Measure(13.889M, Factory.MetrePerSecond.NominalMultiple), 3);
+            TestEquation("100km/2h", new Measure(50, Factory.KilometrePerHour.NominalMultiple));
             TestEquation("200km/h*2s", new Measure(111.1M, Factory.Metre.NominalMultiple), 1);
             TestEquation("200km/h*2h", new Measure(400, Factory.Metre.MultipleNamed("Kilometre")));
             TestEquation("2cm*2cm", new Measure(4, Factory.SquareMetre.MultipleNamed("Square centimetre")));

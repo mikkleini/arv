@@ -136,8 +136,8 @@ namespace CalcBase
             }
             else if (element is IFunction)
             {
-                // Functions can only be at the beginning, after operator or after opening bracket
-                return (prevToken == null) || (prevToken is OperatorToken) || (prevToken is LeftParenthesisToken);
+                // Functions can only be at the beginning, after operator (except unit conversion) or after opening bracket
+                return (prevToken == null) || ((prevToken is OperatorToken opToken) && (opToken.Operator is not UnitConversionOperator)) || (prevToken is LeftParenthesisToken);
             }
 
             return true;

@@ -238,15 +238,10 @@ namespace CalcBase
                 new("Mile", ["mi"],        5280,               UnitContext.All),
             ]);
 
-        public static readonly ImperialUnit NauticalMile = new(1852M, Metre,
-            [
-                new("Nautical mile", ["NM", "nmi", "M"], 1, UnitContext.Nautical)
-            ]);
-
-        public static readonly ImperialUnit MilePerHour = new(0.44704M, MetrePerSecond,
-            [
-                new("Mile per hour", ["mph"], 1, UnitContext.All)
-            ]);
+        public static readonly ImperialUnit NauticalMile = new(1852M, Metre, [new("Nautical mile", ["NM", "nmi", "M"], 1, UnitContext.Nautical)]);
+        public static readonly ImperialUnit MilePerHour = new(0.44704M, MetrePerSecond, [new("Mile per hour", ["mph", "mi/h"], 1, UnitContext.All)]);
+        public static readonly ImperialUnit Knot = new(0.514444M, MetrePerSecond, [new("Knot", ["kn", "kt"], 1, UnitContext.All)]);
+        public static readonly ImperialUnit FootPerSecond = new(0.3048M, MetrePerSecond, [new("Foot per second", ["ft/s", "fps"], 1, UnitContext.All)]);
 
         public static readonly ImperialUnit SquareFoot = new(0.09290304M, SquareMetre,
             [
@@ -280,7 +275,7 @@ namespace CalcBase
                 new("Mebibit", ["Mibit"],       BigInteger.Pow(2,  20), UnitContext.Programming),
             ]);
 
-        public static readonly SIBaseUnit Byte = new(DataSize,
+        public static readonly NonSIUnit Byte = new(8, Bit,
             [
                 new("Byte",     ["B"],   1,                    UnitContext.Programming),
                 new("Kibibyte", ["KiB"], BigInteger.One << 10, UnitContext.Programming),
@@ -303,8 +298,7 @@ namespace CalcBase
                 new("Megabits per second", ["Mib/s"], BigInteger.One << 20, UnitContext.Programming),
             ]);
 
-        public static readonly SIDerivedUnit BytesPerSecond = new(DataRate,
-            [Byte, Second, Division],
+        public static readonly NonSIUnit BytesPerSecond = new(8, BitsPerSecond,
             [
                 new("Bytes per second",     ["B/s"],   1,                    UnitContext.Programming),
                 new("Kilobytes per second", ["KiB/s"], BigInteger.One << 10, UnitContext.Programming),
@@ -337,7 +331,6 @@ namespace CalcBase
 
         // Digital formulas
         public static readonly Formula BitrateByAmountAndTime = new("Datarate by data amount and time", [PhyVar(Bit), PhyVar(Second), Division], BitsPerSecond);
-        public static readonly Formula ByterateByAmountAndTime = new("Datarate by data amount and time", [PhyVar(Byte), PhyVar(Second), Division], BytesPerSecond);
 
         /// <summary>
         /// All operators
@@ -374,7 +367,7 @@ namespace CalcBase
             MetrePerSecond, SquareMetre, CubicMetre, Newton, Joule,
             Minute, Hour, Day, JulianYear, AstronomicalUnit, Are, Hectare, Litre, Tonne, Dalton, ElectronVolt,
             KilometrePerHour,
-            Foot, NauticalMile, MilePerHour, SquareFoot, Pound,
+            Foot, NauticalMile, MilePerHour, Knot, FootPerSecond, SquareFoot, Pound,
             Ohm, Volt,
             Bit, Byte, BitsPerSecond, BytesPerSecond];
 
@@ -386,7 +379,7 @@ namespace CalcBase
             VolumeOfCube, VolumeOfBox,
             TravelDistance, TravelSpeed, TravelTime, AccelerationFormula,
             OhmsLaw,
-            BitrateByAmountAndTime, ByterateByAmountAndTime];
+            BitrateByAmountAndTime];
 
         /// <summary>
         /// Calculate fraction

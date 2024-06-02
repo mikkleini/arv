@@ -4,12 +4,8 @@ using CalcBase.Numbers;
 using System.Numerics;
 using System.Diagnostics;
 using CalcBase.Functions;
-using CalcBase.Constants;
 using CalcBase.Formulas;
-using CalcBase.Quantities;
 using CalcBase.Units;
-using System.Numerics.Generic;
-using System.ComponentModel;
 
 namespace CalcBase
 {
@@ -129,13 +125,13 @@ namespace CalcBase
                         {
                             result /= matchingImperialUnit.EqualSIValue;
                             UnitMultiple imperialUnitMultiple = GetFittingUnitMultiple(result, matchingImperialUnit);
-                            return new Measure(result / imperialUnitMultiple.Factor, imperialUnitMultiple);
+                            return ValueToMeasure(result, imperialUnitMultiple);
                         }
                     }
 
-                    // Use formula SI unit
-                    UnitMultiple unit = GetFittingUnitMultiple(result, formula.ResultUnit);
-                    return new Measure(result / unit.Factor, unit);
+                    // Get measure with reasonable unit and multiple
+                    UnitMultiple fittingUnitMultiple = GetFittingUnitMultiple(result, formula.ResultUnit);
+                    return ValueToMeasure(result, fittingUnitMultiple);
                 }
 
                 // Are both operands measures ?
@@ -449,26 +445,36 @@ namespace CalcBase
         }
 
         /// <summary>
-        /// Get unit multiple that fits best to represent value of unit
+        /// Get unit multiple that fits best to represent the value
         /// </summary>
         /// <param name="value">Value</param>
         /// <param name="unit">Base unit</param>
         /// <returns>Unit multiple<returns>
         private static UnitMultiple GetFittingUnitMultiple(NumberType value, IUnit unit)
         {
-            IEnumerable<UnitMultiple> filteredMultiples = unit.Multiples.Where(m => m.UseForDisplay);
+            List<(NumberType factor, UnitMultiple multiple)> multiples = unit.Multiples.Where(m => m.UseForDisplay).Select(m => (m.Factor, m)).ToList();
 
-            if (value < filteredMultiples.First().Factor)
+            if (unit is ISIUnit siUnit)
             {
-                return filteredMultiples.First();
+                foreach (NonSIUnit nonSiUnit in Factory.Units.Where(u => (u is NonSIUnit nonSIUnit) && (nonSIUnit.EqualSIUnit == siUnit)))
+                {
+                    multiples.AddRange(nonSiUnit.Multiples.Where(m => m.UseForDisplay).Select(m => (m.Factor / nonSiUnit.EqualSIValue, m)));
+                }
             }
-            else if (value >= filteredMultiples.Last().Factor)
+
+            var orderedMultiples = multiples.OrderBy(m => m.factor);
+
+            if (value < orderedMultiples.First().factor)
             {
-                return filteredMultiples.Last();
+                return orderedMultiples.First().multiple;
+            }
+            else if (value >= orderedMultiples.Last().factor)
+            {
+                return orderedMultiples.Last().multiple;
             }
             else
             {
-                return filteredMultiples.Where(m => value >= m.Factor).Last();
+                return orderedMultiples.Where(m => value >= m.factor).Last().multiple;
             }
         }
     }
