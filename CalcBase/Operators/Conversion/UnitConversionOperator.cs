@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CalcBase.Operators.Conversion
+﻿namespace CalcBase.Operators.Conversion
 {
     /// <summary>
     /// Unit conversion operator
@@ -25,7 +19,8 @@ namespace CalcBase.Operators.Conversion
         /// <returns>Result of operation</returns>
         public NumberType Calculate(NumberType a, NumberType b)
         {
-            return a + b;
+            // Math is actually ignored...
+            return a * b;
         }
     }
 }

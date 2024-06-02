@@ -159,20 +159,7 @@ namespace CalcBase
 
                             Debug.WriteLine($"  Operation {binOp.Name} with {valueA} and {valueB}");
                             result = binOp.Calculate(valueA, valueB);
-
-                            // Deal with non-SI and imperial units
-                            if (measureA.Unit.Parent is NonSIUnit nonSIUnit)
-                            {
-                                return new Measure((result / nonSIUnit.EqualSIValue) / measureA.Unit.Factor, measureA.Unit);
-                            }
-                            else if (measureA.Unit.Parent is ImperialUnit imperialUnit)
-                            {
-                                return new Measure((result / imperialUnit.EqualSIValue) / measureA.Unit.Factor, measureA.Unit);
-                            }
-                            else
-                            {
-                                return new Measure(result / measureA.Unit.Factor, measureA.Unit);
-                            }
+                            return ValueToMeasure(result, measureA.Unit);
                         }
                         else
                         {
@@ -189,28 +176,11 @@ namespace CalcBase
                             throw new ExpressionException("Incompatible conversion", opToken.Position, opToken.Length);
                         }
 
-                        Debug.WriteLine($"  Binary operation {op.Name} with {measureA} and {measureB}");
+                        Debug.WriteLine($"  Unit conversion from {measureA} to {measureB.Unit}");
 
                         // Get SI value of measure to be converted
                         NumberType valueA = measureA.GetNominalSIValue();
-
-                        // Deal with conversion to non-SI and imperial units
-                        if (measureB.Unit.Parent is ISIUnit siUnit)
-                        {
-                            return new Measure(valueA / measureB.Unit.Factor, measureB.Unit);
-                        }
-                        else if (measureB.Unit.Parent is NonSIUnit nonSIUnit)
-                        {
-                            return new Measure((valueA / nonSIUnit.EqualSIValue) / measureB.Unit.Factor, measureB.Unit);
-                        }
-                        else if (measureB.Unit.Parent is ImperialUnit imperialUnit)
-                        {
-                            return new Measure((valueA / imperialUnit.EqualSIValue) / measureB.Unit.Factor, measureB.Unit);
-                        }
-                        else
-                        {
-                            throw new ExpressionException("Unresolvable conversion", opToken.Position, opToken.Length);
-                        }
+                        return ValueToMeasure(valueA, measureB.Unit);
                     }
                 }
                 else
@@ -258,6 +228,31 @@ namespace CalcBase
             }
 
             return number.Value;
+        }
+
+        /// <summary>
+        /// Convert nominal SI value to measure of specified unit multiple
+        /// </summary>
+        /// <param name="nominalSIValue">Nominal value</param>
+        /// <param name="resultUnitMultiple">Unit multiple</param>
+        /// <returns>Measure</returns>
+        /// <exception cref="SolverException"></exception>
+        private static Measure ValueToMeasure(NumberType nominalSIValue, UnitMultiple resultUnitMultiple)
+        {
+            if (resultUnitMultiple.Parent is ISIUnit)
+            {
+                return new Measure(nominalSIValue / resultUnitMultiple.Factor, resultUnitMultiple);
+            }
+            else if (resultUnitMultiple.Parent is NonSIUnit nonSIUnit)
+            {
+                return new Measure((nominalSIValue / nonSIUnit.EqualSIValue) / resultUnitMultiple.Factor, resultUnitMultiple);
+            }
+            else if (resultUnitMultiple.Parent is ImperialUnit imperialUnit)
+            {
+                return new Measure((nominalSIValue / imperialUnit.EqualSIValue) / resultUnitMultiple.Factor, resultUnitMultiple);
+            }
+
+            throw new SolverException($"Unit multiple {resultUnitMultiple} has no base SI unit");
         }
 
         /// <summary>
