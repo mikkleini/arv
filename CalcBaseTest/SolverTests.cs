@@ -198,5 +198,15 @@ namespace CalcBaseTest
             TestEquation("3*2m", new Measure(6, Factory.Metre.NominalMultiple));
             TestEquation("4cm/2", new Measure(2, Factory.Metre.Multiples.Single(m => m.Factor == 0.01M)));
         }
+
+        [Test]
+        public void TextUnitConversion()
+        {
+            TestEquation("1800s>h", new Measure(0.5M, Factory.Hour.NominalMultiple));
+            TestEquation("2.2h>s", new Measure(7920, Factory.Second.NominalMultiple));
+            TestEquation("3.5km>m", new Measure(3500, Factory.Metre.NominalMultiple));
+            TestEquation("2m>in", new Measure(78.74M, Factory.Foot.MultipleNamed("Inch")), 2);
+            TestEquation("2m>\"", new Measure(78.74M, Factory.Foot.MultipleNamed("Inch")), 2);
+        }
     }
 }

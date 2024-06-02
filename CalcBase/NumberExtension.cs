@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using CalcBase.Numbers;
+using CalcBase.Units;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace CalcBase
@@ -23,6 +25,21 @@ namespace CalcBase
         public static bool IsNatural(this BigRational rational)
         {
             return BigRational.IsInteger(rational) && (rational >= 0);
+        }
+
+        /// <summary>
+        /// Get measure nominal SI value
+        /// </summary>
+        /// <param name="number">Number</param>
+        /// <returns>Nominal SI value</returns>
+        public static NumberType GetNominalSIValue(this Number number)
+        {
+            if (number is Measure measure)
+            {
+                return measure.GetNominalSIValue();
+            }
+
+            return number.Value;
         }
     }
 }

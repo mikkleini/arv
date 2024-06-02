@@ -8,6 +8,7 @@ using CalcBase.Formulas;
 using CalcBase.Functions;
 using CalcBase.Numbers;
 using CalcBase.Operators;
+using CalcBase.Operators.Arithmetic;
 using CalcBase.Operators.Conversion;
 using CalcBase.Quantities;
 using CalcBase.Tokens;
@@ -47,6 +48,9 @@ namespace CalcBase
             {
                 return;
             }
+
+            // Add operators to the matching list
+            TextMatches.AddRange(Factory.Operators.Select(o => (o.Symbol, (IElement)o)));
 
             // Add functions to matching list
             TextMatches.AddRange(Factory.Functions.Select(f => (f.Symbol, (IElement)f)));
@@ -114,7 +118,18 @@ namespace CalcBase
         /// <returns>true if match fits the context</returns>
         internal static bool CheckTextElementFitToContext(IElement element, IToken? prevToken)
         {
-            if (element is UnitMultiple)
+            if (element is NegationOperator)
+            {
+                // Negation can only be used in certain places
+                return (prevToken == null) || (prevToken is LeftParenthesisToken) || (prevToken is ArgumentSeparatorToken) || (prevToken is OperatorToken);
+            }
+            else if (element is SubtractionOperator)
+            {
+                // Can only subtract from other value
+                return ((prevToken != null) &&
+                    ((prevToken is NumberToken) || (prevToken is MeasureToken) || (prevToken is UnitToken) || (prevToken is RightParenthesisToken)));
+            }
+            else if (element is UnitMultiple)
             {
                 // Units can only follow numbers or be after unit compersion operator
                 return (prevToken != null) && ((prevToken is NumberToken) || ((prevToken is OperatorToken opToken) && (opToken.Operator is UnitConversionOperator)));
@@ -169,7 +184,16 @@ namespace CalcBase
                 {
                     (string symbol, IElement element) = longestMatches.First();
 
-                    if (element is IFunction func)
+                    if (element is IOperator op)
+                    {
+                        return new OperatorToken()
+                        {
+                            Operator = op,
+                            Position = start,
+                            Length = symbol.Length,
+                        };
+                    }
+                    else if (element is IFunction func)
                     {
                         return new FunctionToken()
                         {
@@ -203,7 +227,7 @@ namespace CalcBase
                 }
             }
 
-            throw new ExpressionException($"Unknown function/constant/unit: {text}", start, text.Length);
+            throw new ExpressionException($"Unknown symbol: {text}", start, text.Length);
         }
 
         /// <summary>
@@ -259,10 +283,6 @@ namespace CalcBase
                 {
                     token = ReadNumber(infix, i);
                 }
-                else if (char.IsLetter(c))
-                {
-                    token = ReadText(infix, i, prevToken);
-                }
                 else if (c == '(')
                 {
                     token = new LeftParenthesisToken()
@@ -289,32 +309,7 @@ namespace CalcBase
                 }
                 else
                 {
-                    IOperator? op = null;
-
-                    // Special case with minus operator
-                    if (c == '-')
-                    {
-                        op = DecideMinusOperator(tokens.LastOrDefault());
-                    }
-                    else
-                    {
-                        // Check for operators by length of the symbol.
-                        // Basically if expression contains ** then it should first try to find exponent operator **, not the multiplication.
-                        op = Factory.Operators
-                            .OrderByDescending(o => o.Symbol.Length)
-                            .FirstOrDefault(o => infix.AsSpan().Slice(i).StartsWith(o.Symbol.AsSpan()));
-                    }
-
-                    // It's an operator ?
-                    if (op != null)
-                    {
-                        token = new OperatorToken()
-                        {
-                            Position = i,
-                            Length = op.Symbol.Length,
-                            Operator = op
-                        };
-                    }
+                    token = ReadText(infix, i, prevToken);
                 }
 
                 // Found token ?

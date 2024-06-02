@@ -9,6 +9,7 @@ using CalcBase.Formulas;
 using CalcBase.Quantities;
 using CalcBase.Units;
 using System.Numerics.Generic;
+using System.ComponentModel;
 
 namespace CalcBase
 {
@@ -113,8 +114,8 @@ namespace CalcBase
                 IFormula? formula = TryFindFormula([a, b, binOp]);
                 if (formula != null)
                 {
-                    NumberType valueA = NominalSIValue(a);
-                    NumberType valueB = NominalSIValue(b);
+                    NumberType valueA = a.GetNominalSIValue();
+                    NumberType valueB = b.GetNominalSIValue();
 
                     Debug.WriteLine($"  Formula {formula.Name} with {valueA} and {valueB}");
                     result = binOp.Calculate(valueA, valueB);
@@ -153,8 +154,8 @@ namespace CalcBase
                         // Measures of the same quantity ?
                         else if (measureA.Unit.Parent.Quantity == measureB.Unit.Parent.Quantity)
                         {
-                            NumberType valueA = NominalSIValue(measureA);
-                            NumberType valueB = NominalSIValue(measureB);
+                            NumberType valueA = measureA.GetNominalSIValue();
+                            NumberType valueB = measureB.GetNominalSIValue();
 
                             Debug.WriteLine($"  Operation {binOp.Name} with {valueA} and {valueB}");
                             result = binOp.Calculate(valueA, valueB);
@@ -176,6 +177,39 @@ namespace CalcBase
                         else
                         {
                             throw new ExpressionException("Incompatible operands", opToken.Position, opToken.Length);
+                        }
+                    }
+
+                    // Unit conversion ?
+                    if (ReferenceEquals(binOp, Factory.UnitConversion))
+                    {
+                        // Same unit ?
+                        if (measureA.GetBaseSIUnit() != measureB.GetBaseSIUnit())
+                        {
+                            throw new ExpressionException("Incompatible conversion", opToken.Position, opToken.Length);
+                        }
+
+                        Debug.WriteLine($"  Binary operation {op.Name} with {measureA} and {measureB}");
+
+                        // Get SI value of measure to be converted
+                        NumberType valueA = measureA.GetNominalSIValue();
+
+                        // Deal with conversion to non-SI and imperial units
+                        if (measureB.Unit.Parent is ISIUnit siUnit)
+                        {
+                            return new Measure(valueA / measureB.Unit.Factor, measureB.Unit);
+                        }
+                        else if (measureB.Unit.Parent is NonSIUnit nonSIUnit)
+                        {
+                            return new Measure((valueA / nonSIUnit.EqualSIValue) / measureB.Unit.Factor, measureB.Unit);
+                        }
+                        else if (measureB.Unit.Parent is ImperialUnit imperialUnit)
+                        {
+                            return new Measure((valueA / imperialUnit.EqualSIValue) / measureB.Unit.Factor, measureB.Unit);
+                        }
+                        else
+                        {
+                            throw new ExpressionException("Unresolvable conversion", opToken.Position, opToken.Length);
                         }
                     }
                 }
@@ -221,32 +255,6 @@ namespace CalcBase
             if (number is Measure measure)
             {
                 return measure.Value * measure.Unit.Factor;
-            }
-
-            return number.Value;
-        }
-
-        /// <summary>
-        /// Get number nominal SI value
-        /// </summary>
-        /// <param name="number">Number</param>
-        /// <returns>Value</returns>
-        private static NumberType NominalSIValue(Number number)
-        {
-            if (number is Measure measure)
-            {
-                if (measure.Unit.Parent is ISIUnit)
-                {
-                    return measure.Value * measure.Unit.Factor;
-                }
-                else if (measure.Unit.Parent is NonSIUnit nonSIUnit)
-                {
-                    return measure.Value * measure.Unit.Factor * nonSIUnit.EqualSIValue;
-                }
-                else if (measure.Unit.Parent is ImperialUnit imperialUnit)
-                {
-                    return measure.Value * measure.Unit.Factor * imperialUnit.EqualSIValue;
-                }
             }
 
             return number.Value;
@@ -411,12 +419,12 @@ namespace CalcBase
             {
                 yield return ($"{measureResult.Value}", measureResult.Unit.Symbols.First());
 
-                // If factor is not 10-based number then return the value with primary unit
+                // TODO If factor is not 10-based number then return the value with primary unit
                 // Example: 1KiB means 1024B and 1024 is not 10-based, hence both 1KiB and 1024B are returned.
-                if (!NumberType.Log10(measureResult.Unit.Factor).IsInteger())
+                /*if (!NumberType.Log10(measureResult.Unit.Factor).IsInteger())
                 {
                     yield return ($"{measureResult.Value}", measureResult.Unit.Symbols.First());
-                }
+                }*/
             }
             else
             {
