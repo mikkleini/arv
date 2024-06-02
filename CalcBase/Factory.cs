@@ -43,7 +43,7 @@ namespace CalcBase
             new("Nano",   "n",  -9, true ),
             new("Micro",  "µ",  -6, true ),
             new("Milli",  "m",  -3, true ),
-            new("Centi",  "c",  -2, false),
+            new("Centi",  "c",  -2, true),
             new("Deci",   "d",  -1, false),
             new("",       "",    0, true ),
             new("Deca",   "da",  1, false),
@@ -160,7 +160,6 @@ namespace CalcBase
             [
                 new("Micrometre per second", ["µm/s"], 1e-6M, UnitContext.All),
                 new("Millimetre per second", ["mm/s"], 1e-3M, UnitContext.All),
-                //new("Kilometre per hour",    ["km/h"], Fraction(1, 3.6M), UnitContext.All),
                 new("Metre per second",      ["m/s"],  1,     UnitContext.All),
                 new("Kilometre per second",  ["km/s"], 1e+3M, UnitContext.All)
             ]);
@@ -225,13 +224,8 @@ namespace CalcBase
         public static readonly NonSIUnit Dalton           = new(1.66053906660e-27M, Kilogram,    [new("Dalton", ["Da"], 1, UnitContext.All)]);
         public static readonly NonSIUnit ElectronVolt     = new(1.602176634e-19M,   Joule,       [new("Electronvolt", ["eV"], 1, UnitContext.All)]);
 
-        // SI derived units
-        public static readonly SIDerivedUnit MetrePerHour = new(Speed,
-            [Metre, Hour, Division],
-            [
-                new("Metre per hour",     ["m/h"],  1,    UnitContext.All),
-                new("Kilometre per hour", ["km/h"], 1000, UnitContext.All)
-            ]);
+        // SI "others"
+        public static readonly NonSIUnit KilometrePerHour = new(Fraction(1000, 3600), MetrePerSecond, [new("Kilometre per hour", ["km/h"], 1, UnitContext.All)]);
 
         // Imperial units
         public static readonly ImperialUnit Foot = new(0.3048M, Metre,
@@ -379,7 +373,7 @@ namespace CalcBase
             [Second, Metre, Kilogram, Ampere, Kelvin, Mole, Candela,
             MetrePerSecond, SquareMetre, CubicMetre, Newton, Joule,
             Minute, Hour, Day, JulianYear, AstronomicalUnit, Are, Hectare, Litre, Tonne, Dalton, ElectronVolt,
-            MetrePerHour,
+            KilometrePerHour,
             Foot, NauticalMile, MilePerHour, SquareFoot, Pound,
             Ohm, Volt,
             Bit, Byte, BitsPerSecond, BytesPerSecond];
@@ -437,7 +431,12 @@ namespace CalcBase
         public static UnitMultiple[] CreateStandardUnitMultiples(string name, string symbol, int exponentOffset = 0)
         {
             return SIStandardUnitMultiples
-                .Select(m => new UnitMultiple((m.Name + name.ToLower()), [m.Symbol + symbol], Exponent.Calculate(10, m.Exponent + exponentOffset), UnitContext.All))
+                .Select(m => new UnitMultiple(
+                    name: m.Name + name.ToLower(),
+                    symbols: [m.Symbol + symbol],
+                    factor: Exponent.Calculate(10, m.Exponent + exponentOffset),
+                    context: UnitContext.All,
+                    useForDisplay: m.UseForDisplay))
                 .ToArray();
         }
     }

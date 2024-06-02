@@ -94,7 +94,8 @@ namespace CalcBase
                         a.HexadecimalCase | b.HexadecimalCase);
                 }
 
-                // Check for derived SI unit
+                // Check for derived SI unit (NOT DONE RIGHT NOW. TBD IF NEEDED)
+                /*
                 SIDerivedUnit? derivedUnit = TryFindDerivedUnit([a, b, binOp]);
                 if (derivedUnit != null)
                 {
@@ -106,7 +107,7 @@ namespace CalcBase
 
                     UnitMultiple unit = GetFittingUnitMultiple(result, derivedUnit);
                     return new Measure(result / unit.Factor, unit);
-                }
+                }*/
 
                 // Check for formula
                 IFormula? formula = TryFindFormula([a, b, binOp]);
@@ -130,7 +131,7 @@ namespace CalcBase
                             return new Measure(result / imperialUnitMultiple.Factor, imperialUnitMultiple);
                         }
                     }
-                    
+
                     // Use formula SI unit
                     UnitMultiple unit = GetFittingUnitMultiple(result, formula.ResultUnit);
                     return new Measure(result / unit.Factor, unit);
@@ -154,6 +155,8 @@ namespace CalcBase
                         {
                             NumberType valueA = NominalSIValue(measureA);
                             NumberType valueB = NominalSIValue(measureB);
+
+                            Debug.WriteLine($"  Operation {binOp.Name} with {valueA} and {valueB}");
                             result = binOp.Calculate(valueA, valueB);
 
                             // Deal with non-SI and imperial units
@@ -450,17 +453,19 @@ namespace CalcBase
         /// <returns>Unit multiple<returns>
         private static UnitMultiple GetFittingUnitMultiple(NumberType value, IUnit unit)
         {
-            if (value < unit.Multiples.First().Factor)
+            IEnumerable<UnitMultiple> filteredMultiples = unit.Multiples.Where(m => m.UseForDisplay);
+
+            if (value < filteredMultiples.First().Factor)
             {
-                return unit.Multiples.First();
+                return filteredMultiples.First();
             }
-            else if (value >= unit.Multiples.Last().Factor)
+            else if (value >= filteredMultiples.Last().Factor)
             {
-                return unit.Multiples.Last();
+                return filteredMultiples.Last();
             }
             else
             {
-                return unit.Multiples.Where(m => value >= m.Factor).Last();
+                return filteredMultiples.Where(m => value >= m.Factor).Last();
             }
         }
     }

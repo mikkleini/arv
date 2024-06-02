@@ -11,5 +11,6 @@ namespace CalcBase.Units
         string[] Symbols { get; }
         IQuantity Quantity { get; }
         UnitMultiple[] Multiples { get; }
+        UnitMultiple NominalMultiple { get; }
     }
 }

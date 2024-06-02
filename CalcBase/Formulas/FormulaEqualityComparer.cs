@@ -47,7 +47,22 @@ namespace CalcBase.Formulas
             }
             else if (anything is PhysicsVariable phyVar)
             {
-                return phyVar.Unit;
+                if (phyVar.Unit is ISIUnit phySIUnit)
+                {
+                    return phySIUnit;
+                }
+                else if (phyVar.Unit is NonSIUnit phyNonSIUnit)
+                {
+                    return phyNonSIUnit.EqualSIUnit;
+                }
+                else if (phyVar.Unit is ImperialUnit phyImperialUnit)
+                {
+                    return phyImperialUnit.EqualSIUnit;
+                }
+                else
+                {
+                    throw new NotImplementedException($"Unexpected physical variable unit type: {phyVar.Unit}");
+                }
             }
             else if (anything is Measure measure)
             {

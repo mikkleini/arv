@@ -13,5 +13,6 @@ namespace CalcBase.Units
         public string[] Symbols => ["d"];
         public IQuantity Quantity => new Quantity("Dummy", ["d"]);
         public UnitMultiple[] Multiples => [];
+        public UnitMultiple NominalMultiple => new("dummy", ["d"], 1);
     }
 }

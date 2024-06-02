@@ -151,7 +151,7 @@ namespace CalcBaseTest
             var infixTokens = Parser.Tokenize("3.2m");
             var postfixTokens = Parser.ShuntingYard(infixTokens);
             
-            Assert.That(postfixTokens.Count, Is.EqualTo(1));
+            Assert.That(postfixTokens, Has.Count.EqualTo(1));
             Assert.That(postfixTokens[0], Is.InstanceOf(typeof(MeasureToken)));
             MeasureToken mt = (MeasureToken)postfixTokens[0];
             Assert.Multiple(() =>
@@ -164,16 +164,21 @@ namespace CalcBaseTest
         [Test]
         public void TestDerivedUnits()
         {
-            //TestEquation("3m/2s", new Measure(1.5M, Factory.MetrePerSecond.NominalMultiple));
-            TestEquation("100km/2h", new Measure(50, Factory.MetrePerHour.MultipleNamed("Kilometre per hour")));
-            //TestEquation("2cm*2cm", new Measure(4, Factory.SquareMetre.MultipleNamed("Square centimetre")));
-            //TestEquation("2cm**2", new Measure(4, Factory.SquareMetre.MultipleNamed("Square centimetre")));
+            TestEquation("3m/2s", new Measure(1.5M, Factory.MetrePerSecond.NominalMultiple));
+            //TestEquation("100km/2h", new Measure(50, Factory.MetrePerHour.MultipleNamed("Kilometre per hour")));
+            TestEquation("100km/2h", new Measure(13.889M, Factory.MetrePerSecond.NominalMultiple), 3);
+            TestEquation("200km/h*2s", new Measure(111.1M, Factory.Metre.NominalMultiple), 1);
+            TestEquation("200km/h*2h", new Measure(400, Factory.Metre.MultipleNamed("Kilometre")));
+            TestEquation("2cm*2cm", new Measure(4, Factory.SquareMetre.MultipleNamed("Square centimetre")));
+            TestEquation("2cm**2", new Measure(4, Factory.SquareMetre.MultipleNamed("Square centimetre")));
         }
 
         [Test]
         public void TestNonSIUnits()
         {
             TestEquation("2h+3600s", new Measure(3M, Factory.Hour.NominalMultiple));
+            TestEquation("10min+30s", new Measure(10.5M, Factory.Minute.NominalMultiple));
+            TestEquation("10s+1min", new Measure(70, Factory.Second.NominalMultiple));
             TestEquation("3m³+500l", new Measure(3.5M, Factory.CubicMetre.NominalMultiple));
         }
 

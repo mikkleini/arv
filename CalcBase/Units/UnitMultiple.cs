@@ -16,6 +16,7 @@ namespace CalcBase.Units
         public string[] Symbols { get; init; }
         public NumberType Factor { get; init; }
         public UnitContext Context { get; init; }
+        public bool UseForDisplay { get; init; }
 
         /// <summary>
         /// Constructor
@@ -23,14 +24,16 @@ namespace CalcBase.Units
         /// <param name="name">Name</param>
         /// <param name="symbols">Symbols</param>
         /// <param name="factor">Factor</param>
+        /// <param name="useForDisplay">Use for display</param>
         /// <param name="context">Context</param>
-        public UnitMultiple(string name, string[] symbols, NumberType factor, UnitContext context = UnitContext.All)
+        public UnitMultiple(string name, string[] symbols, NumberType factor, UnitContext context = UnitContext.All, bool useForDisplay = true)
         {
             Parent = Factory.DummyUnit;
             Name = name;
             Symbols = symbols;
             Factor = factor;
             Context = context;
+            UseForDisplay = useForDisplay;
         }
 
         /// <summary>
@@ -44,7 +47,8 @@ namespace CalcBase.Units
             stringBuilder.Append($"Name = \"{Name}\", ");
             stringBuilder.Append($"Symbols = [{string.Join(',', Symbols.Select(s => $"\"{s}\""))}], ");
             stringBuilder.Append($"Factor = {Factor}, ");
-            stringBuilder.Append($"Context = {Context}");
+            stringBuilder.Append($"Context = {Context}, ");
+            stringBuilder.Append($"UseForDisplay = {UseForDisplay}");
             return true;
         }
     }
