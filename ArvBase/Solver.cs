@@ -456,7 +456,7 @@ namespace ArvBase
 
             if (unit is ISIUnit siUnit)
             {
-                foreach (NonSIUnit nonSiUnit in Factory.Units.Where(u => (u is NonSIUnit nonSIUnit) && (nonSIUnit.EqualSIUnit == siUnit)))
+                foreach (NonSIUnit nonSiUnit in Factory.Units.Where(u => (u is NonSIUnit nonSIUnit) && (nonSIUnit.EqualSIUnit == siUnit)).Cast<NonSIUnit>())
                 {
                     multiples.AddRange(nonSiUnit.Multiples.Where(m => m.UseForDisplay).Select(m => (m.Factor / nonSiUnit.EqualSIValue, m)));
                 }

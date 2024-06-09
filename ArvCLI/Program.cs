@@ -39,11 +39,33 @@ namespace ArvCLI
         /// <summary>
         /// Main program
         /// </summary>
-        /// <param name="args"></param>
-        public static void Main(string[] args)
+        /// <param name="args">Optional arguments</param>
+        /// <returns>Exit code</returns>
+        public static int Main(string[] args)
         {
             Console.Out.WriteColoredLine("Welcome to Arv calculator", ConsoleColor.DarkGray);
-            RunEntry();
+
+            if (args.Length > 0)
+            {
+                bool anyFail = false;
+
+                // Process all arguments as expressions
+                foreach (string expression in args)
+                {
+                    Console.Write(expression);
+                    if (!DoTheMath(expression))
+                    {
+                        anyFail = true;
+                    }
+                }
+
+                return anyFail ? -1 : 0;
+            }
+            else
+            {
+                RunEntry();
+                return 0;
+            }            
         }
 
         /// <summary>
@@ -175,7 +197,8 @@ namespace ArvCLI
         /// Do the math
         /// </summary>
         /// <param name="expression">Expression</param>
-        private static void DoTheMath(string expression)
+        /// <returns>true if expression was solveable, false if not</returns>
+        private static bool DoTheMath(string expression)
         {
             Number result;
 
@@ -203,14 +226,14 @@ namespace ArvCLI
                 Console.WriteLine();
                 Console.Error.WriteColoredLine(ChRep(' ', ex.Position) + ChRep('^', ex.Length), ConsoleColor.Red);
                 Console.Error.WriteColoredLine(ex.Message, ConsoleColor.Red);
-                return;
+                return false;
             }
             catch (SolverException ex)
             {
                 // Show error on next line
                 Console.WriteLine();
                 Console.Error.WriteColoredLine(ex.Message, ConsoleColor.Red);
-                return;
+                return false;
             }
 
             // Place cursor to the end of expression
@@ -229,6 +252,7 @@ namespace ArvCLI
 
             // End the line
             Console.WriteLine();
+            return true;
         }
 
         /// <summary>
