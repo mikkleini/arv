@@ -1,11 +1,13 @@
-# calc
-Smart calculator
+# arv
 
+Smart calculator for engineers.
+
+*arv* means *number* in estonian language.
 
 # Ideas
 
-[ ] Binary, octal, decimal and hexadecimal numbers mixup \
-[ ] Units (SI) and formulas solving (e.g. 10m/s * 1h = 36km/h) \
+[x] Binary, octal, decimal and hexadecimal numbers mixup \
+[x] Units (SI) and formulas solving (e.g. 10m/s * 1h = 36km/h) \
 [ ] Date and time conversion (e.g. 10000s->h = 2.7778h) \
 [ ] Currency conversion (online access) \
 [ ] Detection of "round numbers" (million, etc.) \
