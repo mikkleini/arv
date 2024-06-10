@@ -123,7 +123,6 @@ namespace ArvBase
                             .FirstOrDefault(u => (u is ImperialUnit impUnit) && (impUnit.EqualSIUnit == formula.ResultUnit));
                         if (matchingImperialUnit != null)
                         {
-                            result /= matchingImperialUnit.EqualSIValue;
                             UnitMultiple imperialUnitMultiple = GetFittingUnitMultiple(result, matchingImperialUnit);
                             return ValueToMeasure(result, imperialUnitMultiple);
                         }
@@ -424,27 +423,6 @@ namespace ArvBase
         }
 
         /// <summary>
-        /// Get unit multiple that fits best to represent measure value
-        /// </summary>
-        /// <param name="measure">Measure</param>
-        /// <returns>Unit multiple<returns>
-        private static UnitMultiple GetFittingUnitMultiple(Measure measure)
-        {
-            if (measure.Value < measure.Unit.Parent.Multiples.First().Factor)
-            {
-                return measure.Unit.Parent.Multiples.First();
-            }
-            else if (measure.Value >= measure.Unit.Parent.Multiples.Last().Factor)
-            {
-                return measure.Unit.Parent.Multiples.Last();
-            }
-            else
-            {
-                return measure.Unit.Parent.Multiples.Where(m => measure.Value >= m.Factor).Last();
-            }
-        }
-
-        /// <summary>
         /// Get unit multiple that fits best to represent the value
         /// </summary>
         /// <param name="value">Value</param>
@@ -458,7 +436,7 @@ namespace ArvBase
             {
                 foreach (NonSIUnit nonSiUnit in Factory.Units.Where(u => (u is NonSIUnit nonSIUnit) && (nonSIUnit.EqualSIUnit == siUnit)).Cast<NonSIUnit>())
                 {
-                    multiples.AddRange(nonSiUnit.Multiples.Where(m => m.UseForDisplay).Select(m => (m.Factor / nonSiUnit.EqualSIValue, m)));
+                    multiples.AddRange(nonSiUnit.Multiples.Where(m => m.UseForDisplay).Select(m => (m.Factor * nonSiUnit.EqualSIValue, m)));
                 }
             }
 
