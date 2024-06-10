@@ -318,7 +318,8 @@ namespace ArvBase
         public static readonly Formula AreaOfCircle = new("Area of circle", [Pi, PhyVar(Metre, "Radius", "r"), Two, Exponent, Multiplication], SquareMetre);
         public static readonly Formula AreaOfSphere = new("Area of sphere", [Four, Pi, PhyVar(Metre, "Radius", "r"), Two, Exponent, Multiplication, Multiplication], SquareMetre);
         public static readonly Formula VolumeOfCube = new("Volume of cube", [PhyVar(Metre, "Side", "a"), Three, Exponent], CubicMetre);
-        public static readonly Formula VolumeOfBox = new("Volume of box", [PhyVar(Metre, "Length", "l"), PhyVar(Metre, "Width", "w"), PhyVar(Metre, "Height", "h"), Multiplication, Multiplication], CubicMetre);
+        public static readonly Formula VolumeOfBoxLWH = new("Volume of box by three sides", [PhyVar(Metre, "Length", "l"), PhyVar(Metre, "Width", "w"), PhyVar(Metre, "Height", "h"), Multiplication, Multiplication], CubicMetre);
+        public static readonly Formula VolumeOfBoxAH = new("Volume of box by area and height", [PhyVar(SquareMetre, "Area", "a"), PhyVar(Metre, "Height", "h"), Multiplication], CubicMetre);
 
         // Physics formulas
         public static readonly Formula TravelDistance = new("Travel distance", [PhyVar(MetrePerSecond), PhyVar(Second), Multiplication], Metre);
@@ -376,7 +377,7 @@ namespace ArvBase
         /// </summary>
         public static readonly IFormula[] Formulas =
             [AreaOfSquare, AreaOfRectangle, AreaOfTriangle, AreaOfCircle, AreaOfSphere,
-            VolumeOfCube, VolumeOfBox,
+            VolumeOfCube, VolumeOfBoxLWH, VolumeOfBoxAH,
             TravelDistance, TravelSpeed, TravelTime, AccelerationFormula,
             OhmsLaw,
             BitrateByAmountAndTime];
