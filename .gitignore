@@ -2,3 +2,5 @@
 */.vs
 */bin
 */obj
+*.csproj.user
+/ArvCLI/Properties/launchSettings.json
