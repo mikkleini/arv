@@ -6,6 +6,7 @@ using System.Diagnostics;
 using ArvBase.Functions;
 using ArvBase.Formulas;
 using ArvBase.Units;
+using ArvBase.Operators.Arithmetic;
 
 namespace ArvBase
 {
@@ -33,7 +34,30 @@ namespace ArvBase
         /// <returns>SI derived unit</returns>
         private static IFormula? TryFindFormula(IElement[] expression)
         {
-            return Factory.Formulas.FirstOrDefault(f => f.Expression.SequenceEqual(expression, FormulaEqComp));
+            return Factory.Formulas.SelectMany(f => GetEquivalentFormulas(f)).FirstOrDefault(f => f.Expression.SequenceEqual(expression, FormulaEqComp));
+        }
+
+        /// <summary>
+        /// Get all equivalent equations of a single formula
+        /// </summary>
+        /// <param name="formula">Formula</param>
+        /// <returns>Enumeration of equivalent formulas</returns>
+        private static IEnumerable<IFormula> GetEquivalentFormulas(IFormula formula)
+        {
+            // First the original
+            yield return formula;
+
+            // Commutative law check:
+            // Multiplication or addition operation with two physics variables or numbers
+            if ((formula.Expression.Length == 3) &&
+                ((formula.Expression[0] is PhysicsVariable) || (formula.Expression[0] is Number)) &&
+                ((formula.Expression[1] is PhysicsVariable) || (formula.Expression[1] is Number)) &&
+                ((formula.Expression[2] is MultiplicationOperator) || (formula.Expression[2] is AdditionOperator)))
+            {
+                yield return new Formula(formula.Name,
+                    [formula.Expression[1], formula.Expression[0], formula.Expression[2]],
+                    formula.ResultUnit);
+            }
         }
 
         /// <summary>
